@@ -7,6 +7,9 @@ import (
 	varint "github.com/yomorun/yomo-codec-golang/internal"
 )
 
+// PacketBufferMinimalLength 描述最小的Packet大小为4个字节
+const PacketBufferMinimalLength = 4
+
 // Type represents the value type of TLTV
 type Type byte
 
@@ -23,7 +26,7 @@ const (
 	UUID = 0x04
 	// Binary 二进制数据
 	Binary = 0x40
-	// Node represent a node
+	// Node represent a node, other 7 bits used represent tag id
 	Node = 0x80
 )
 
@@ -59,9 +62,11 @@ func (p *BasePacket) ToInt64() (int64, error) {
 	return result, nil
 }
 
+// ToUTF8String parse raw data as string value
+func (p *BasePacket) ToUTF8String() (string, error) {
+	return string(p.raw), nil
+}
+
 func (p *BasePacket) String() string {
 	return fmt.Sprintf("Tag=%v, Length=%v, Type=%v, RawDataLength=%v", p.Tag, p.Length, p.Type, len(p.raw))
 }
-
-// PacketBufferMinimalLength 描述最小的Packet大小为4个字节
-const PacketBufferMinimalLength = 4

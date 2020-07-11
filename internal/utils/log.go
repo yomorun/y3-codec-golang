@@ -50,6 +50,7 @@ var _ Logger = &defaultLogger{}
 
 // SetLogLevel sets the log level
 func (l *defaultLogger) SetLogLevel(level LogLevel) {
+	fmt.Println("------------------------------------*******", level)
 	l.logLevel = level
 }
 
@@ -115,7 +116,8 @@ func init() {
 }
 
 func readLoggingEnv() LogLevel {
-	switch strings.ToLower(os.Getenv(logEnv)) {
+	lvl := strings.ToLower(os.Getenv(logEnv))
+	switch lvl {
 	case "":
 		return LogLevelNothing
 	case "debug":

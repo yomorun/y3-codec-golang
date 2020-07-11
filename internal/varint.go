@@ -45,7 +45,6 @@ func NewDecoder(buf []byte) (dec *Decoder, len int) {
 	}
 
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "varint::Decode")
-	logger.SetLogLevel(utils.LogLevelDebug)
 	return &Decoder{raw, logger}, len
 }
 

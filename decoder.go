@@ -13,8 +13,6 @@ import (
 // [0x01, 0x01, 0x01, 0x01] -> Key=0x01, Value=-1
 func Decode(buf []byte) (*BasePacket, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
-	logger.SetLogLevel(utils.LogLevelDebug)
-
 	logger.Debugf("buf=%v", buf)
 
 	if buf == nil || len(buf) < PacketBufferMinimalLength {
@@ -70,24 +68,3 @@ func parseType(b byte) (Type, error) {
 	err := t.isValid()
 	return t, err
 }
-
-// func decodeValueByType(raw []byte, dataType Type) (obj interface{}, err error) {
-// 	switch dataType {
-// 	case Type(String):
-// 	case Type(Varint):
-// 		dec, _ := varint.NewDecoder(raw, 0)
-// 		result, err := dec.Decode()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return result, nil
-// 	case Type(Float):
-// 	case Type(Boolean):
-// 	case Type(UUID):
-// 	case Type(Binary):
-// 	case Type(Node):
-// 	default:
-// 		return nil, errors.New("Invalid Type")
-// 	}
-// 	return nil, errors.New("Invalid Type")
-// }

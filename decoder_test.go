@@ -67,7 +67,7 @@ func TestPacketRead(t *testing.T) {
 }
 
 // 测试读取 0x0A:-1
-func TestInt64PacketRead(t *testing.T) {
+func TestParseInt64(t *testing.T) {
 	buf := []byte{0x0A, 0x04, 0x01, 0x01}
 	expected := int64(-1)
 
@@ -83,6 +83,31 @@ func TestInt64PacketRead(t *testing.T) {
 
 	if val != expected {
 		t.Errorf("value actual = %v, and Expected = %v", val, expected)
+	}
+}
+
+// 测试 0x0B:"C"
+func TestParseString(t *testing.T) {
+	buf := []byte{0x0B, 0x04, 0x00, 0x43}
+	expectedType := Type(String)
+	expectedValue := "C"
+
+	res, err := Decode(buf)
+	if err != nil {
+		t.Errorf("err should nil, actual = %v", err)
+	}
+
+	if expectedType != res.Type {
+		t.Errorf("res.Type actual = %4b, and Expected = %4b", res.Type, expectedType)
+	}
+
+	target, err := res.ToUTF8String()
+	if err != nil {
+		t.Errorf("err should be nil, actual = %v", err)
+	}
+
+	if expectedValue != target {
+		t.Errorf("Result actual = %v, and Expected = %v", t, expectedValue)
 	}
 }
 
