@@ -2,6 +2,7 @@ package y3
 
 import (
 	"errors"
+	"fmt"
 
 	varint "github.com/yomorun/yomo-codec-golang/internal"
 )
@@ -56,6 +57,10 @@ func (p *BasePacket) ToInt64() (int64, error) {
 		return 0, err
 	}
 	return result, nil
+}
+
+func (p *BasePacket) String() string {
+	return fmt.Sprintf("Tag=%v, Length=%v, Type=%v, RawDataLength=%v", p.Tag, p.Length, p.Type, len(p.raw))
 }
 
 // PacketBufferMinimalLength 描述最小的Packet大小为4个字节
