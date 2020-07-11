@@ -50,7 +50,6 @@ var _ Logger = &defaultLogger{}
 
 // SetLogLevel sets the log level
 func (l *defaultLogger) SetLogLevel(level LogLevel) {
-	fmt.Println("------------------------------------*******", level)
 	l.logLevel = level
 }
 

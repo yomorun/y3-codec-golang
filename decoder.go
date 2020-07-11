@@ -27,7 +27,7 @@ func Decode(buf []byte) (*BasePacket, error) {
 	pos++
 
 	// read `Varint` from buf as `Length`
-	len, bufLen, err := parseVarintLength(buf, pos)
+	len, bufLen, err := ParseVarintLength(buf, pos)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +54,8 @@ func Decode(buf []byte) (*BasePacket, error) {
 	return p, nil
 }
 
-// Packet.Length is a varint type
-func parseVarintLength(b []byte, startPos int) (val int64, len int, err error) {
+// ParseVarintLength parse length as a varint type
+func ParseVarintLength(b []byte, startPos int) (val int64, len int, err error) {
 	dec, len := varint.NewDecoder(b[startPos:])
 	val, err = dec.Decode()
 	if err != nil {

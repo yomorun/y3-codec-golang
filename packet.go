@@ -46,8 +46,6 @@ type BasePacket struct {
 	Length int64
 	// 描述Value的数据类型
 	Type Type
-	// Value的字节
-	Val interface{}
 	// Raw bytes
 	raw []byte
 }
