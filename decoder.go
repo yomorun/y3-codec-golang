@@ -13,6 +13,7 @@ import (
 // [0x01, 0x01, 0x01, 0x01] -> Key=0x01, Value=-1
 func Decode(buf []byte) (*BasePacket, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
+	logger.SetLogLevel(utils.LogLevelDebug)
 
 	logger.Debugf("buf=%v", buf)
 
@@ -32,7 +33,10 @@ func Decode(buf []byte) (*BasePacket, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.Length = len
+	if len < 2 {
+		return nil, errors.New("malformed, Length can not smaller than 2")
+	}
+	p.Length = len - 1 // Length的值是Type+Value的字节长度
 	pos += bufLen
 
 	// read `Type` of a value
@@ -43,18 +47,17 @@ func Decode(buf []byte) (*BasePacket, error) {
 	p.Type = t
 	pos++
 
-	// read `Value` by `Type`
-	v, err := parseValue(buf, pos)
-	if err != nil {
-		return nil, err
-	}
-	p.Val = v
+	// read `Value` raw data, len(raw data) = p.Length - 1
+	valLength := p.Length
+	p.raw = make([]byte, valLength)
+	copied := copy(p.raw, buf[pos:int64(pos)+valLength])
+	logger.Debugf("copied raw data length = %v", copied)
 
 	return p, nil
 }
 
 func parseVarint(b []byte, startPos int) (val int64, len int, err error) {
-	dec, len := varint.NewDecoder(b, startPos)
+	dec, len := varint.NewDecoder(b[startPos:])
 	val, err = dec.Decode()
 	if err != nil {
 		return 0, 0, err
@@ -68,6 +71,23 @@ func parseType(b byte) (Type, error) {
 	return t, err
 }
 
-func parseValue(b []byte, startPos int) (*Val, error) {
-	return &Val{raw: b[startPos:]}, nil
-}
+// func decodeValueByType(raw []byte, dataType Type) (obj interface{}, err error) {
+// 	switch dataType {
+// 	case Type(String):
+// 	case Type(Varint):
+// 		dec, _ := varint.NewDecoder(raw, 0)
+// 		result, err := dec.Decode()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return result, nil
+// 	case Type(Float):
+// 	case Type(Boolean):
+// 	case Type(UUID):
+// 	case Type(Binary):
+// 	case Type(Node):
+// 	default:
+// 		return nil, errors.New("Invalid Type")
+// 	}
+// 	return nil, errors.New("Invalid Type")
+// }

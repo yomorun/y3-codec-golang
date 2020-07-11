@@ -6,7 +6,7 @@ import (
 
 func TestOneByte(t *testing.T) {
 	buf := []byte{0x01}
-	dec, len := NewDecoder(buf, 0)
+	dec, len := NewDecoder(buf)
 	val, err := dec.Decode()
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)

@@ -1,6 +1,8 @@
 package varint
 
 import (
+	"encoding/hex"
+
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
@@ -28,7 +30,7 @@ type Decoder struct {
 }
 
 // NewDecoder return a decoder for parsing `Varint`
-func NewDecoder(buf []byte, startPos int) (dec *Decoder, len int) {
+func NewDecoder(buf []byte) (dec *Decoder, len int) {
 	// 因为是可变类型，所以此时还不知道有buf中有多少bytes是Varint使用的
 	// 根据Varint类型的特点来寻找Varint的结束位置
 	// 并将属于Varint类型的buffer传入Decoder中
@@ -42,14 +44,14 @@ func NewDecoder(buf []byte, startPos int) (dec *Decoder, len int) {
 		}
 	}
 
-	return &Decoder{
-		raw:    raw,
-		logger: utils.Logger.WithPrefix(utils.DefaultLogger, "varint::Decode"),
-	}, len
+	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "varint::Decode")
+	logger.SetLogLevel(utils.LogLevelDebug)
+	return &Decoder{raw, logger}, len
 }
 
 // Decode parse bytes and returns the `uint64` value
 func (d *Decoder) Decode() (int64, error) {
+	d.logger.Debugf("raw=%s", hex.Dump(d.raw))
 	var val uint64
 	for i, v := range d.raw {
 		val |= (uint64(v & DropMSB)) << (i * 7)
