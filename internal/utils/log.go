@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// LogLevel
+// LogLevel describes the log level
 type LogLevel uint8
 
 const (
