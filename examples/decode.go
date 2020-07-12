@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Printf("hello YoMo Codec golang implementation: Y3\n")
+	fmt.Println("hello YoMo Codec golang implementation: Y3")
 	parseNodePacket()
 	parseStringPrimitivePacket()
 }
@@ -35,5 +35,5 @@ func parseStringPrimitivePacket() {
 		panic(err)
 	}
 
-	fmt.Printf("Tag Key=[%#X], Value=%v", res.Tag, v1)
+	fmt.Printf("Tag Key=[%#X], Value=%v\n", res.Tag, v1)
 }
