@@ -1,10 +1,5 @@
 package y3
 
-import (
-	"encoding/hex"
-	"fmt"
-)
-
 // NodePacket 以`TLV结构`进行数据描述, 是用户定义类型
 type NodePacket struct {
 	// Tag 是TLTV中的Tag, 描述Key
@@ -22,7 +17,7 @@ type Nodes struct {
 
 // ReadAll parse out whole buffer to
 func ReadAll(b []byte) (*Nodes, error) {
-	fmt.Println(hex.Dump(b))
+	// fmt.Println(hex.Dump(b))
 	if len(b) == 0 {
 		return &Nodes{}, nil
 	}
@@ -32,13 +27,13 @@ func ReadAll(b []byte) (*Nodes, error) {
 	pos := 0
 	end := len(b)
 	for {
-		if pos > end {
+		if pos >= end {
 			break
 		}
 		// Tag is 1 byte
-		n := NodePacket{}
+		n := new(NodePacket)
 		n.Tag = b[pos]
-		fmt.Printf("pos=%v, n.Tag=%4b\n", pos, n.Tag)
+		// fmt.Printf("pos=%v, n.Tag=%4b\n", pos, n.Tag)
 		pos++
 		// Length is `varint`
 		len, bufLen, err := ParseVarintLength(b, pos)
@@ -46,15 +41,16 @@ func ReadAll(b []byte) (*Nodes, error) {
 			return nil, err
 		}
 		n.Length = len // Length的值是Type+Value的字节长度
-		fmt.Printf("pos=%v, n.Length=%v\n", pos, n.Length)
+		// fmt.Printf("pos=%v, n.Length=%v\n", pos, n.Length)
 		pos += bufLen
 		// Raw is n.Length length
 		vl := int(len)
+		n.Raw = make([]byte, vl)
 		copy(n.Raw, b[pos:pos+vl])
-		fmt.Printf("pos=%v, n.Raw=%v\n", pos, n.Raw)
+		// fmt.Printf("pos=%v, n.Raw=%x\n", pos, n.Raw)
 		pos += vl
 		// commit
-		nodeArr = append(nodeArr, n)
+		nodeArr = append(nodeArr, *n)
 	}
 
 	res := &Nodes{nodeArr}
