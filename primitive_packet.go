@@ -66,17 +66,15 @@ func (y PrimitiveType) isValid() error {
 type PrimitivePacket struct {
 	// Tag 是TLTV中的Tag, 描述Key
 	Tag byte
-	// ValueType + Value 的字节长度
-	Length int64
+	// length and raw buffer in base
+	basePacket
 	// 描述Value的数据类型
 	Type PrimitiveType
-	// Raw bytes
-	raw []byte
 }
 
 // ToInt64 parse raw as int64 value
 func (p *PrimitivePacket) ToInt64() (int64, error) {
-	dec, _ := varint.NewDecoder(p.raw)
+	dec, _ := varint.NewDecoder(p.basePacket.raw)
 	result, err := dec.Decode()
 	if err != nil {
 		return 0, err
@@ -86,10 +84,10 @@ func (p *PrimitivePacket) ToInt64() (int64, error) {
 
 // ToUTF8String parse raw data as string value
 func (p *PrimitivePacket) ToUTF8String() (string, error) {
-	return string(p.raw), nil
+	return string(p.basePacket.raw), nil
 }
 
 // 用于打印时使用
 func (p *PrimitivePacket) String() string {
-	return fmt.Sprintf("Tag=%v, Length=%v, Type=%v, RawDataLength=%v", p.Tag, p.Length, p.Type, len(p.raw))
+	return fmt.Sprintf("Tag=%v, Length=%v, Type=%v, RawDataLength=%v, Raw=[% x]", p.Tag, p.Length(), p.Type, len(p.basePacket.raw), p.basePacket.raw)
 }

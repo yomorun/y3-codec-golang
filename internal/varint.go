@@ -62,3 +62,13 @@ func zigzagEncode(from int64) uint64 {
 func zigzagDecode(from uint64) int64 {
 	return int64((from >> 1) ^ uint64(-(int64(from & 1))))
 }
+
+// ParseVarintLength parse length as a varint type
+func ParseVarintLength(b []byte, startPos int) (val int64, lengthOfLenBuffer int, err error) {
+	dec, lengthOfLenBuffer := NewDecoder(b[startPos:])
+	val, err = dec.Decode()
+	if err != nil {
+		return 0, 0, err
+	}
+	return val, lengthOfLenBuffer, nil
+}

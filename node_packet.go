@@ -32,13 +32,10 @@ func newNodeTag(b byte) (p *NodeTag, err error) {
 type NodePacket struct {
 	// Tag 是TLTV中的Tag, 描述Key
 	Tag NodeTag
-	// ValueType + Value 的字节长度
-	Length int64
-	// Raw bytes
-	Raw []byte
-}
-
-// Nodes 是解析后的整个Object
-type Nodes struct {
-	nodes []NodePacket
+	// length + raw buffer
+	basePacket
+	// NodePackets 存储 Node 类型
+	NodePackets []NodePacket
+	// PrimitivePackets 存储 Primitive 类型
+	PrimitivePackets []PrimitivePacket
 }
