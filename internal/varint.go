@@ -6,12 +6,6 @@ import (
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
-// MSB 描述了`1000 0000`, 用于表示后续字节仍然是该变长类型值的一部分
-const MSB byte = 0x80
-
-// DropMSB 描述了`0111 1111`, 用于去除标识位使用
-const DropMSB = 0x7F
-
 // Varint 定义了一种描述整数的方法, 它是变长类型
 //
 // 特点：
@@ -39,7 +33,7 @@ func NewDecoder(buf []byte) (dec *Decoder, len int) {
 	for _, b := range buf {
 		len++
 		raw = append(raw, b)
-		if b&MSB != MSB {
+		if b&0x80 != 0x80 {
 			break
 		}
 	}
@@ -53,7 +47,7 @@ func (d *Decoder) Decode() (int64, error) {
 	d.logger.Debugf("raw=%s", hex.Dump(d.raw))
 	var val uint64
 	for i, v := range d.raw {
-		val |= (uint64(v & DropMSB)) << (i * 7)
+		val |= (uint64(v & 0x7F)) << (i * 7)
 	}
 	res := zigzagDecode(val)
 	return res, nil

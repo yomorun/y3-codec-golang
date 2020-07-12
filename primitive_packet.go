@@ -21,8 +21,8 @@ type PrimitiveTag struct {
 	raw byte
 }
 
-// GetSeqID 获取Key的顺序ID
-func (t *PrimitiveTag) GetSeqID() byte {
+// SeqID 获取Key的顺序ID
+func (t *PrimitiveTag) SeqID() byte {
 	return t.raw
 }
 
