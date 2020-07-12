@@ -8,7 +8,7 @@ import (
 func TestLackLengthPacket(t *testing.T) {
 	buf := []byte{0x01, 0x01, 0x01}
 	expected := "invalid y3 packet minimal size"
-	_, err := Decode(buf)
+	_, err := DecodePrimitivePacket(buf)
 	if err.Error() != expected {
 		t.Errorf("err actual = %v, and Expected = %v", err, expected)
 	}
@@ -18,7 +18,7 @@ func TestLackLengthPacket(t *testing.T) {
 func TestPacketWrongLength(t *testing.T) {
 	buf := []byte{0x04, 0x03, 0x02, 0x01}
 	expected := "malformed, Length can not smaller than 2"
-	_, err := Decode(buf)
+	_, err := DecodePrimitivePacket(buf)
 	if err != nil && err.Error() != expected {
 		t.Errorf("err should %v, actual = %v", expected, err)
 	}
@@ -30,7 +30,7 @@ func TestUnknownType(t *testing.T) {
 	buf := []byte{0x04, 0x04, 0x08, 0x01}
 	expected := "Invalid PrimitiveType"
 
-	_, err := Decode(buf)
+	_, err := DecodePrimitivePacket(buf)
 	if err.Error() != expected {
 		t.Errorf("err should %v, actual = %v", expected, err.Error())
 	}
@@ -44,7 +44,7 @@ func TestPacketRead(t *testing.T) {
 	expectedType := PrimitiveType(Varint)
 	expectedValue := []byte{0x01}
 
-	res, err := Decode(buf)
+	res, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
@@ -71,7 +71,7 @@ func TestParseInt64(t *testing.T) {
 	buf := []byte{0x0A, 0x04, 0x01, 0x01}
 	expected := int64(-1)
 
-	res, err := Decode(buf)
+	res, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
@@ -92,7 +92,7 @@ func TestParseString(t *testing.T) {
 	expectedType := PrimitiveType(String)
 	expectedValue := "C"
 
-	res, err := Decode(buf)
+	res, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}

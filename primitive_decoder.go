@@ -7,11 +7,11 @@ import (
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
-// Decode 将一个完整的Packet的buffer全部读入，返回BasePacket对象
+// DecodePrimitivePacket 将一个完整的Packet的buffer全部读入，返回BasePacket对象
 //
 // Examples:
 // [0x01, 0x01, 0x01, 0x01] -> Key=0x01, Value=-1
-func Decode(buf []byte) (*PrimitivePacket, error) {
+func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
 	logger.Debugf("buf=%v", buf)
 
@@ -38,7 +38,7 @@ func Decode(buf []byte) (*PrimitivePacket, error) {
 	pos += bufLen
 
 	// read `Type` of a value
-	t, err := parseType(buf[pos])
+	t, err := parsePrimitiveType(buf[pos])
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func ParseVarintLength(b []byte, startPos int) (val int64, len int, err error) {
 }
 
 // get packet.Type and check if is valid type defination
-func parseType(b byte) (PrimitiveType, error) {
+func parsePrimitiveType(b byte) (PrimitiveType, error) {
 	t := PrimitiveType(b)
 	err := t.isValid()
 	return t, err

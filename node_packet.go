@@ -65,7 +65,7 @@ func ReadAll(b []byte) (*Nodes, error) {
 			return nil, err
 		}
 		n.Tag = *tag
-		fmt.Printf("pos=%d, n.Tag=%v\n", pos, n.Tag)
+		// fmt.Printf("pos=%d, n.Tag=%v\n", pos, n.Tag)
 		pos++
 		// Length is `varint`
 		len, bufLen, err := ParseVarintLength(b, pos)
