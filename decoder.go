@@ -11,15 +11,15 @@ import (
 //
 // Examples:
 // [0x01, 0x01, 0x01, 0x01] -> Key=0x01, Value=-1
-func Decode(buf []byte) (*BasePacket, error) {
+func Decode(buf []byte) (*PrimitivePacket, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
 	logger.Debugf("buf=%v", buf)
 
-	if buf == nil || len(buf) < PacketBufferMinimalLength {
+	if buf == nil || len(buf) < PrimitivePacketBufferMinimalLength {
 		return nil, errors.New("invalid y3 packet minimal size")
 	}
 
-	p := &BasePacket{raw: buf}
+	p := &PrimitivePacket{raw: buf}
 
 	var pos = 0
 	// first byte is `Tag`
@@ -65,8 +65,8 @@ func ParseVarintLength(b []byte, startPos int) (val int64, len int, err error) {
 }
 
 // get packet.Type and check if is valid type defination
-func parseType(b byte) (Type, error) {
-	t := Type(b)
+func parseType(b byte) (PrimitiveType, error) {
+	t := PrimitiveType(b)
 	err := t.isValid()
 	return t, err
 }

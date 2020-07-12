@@ -34,14 +34,15 @@ func TestSimpleNode(t *testing.T) {
 	}
 
 	n1 := res.nodes[0]
-	if n1.Tag != 0x83 || n1.Length != 8 || len(n1.Raw) != 8 {
+	if n1.Tag.SeqID() != 0x03 || n1.Length != 8 || len(n1.Raw) != 8 {
 		t.Errorf("n1 actual = %v", n1)
+		t.Errorf("n1.Tag.SeqID() actual = %v", n1.Tag.SeqID())
 		// t.Errorf("data parse error, Length=%v|%v", n1.Length, n2.Length)
 		// t.Errorf("data parse error, len(Raw)=%v|%v", len(n1.Raw), len(n2.Raw))
 	}
 
 	n2 := res.nodes[1]
-	if n2.Tag != 0x84 || n2.Length != 4 || len(n2.Raw) != 4 {
+	if n2.Tag.SeqID() != 0x04 || n2.Length != 4 || len(n2.Raw) != 4 {
 		t.Errorf("n2 actual = %v", n2)
 	}
 }

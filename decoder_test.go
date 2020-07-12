@@ -28,7 +28,7 @@ func TestPacketWrongLength(t *testing.T) {
 func TestUnknownType(t *testing.T) {
 	// 0x08 是未定义的Type
 	buf := []byte{0x04, 0x04, 0x08, 0x01}
-	expected := "Invalid Type"
+	expected := "Invalid PrimitiveType"
 
 	_, err := Decode(buf)
 	if err.Error() != expected {
@@ -41,7 +41,7 @@ func TestPacketRead(t *testing.T) {
 	buf := []byte{0x04, 0x04, 0x01, 0x01}
 	expectedTag := byte(0x04)
 	var expectedLength int64 = 1
-	expectedType := Type(Varint)
+	expectedType := PrimitiveType(Varint)
 	expectedValue := []byte{0x01}
 
 	res, err := Decode(buf)
@@ -89,7 +89,7 @@ func TestParseInt64(t *testing.T) {
 // 测试 0x0B:"C"
 func TestParseString(t *testing.T) {
 	buf := []byte{0x0B, 0x04, 0x00, 0x43}
-	expectedType := Type(String)
+	expectedType := PrimitiveType(String)
 	expectedValue := "C"
 
 	res, err := Decode(buf)
