@@ -15,13 +15,17 @@ import (
 //     0x01, 0x04, 0x01, 0x01 (varint: -1)
 func TestSimple1Node(t *testing.T) {
 	buf := []byte{0x84, 0x08, 0x01, 0x04, 0x01, 0x01}
-	res, endPos, err := ReadNode(buf)
+	res, endPos, err := DecodeNodePacket(buf)
 	if err != nil {
 		t.Errorf("err should be nil, actual = %v", err)
 	}
 
 	if len(res.PrimitivePackets) != 1 {
 		t.Errorf("len(res.nodes) actual = %v, and expected = %v", len(res.NodePackets), 1)
+	}
+
+	if res.Tag.SeqID() != 0x04 {
+		t.Errorf("res.SeqID actual = %v, and expected = %v", res.Tag.SeqID(), 0x04)
 	}
 
 	v1, err := res.PrimitivePackets[0].ToInt64()
@@ -51,7 +55,7 @@ func TestSimple1Node(t *testing.T) {
 //     0x02, 0x04, 0x01, 0x02 (varint: 1)
 func TestSimple2Nodes(t *testing.T) {
 	buf := []byte{0x83, 0x10, 0x01, 0x04, 0x01, 0x01, 0x02, 0x04, 0x01, 0x02}
-	res, endPos, err := ReadNode(buf)
+	res, endPos, err := DecodeNodePacket(buf)
 	if err != nil {
 		t.Errorf("err should be nil, actual = %v", err)
 	}
@@ -106,7 +110,7 @@ func TestSimple2Nodes(t *testing.T) {
 //         0x01, 0x04, 0x01, 0x03 (varint: -2)
 func TestComplexNodes(t *testing.T) {
 	buf := []byte{0x85, 0x20, 0x84, 0x10, 0x01, 0x04, 0x01, 0x01, 0x02, 0x04, 0x00, 0x43, 0x83, 0x08, 0x01, 0x04, 0x01, 0x03}
-	res, endPos, err := ReadNode(buf)
+	res, endPos, err := DecodeNodePacket(buf)
 	if err != nil {
 		t.Errorf("err should be nil, actual = %v", err)
 	}
