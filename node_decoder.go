@@ -72,7 +72,9 @@ func ReadNode(b []byte) (pct *NodePacket, endPos int, err error) {
 
 	// Parse value to Packet
 	for {
-		if pos >= endPos {
+		fmt.Println("------>pos:", pos, ", endPos:", endPos, ", len(b)", len(b))
+		if pos >= endPos || pos >= len(b) {
+			fmt.Println("===GAME OVER===")
 			break
 		}
 		_p, isNode, np, pp, err := parsePayload(b[pos:endPos])
