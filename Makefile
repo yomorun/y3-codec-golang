@@ -1,5 +1,5 @@
 GO ?= go
-GOFMT ?= gofmt "-s"
+GOFMT ?= gofmt -s
 GOFILES := $(shell find . -name "*.go")
 VETPACKAGES ?= $(shell $(GO) list ./... | grep -v /examples/)
 
@@ -9,3 +9,6 @@ fmt:
 
 vet:
 	$(GO) vet $(VETPACKAGES)
+
+test:
+	$(GO) test -v ./...

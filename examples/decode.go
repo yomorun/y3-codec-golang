@@ -1,22 +1,3 @@
-> 📚 VERSION: draft-01
->
-> ⛳️ STATE: WIP
-
-# Y3
-
-Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
-
-## Test
-
-`go test ./...`
-
-## Use 
-
-`go get -u github.com/yomorun/yomo-codec-golang`
-
-## Examples
-
-```go
 package main
 
 import (
@@ -27,6 +8,11 @@ import (
 
 func main() {
 	fmt.Println("hello YoMo Codec golang implementation: Y3")
+	parseNodePacket()
+	parseStringPrimitivePacket()
+}
+
+func parseNodePacket() {
 	fmt.Println(">> Parsing [0x84, 0x08, 0x01, 0x04, 0x01, 0x01]")
 	buf := []byte{0x84, 0x08, 0x01, 0x04, 0x01, 0x01}
 	res, _, err := y3.DecodeNodePacket(buf)
@@ -39,8 +25,15 @@ func main() {
 
 	fmt.Printf("Tag Key=[%#X.%#X], Value=%v\n", res.Tag.SeqID(), v1.Tag, p1)
 }
-```
 
-## YoMo Codec
+func parseStringPrimitivePacket() {
+	fmt.Println(">> Parsing [0x0B, 0x0C, 0x00, 0x43, 0x45, 0x4C, 0x4C, 0x41]")
+	buf := []byte{0x0B, 0x0C, 0x00, 0x43, 0x45, 0x4C, 0x4C, 0x41}
+	res, _, err := y3.DecodePrimitivePacket(buf)
+	v1, err := res.ToUTF8String()
+	if err != nil {
+		panic(err)
+	}
 
-See [SPEC](https://github.com/yomorun/yomo-codec)
+	fmt.Printf("Tag Key=[%#X], Value=%v\n", res.Tag, v1)
+}
