@@ -3,7 +3,7 @@ package y3
 import (
 	"errors"
 
-	varint "github.com/yomorun/yomo-codec-golang/internal"
+	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
@@ -15,7 +15,7 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
 	logger.Debugf("buf=%v", buf)
 
-	if buf == nil || len(buf) < PrimitivePacketBufferMinimalLength {
+	if buf == nil || len(buf) < primitivePacketBufferMinimalLength {
 		return nil, 0, errors.New("invalid y3 packet minimal size")
 	}
 
@@ -27,7 +27,7 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	pos++
 
 	// read `Varint` from buf as `Length`
-	len, bufLen, err := varint.ParseVarintLength(buf, pos)
+	len, bufLen, err := codec.ParseVarintLength(buf, pos)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -56,8 +56,8 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 }
 
 // get packet.Type and check if is valid type defination
-func parsePrimitiveType(b byte) (PrimitiveType, error) {
-	t := PrimitiveType(b)
-	err := t.isValid()
+func parsePrimitiveType(b byte) (codec.PrimitiveType, error) {
+	t := codec.PrimitiveType(b)
+	err := t.IsValid()
 	return t, err
 }

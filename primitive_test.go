@@ -2,6 +2,8 @@ package y3
 
 import (
 	"testing"
+
+	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
 )
 
 // 每个Packet最小长度是4个bytes
@@ -41,7 +43,7 @@ func TestPacketRead(t *testing.T) {
 	buf := []byte{0x04, 0x04, 0x01, 0x01}
 	expectedTag := byte(0x04)
 	var expectedLength int64 = 1
-	expectedType := PrimitiveType(Varint)
+	expectedType := codec.PrimitiveType(codec.TypeVarint)
 	expectedValue := []byte{0x01}
 
 	res, endPos, err := DecodePrimitivePacket(buf)
@@ -93,7 +95,7 @@ func TestParseInt64(t *testing.T) {
 // 测试 0x0B:"C"
 func TestParseString(t *testing.T) {
 	buf := []byte{0x0B, 0x04, 0x00, 0x43}
-	expectedType := PrimitiveType(String)
+	expectedType := codec.PrimitiveType(codec.TypeString)
 	expectedValue := "C"
 
 	res, _, err := DecodePrimitivePacket(buf)

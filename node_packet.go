@@ -1,37 +1,11 @@
 package y3
 
-import (
-	"errors"
-	"fmt"
-)
-
-// NodeTag represents the Tag of TLTV
-type NodeTag struct {
-	raw byte
-}
-
-// SeqID 获取Key的顺序ID
-func (t *NodeTag) SeqID() byte {
-	return t.raw & DropMSB
-}
-
-func (t *NodeTag) String() string {
-	return fmt.Sprintf("Tag: raw=%4b, SeqID=%v", t.raw, t.SeqID())
-}
-
-func newNodeTag(b byte) (p *NodeTag, err error) {
-	// 最高位始终为1
-	if b&MSB != MSB {
-		return nil, errors.New("not a node packet")
-	}
-
-	return &NodeTag{raw: b}, nil
-}
+import codec "github.com/yomorun/yomo-codec-golang/internal/codec"
 
 // NodePacket 以`TLV结构`进行数据描述, 是用户定义类型
 type NodePacket struct {
 	// Tag 是TLTV中的Tag, 描述Key
-	Tag NodeTag
+	Tag codec.NodeTag
 	// length + raw buffer
 	basePacket
 	// NodePackets 存储 Node 类型

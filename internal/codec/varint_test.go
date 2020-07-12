@@ -1,4 +1,4 @@
-package varint
+package codec
 
 import (
 	"testing"

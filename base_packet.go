@@ -1,5 +1,9 @@
 package y3
 
+import (
+	"github.com/yomorun/yomo-codec-golang/internal/utils"
+)
+
 type basePacket struct {
 	length int64
 	// Raw bytes
@@ -14,7 +18,7 @@ func (bp *basePacket) Buffer() []byte {
 	return bp.raw
 }
 
-// IsNodePacket determines if the packet is NodePacket or PrimitivePacket
-func IsNodePacket(flag byte) bool {
-	return flag&MSB == MSB
+// isNodePacket determines if the packet is NodePacket or PrimitivePacket
+func isNodePacket(flag byte) bool {
+	return flag&utils.MSB == utils.MSB
 }

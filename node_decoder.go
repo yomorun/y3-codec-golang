@@ -3,10 +3,10 @@ package y3
 import (
 	"errors"
 
-	varint "github.com/yomorun/yomo-codec-golang/internal"
+	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
 )
 
-func parsePayload(b []byte) (endPos int, isNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {
+func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {
 	// fmt.Printf("\t(parsePayload) b=% x\n", b)
 	if len(b) == 0 {
 		return 0, false, nil, nil, errors.New("parsePacket params can not be nil")
@@ -14,7 +14,7 @@ func parsePayload(b []byte) (endPos int, isNodePacket bool, np *NodePacket, pp *
 
 	pos := 0
 	// NodePacket
-	if ok := IsNodePacket(b[pos]); ok {
+	if ok := isNodePacket(b[pos]); ok {
 		np, endPos, err := DecodeNodePacket(b)
 		return endPos, true, np, nil, err
 	}
@@ -44,7 +44,7 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	// total := len(b)
 
 	// `Tag`
-	tag, err := newNodeTag(b[pos])
+	tag, err := codec.NewNodeTag(b[pos])
 	if err != nil {
 		return nil, 0, err
 	}
@@ -53,7 +53,7 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	pos++
 
 	// `Length`: the type is `varint`
-	_len, lengthOfLenBuffer, err := varint.ParseVarintLength(b, pos)
+	_len, lengthOfLenBuffer, err := codec.ParseVarintLength(b, pos)
 	if err != nil {
 		return nil, 0, err
 	}

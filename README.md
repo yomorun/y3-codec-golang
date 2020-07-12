@@ -1,6 +1,8 @@
-# yomo-codec-golang
+> 📚 VERSION: draft-01
+>
+> ⛳️ STATE: WIP
 
-still *Working In Progress*
+# Y3
 
 Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
@@ -38,3 +40,7 @@ func main() {
 	fmt.Printf("Tag Key=[%#X.%#X], Value=%v\n", res.Tag.SeqID(), v1.Tag, p1)
 }
 ```
+
+## YoMo Codec
+
+See [SPEC](https://github.com/yomorun/yomo-codec)
