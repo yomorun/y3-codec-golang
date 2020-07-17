@@ -4,10 +4,11 @@ import (
 	"errors"
 
 	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
+	encoding "github.com/yomorun/yomo-codec-golang/pkg"
 )
 
 func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {
-	// fmt.Printf("\t(parsePayload) b=% x\n", b)
+	// fmt.Printf("\t(parsePayload) b=%#x\n", b)
 	if len(b) == 0 {
 		return 0, false, nil, nil, errors.New("parsePacket params can not be nil")
 	}
@@ -19,13 +20,9 @@ func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *
 		return endPos, true, np, nil, err
 	}
 
-	pp, endPos, err = parsePrimitivePacket(b)
-	// fmt.Printf("\t\tb=[% x], pp:%v\n", b, pp)
+	pp, endPos, err = DecodePrimitivePacket(b)
+	// fmt.Printf("\t\tb=[%#x], pp:%v\n", b, pp)
 	return endPos, false, nil, pp, err
-}
-
-func parsePrimitivePacket(b []byte) (pp *PrimitivePacket, endPos int, err error) {
-	return DecodePrimitivePacket(b)
 }
 
 // DecodeNodePacket parse out whole buffer to a NodePacket
@@ -41,19 +38,15 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	primArr := make([]PrimitivePacket, 0)
 
 	pos := 0
-	// total := len(b)
 
 	// `Tag`
-	tag, err := codec.NewNodeTag(b[pos])
-	if err != nil {
-		return nil, 0, err
-	}
-	pct.Tag = *tag
-	// fmt.Printf("pos=%d, n.Tag=%v\n", pos, pct.Tag.String())
+	tag := codec.NewTag(b[pos])
+	pct.basePacket.tag = tag
+	// fmt.Printf("pos=%d, n.Tag=%v\n", pos, pct.tag.String())
 	pos++
 
 	// `Length`: the type is `varint`
-	_len, lengthOfLenBuffer, err := codec.ParseVarintLength(b, pos)
+	_len, lengthOfLenBuffer, err := encoding.Upvarint(b, pos)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -64,9 +57,9 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	// `raw` is pct.Length() length
 	vl := int(_len)
 	endPos = pos + vl
-	pct.basePacket.raw = make([]byte, vl)
-	copy(pct.basePacket.raw, b[pos:endPos])
-	// fmt.Printf("pos=%v, endPos=%v, buf=[% x], n.Raw=[% x](len=%v)\n", pos, endPos, b[pos:endPos], pct.basePacket.raw, len(pct.basePacket.raw))
+	pct.basePacket.valbuf = make([]byte, vl)
+	copy(pct.basePacket.valbuf, b[pos:endPos])
+	// fmt.Printf("pos=%v, endPos=%v, buf=[% x], n.Raw=[% x](len=%v)\n", pos, endPos, b[pos:endPos], pct.basePacket.valbuf, len(pct.basePacket.valbuf))
 
 	// Parse value to Packet
 	for {

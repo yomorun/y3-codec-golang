@@ -11,11 +11,11 @@ import (
 // },
 // YoMo Codec should ->
 // 0x84 (is a node, sequence id=4)
-//   0x08 (node value length is 4 bytes)
-//     0x01, 0x04, 0x01, 0x01 (varint: -1)
+//   0x03 (node value length is 4 bytes)
+//     0x01, 0x01, 0x7F (pvarint: -1)
 func TestSimple1Node(t *testing.T) {
-	buf := []byte{0x84, 0x08, 0x01, 0x04, 0x01, 0x01}
-	res, endPos, err := DecodeNodePacket(buf)
+	buf := []byte{0x84, 0x03, 0x01, 0x01, 0x7F}
+	res, packetLength, err := DecodeNodePacket(buf)
 	if err != nil {
 		t.Errorf("err should be nil, actual = %v", err)
 	}
@@ -24,8 +24,8 @@ func TestSimple1Node(t *testing.T) {
 		t.Errorf("len(res.nodes) actual = %v, and expected = %v", len(res.NodePackets), 1)
 	}
 
-	if res.Tag.SeqID() != 0x04 {
-		t.Errorf("res.SeqID actual = %v, and expected = %v", res.Tag.SeqID(), 0x04)
+	if res.SeqID() != 0x04 {
+		t.Errorf("res.SeqID actual = %v, and expected = %v", res.SeqID(), 0x04)
 	}
 
 	v1, err := res.PrimitivePackets[0].ToInt64()
@@ -37,8 +37,8 @@ func TestSimple1Node(t *testing.T) {
 		t.Errorf("n1 value actual = %v, and expected = %v", v1, -1)
 	}
 
-	if endPos != 6 {
-		t.Errorf("endPos actual = %v, and Expected = %v", endPos, 10)
+	if packetLength != 5 {
+		t.Errorf("packetLength actual = %v, and Expected = %v", packetLength, 5)
 	}
 }
 
@@ -50,12 +50,12 @@ func TestSimple1Node(t *testing.T) {
 // },
 // YoMo Codec should ->
 // 0x83 (is a node, sequence id=3)
-//   0x10 (node value length is 8 bytes)
-//     0x01, 0x04, 0x01, 0x01 (varint: -1)
-//     0x02, 0x04, 0x01, 0x02 (varint: 1)
+//   0x06 (node value length is 8 bytes)
+//     0x01, 0x01, 0x7F (pvarint: -1)
+//     0x02, 0x01, 0x01 (pvarint: 1)
 func TestSimple2Nodes(t *testing.T) {
-	buf := []byte{0x83, 0x10, 0x01, 0x04, 0x01, 0x01, 0x02, 0x04, 0x01, 0x02}
-	res, endPos, err := DecodeNodePacket(buf)
+	buf := []byte{0x83, 0x06, 0x01, 0x01, 0x7F, 0x02, 0x01, 0x01}
+	res, packetLength, err := DecodeNodePacket(buf)
 	if err != nil {
 		t.Errorf("err should be nil, actual = %v", err)
 	}
@@ -82,8 +82,8 @@ func TestSimple2Nodes(t *testing.T) {
 		t.Errorf("n1 value actual = %v, and expected = %v", v2, 1)
 	}
 
-	if endPos != 10 {
-		t.Errorf("endPos actual = %v, and Expected = %v", endPos, 10)
+	if packetLength != 8 {
+		t.Errorf("packetLength actual = %v, and Expected = %v", packetLength, 8)
 	}
 }
 
@@ -94,29 +94,29 @@ func TestSimple2Nodes(t *testing.T) {
 //     '0x01': -1,
 //     '0x02':  1,
 //  },
-//	'0x04': {
-//     '0x01': -1,
+//	'0x03': {
+//     '0x01': -2,
 //  },
 // }
 // YoMo Codec should ->
 // 0x85
-//   0x20(node value length is 16 bytes)
+//   0x0D(node value length is 16 bytes)
 //     0x84 (is a node, sequence id=3)
-//       0x10 (node value length is 8 bytes)
-//         0x01, 0x04, 0x01, 0x01 (varint: -1)
-//         0x02, 0x04, 0x00, 0x43 (varint: 1)
+//       0x06 (node value length is 8 bytes)
+//         0x01, 0x01, 0x7F (varint: -1)
+//         0x02, 0x01, 0x43 (string: "C")
 //     0x83 (is a node, sequence id=4)
-//       0x08 (node value length is 4 bytes)
-//         0x01, 0x04, 0x01, 0x03 (varint: -2)
+//       0x03 (node value length is 4 bytes)
+//         0x01, 0x01, 0x7E (varint: -2)
 func TestComplexNodes(t *testing.T) {
-	buf := []byte{0x85, 0x20, 0x84, 0x10, 0x01, 0x04, 0x01, 0x01, 0x02, 0x04, 0x00, 0x43, 0x83, 0x08, 0x01, 0x04, 0x01, 0x03}
-	res, endPos, err := DecodeNodePacket(buf)
+	buf := []byte{0x85, 0x0D, 0x84, 0x06, 0x01, 0x01, 0x7F, 0x02, 0x01, 0x43, 0x83, 0x03, 0x01, 0x01, 0x7E}
+	res, packetLength, err := DecodeNodePacket(buf)
 	if err != nil {
 		t.Errorf("err should be nil, actual = %v", err)
 	}
 
-	if endPos != len(buf) {
-		t.Errorf("endPos actual = %v, and expected = %v", endPos, len(buf))
+	if packetLength != len(buf) {
+		t.Errorf("packetLength actual = %v, and expected = %v", packetLength, len(buf))
 	}
 
 	if len(res.NodePackets) != 2 {
@@ -145,9 +145,4 @@ func TestComplexNodes(t *testing.T) {
 	if n1p1 != -1 || n1p2 != "C" || n2p1 != -2 {
 		t.Errorf("n1p1=%v, n1p2=%v, n2p1=%v", n1p1, n1p2, n2p1)
 	}
-
-	// if n1.Tag.SeqID() != 0x03 || n1.Length() /*.base.Length()*/ != 8 || len(n1.basePacket.raw) != 8 {
-	// 	t.Errorf("n1 actual = %v", n1)
-	// 	t.Errorf("n1.Tag.SeqID() actual = %v", n1.Tag.SeqID())
-	// }
 }

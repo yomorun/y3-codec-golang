@@ -2,13 +2,11 @@ package y3
 
 import (
 	"testing"
-
-	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
 )
 
-// 每个Packet最小长度是4个bytes
+// 每个Packet最小长度是3个bytes
 func TestLackLengthPacket(t *testing.T) {
-	buf := []byte{0x01, 0x01, 0x01}
+	buf := []byte{0x01, 0x01}
 	expected := "invalid y3 packet minimal size"
 	_, _, err := DecodePrimitivePacket(buf)
 	if err.Error() != expected {
@@ -16,66 +14,48 @@ func TestLackLengthPacket(t *testing.T) {
 	}
 }
 
-//
 func TestPacketWrongLength(t *testing.T) {
-	buf := []byte{0x04, 0x03, 0x02, 0x01}
-	expected := "malformed, Length can not smaller than 2"
+	buf := []byte{0x04, 0x00, 0x02, 0x01}
+	expected := "malformed, Length can not smaller than 1"
 	_, _, err := DecodePrimitivePacket(buf)
 	if err != nil && err.Error() != expected {
 		t.Errorf("err should %v, actual = %v", expected, err)
 	}
 }
 
-// TestUnknownType 测试还未定义的基础数据类型Type
-func TestUnknownType(t *testing.T) {
-	// 0x08 是未定义的Type
-	buf := []byte{0x04, 0x04, 0x08, 0x01}
-	expected := "Invalid PrimitiveType"
-
-	_, _, err := DecodePrimitivePacket(buf)
-	if err.Error() != expected {
-		t.Errorf("err should %v, actual = %v", expected, err.Error())
-	}
-}
-
 // 测试读取 0x04:-1
 func TestPacketRead(t *testing.T) {
-	buf := []byte{0x04, 0x04, 0x01, 0x01}
+	buf := []byte{0x04, 0x01, 0x7F}
 	expectedTag := byte(0x04)
 	var expectedLength int64 = 1
-	expectedType := codec.PrimitiveType(codec.TypeVarint)
-	expectedValue := []byte{0x01}
+	expectedValue := []byte{0x7F}
 
 	res, endPos, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
 
-	if res.Tag != expectedTag {
-		t.Errorf("res.Tag actual = %v, and Expected = %v", res.Tag, expectedTag)
+	if res.SeqID() != expectedTag {
+		t.Errorf("res.Tag actual = %v, and Expected = %v", res.SeqID(), expectedTag)
 	}
 
-	if res.Length() != expectedLength {
-		t.Errorf("res.Length actual = %v, and Expected = %v", res.Length(), expectedLength)
+	if res.length != uint64(expectedLength) {
+		t.Errorf("res.Length actual = %v, and Expected = %v", res.length, expectedLength)
 	}
 
-	if res.Type != expectedType {
-		t.Errorf("res.Length actual = %v, and Expected = %v", res.Type, expectedType)
+	if !_compareByteSlice(res.valbuf, expectedValue) {
+		t.Errorf("res.raw actual = %v, and Expected = %v", res.valbuf, expectedValue)
 	}
 
-	if !_compareByteSlice(res.basePacket.raw, expectedValue) {
-		t.Errorf("res.raw actual = %v, and Expected = %v", res.basePacket.raw, expectedType)
-	}
-
-	if endPos != 4 {
-		t.Errorf("endPos actual = %v, and Expected = %v", endPos, 4)
+	if endPos != 3 {
+		t.Errorf("endPos actual = %v, and Expected = %v", endPos, 3)
 	}
 }
 
-// 测试读取 0x0A:-1
+// 测试读取 0x0A:2
 func TestParseInt64(t *testing.T) {
-	buf := []byte{0x0A, 0x04, 0x01, 0x01}
-	expected := int64(-1)
+	buf := []byte{0x0A, 0x02, 0x01, 0x02}
+	expected := int64(1)
 
 	res, _, err := DecodePrimitivePacket(buf)
 	if err != nil {
@@ -94,17 +74,12 @@ func TestParseInt64(t *testing.T) {
 
 // 测试 0x0B:"C"
 func TestParseString(t *testing.T) {
-	buf := []byte{0x0B, 0x04, 0x00, 0x43}
-	expectedType := codec.PrimitiveType(codec.TypeString)
+	buf := []byte{0x0B, 0x01, 0x43}
 	expectedValue := "C"
 
 	res, _, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
-	}
-
-	if expectedType != res.Type {
-		t.Errorf("res.Type actual = %4b, and Expected = %4b", res.Type, expectedType)
 	}
 
 	target, err := res.ToUTF8String()
