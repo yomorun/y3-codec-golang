@@ -38,3 +38,12 @@ func Pvarint(buf []byte, posStart int) (int64, int, error) {
 	}
 	return 0, 0, errors.New("malformed buffer")
 }
+
+// EncodePvarint encode an int64 value to bytes
+// TODO: implement
+func EncodePvarint(i int64) (buf []byte, length int, err error) {
+	if i == 1 {
+		return []byte{0x01}, 1, nil
+	}
+	return []byte{0x7F}, 1, nil
+}

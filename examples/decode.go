@@ -12,6 +12,51 @@ func main() {
 	parseStringPrimitivePacket()
 }
 
+type bar struct {
+	Name string
+}
+
+type foo struct {
+	ID int
+	*bar
+}
+
+func encodePacket() {
+	// We will encode JSON-like object `obj`:
+	// 0x81: {
+	//   0x02: 1,
+	//   0x83 : {
+	//     0x04: "C",
+	//   },
+	// }
+	// to
+	// [0x81, 0x08, 0x02, 0x01, 0x01, 0x83, 0x03, 0x04, 0x01, 0x46]
+	var obj = &foo{ID: 1, bar: &bar{Name: "C"}}
+
+	var enc = y3.CreateEncoder()
+
+	// 0x81 - node
+	var yFoo = enc.CreateNodePacket(0x01)
+
+	// 0x02 - ID=1
+	var yp1 = enc.CreatePrimitivePacket(0x02)
+	yp1.SetInt64Value(1)
+	yFoo.AddPrimitivePacket(yp1)
+
+	// 0x83 - &bar{}
+	var yBar = enc.CreateNodePacket(0x03)
+
+	// 0x04 - Name: "C"
+	var yp2 = enc.CreatePrimitivePacket(0x04)
+	yp2.SetStringValue("C")
+	yBar.AddPrimitivePacket(yp2)
+
+	yFoo.AddNodePacket(yBar)
+
+	fmt.Println(obj)
+	fmt.Println(enc.Encode())
+}
+
 func parseNodePacket() {
 	fmt.Println(">> Parsing [0x84, 0x0A, 0x0A, 0x01, 0x7F, 0x0B, 0x05, 0x43, 0x45, 0x4C, 0x4C, 0x41] EQUALS JSON= 0x84: { 0x0A: -1, 0x0B: 'CELLA' }")
 	buf := []byte{0x84, 0x0A, 0x0A, 0x01, 0x7F, 0x0B, 0x05, 0x43, 0x45, 0x4C, 0x4C, 0x41}

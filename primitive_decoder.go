@@ -11,7 +11,7 @@ import (
 // DecodePrimitivePacket 将一个完整的Packet的buffer全部读入，返回BasePacket对象
 //
 // Examples:
-// [0x01, 0x01, 0x01] -> Key=0x01, Value=-1
+// [0x01, 0x01, 0x01] -> Key=0x01, Value=0x01
 func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
 	logger.Debugf("buf=%v", buf)
