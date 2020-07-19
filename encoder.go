@@ -23,6 +23,7 @@ func CreateEncoder() *Encoder {
 
 // Encode returns a final Y3 encoded byte slice
 func (enc *Encoder) Encode() []byte {
+	enc.writeTag()
 	enc.writeLengthBuf()
 	enc.buf.Write(enc.valbuf)
 
@@ -31,7 +32,10 @@ func (enc *Encoder) Encode() []byte {
 
 // CreateNodePacket generate new node
 func (enc *Encoder) CreateNodePacket(sid int) *Encoder {
-	return CreateEncoder()
+	nodeEnc := &Encoder{
+		isNode: true,
+	}
+	return nodeEnc
 }
 
 // CreatePrimitivePacket generate new primitive
@@ -41,7 +45,7 @@ func (enc *Encoder) CreatePrimitivePacket(sid int) *Encoder {
 		buf:    new(bytes.Buffer),
 	}
 
-	primEnc.writeTag(sid)
+	primEnc.seqID = sid
 	return primEnc
 }
 
@@ -52,7 +56,8 @@ func (enc *Encoder) AddNodePacket(np *Encoder) {
 
 // AddPrimitivePacket add new primitive to this node
 func (enc *Encoder) AddPrimitivePacket(np *Encoder) {
-	enc.insertBuffer(np.Encode())
+	enc.valbuf = np.Encode()
+	enc.vallen = len(enc.valbuf)
 }
 
 // SetInt64Value encode int64 value
@@ -63,36 +68,28 @@ func (enc *Encoder) SetInt64Value(v int64) {
 	}
 	enc.valbuf = make([]byte, length)
 	copy(enc.valbuf, buf)
-
-	enc.vallen = length
 }
 
 // SetStringValue encode string
 func (enc *Encoder) SetStringValue(v string) {
 	buf := []byte(v)
-	enc.vallen = len(buf)
 	enc.valbuf = make([]byte, len(buf))
 	copy(enc.valbuf, buf)
 }
 
-// insertBuffer add bufer to node
-func (enc *Encoder) insertBuffer(buf []byte) {
-	_ = copy(enc.valbuf, buf)
-}
-
 // setTag write tag as seqID
-func (enc *Encoder) writeTag(sid int) {
-	if sid < 0 || sid > 0x7F {
+func (enc *Encoder) writeTag() {
+	if enc.seqID < 0 || enc.seqID > 0x7F {
 		panic("sid should be in [0..0x7F]")
 	}
-	enc.seqID = sid
 	if enc.isNode {
-		enc.seqID = sid | 0x80
+		enc.seqID = enc.seqID | 0x80
 	}
 	enc.buf.WriteRune(rune(enc.seqID))
 }
 
 func (enc *Encoder) writeLengthBuf() {
+	enc.vallen = len(enc.valbuf)
 	if enc.vallen < 1 {
 		panic("length must greater than 0")
 	}
