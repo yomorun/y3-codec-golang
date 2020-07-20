@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"bytes"
 	"errors"
 )
 
@@ -58,4 +59,36 @@ func EncodePvarint(i int64) (buf []byte, length int, err error) {
 		return []byte{0x08}, 1, nil
 	}
 	return []byte{0x7F}, 1, nil
+}
+
+// EncodeUpvarint encode an uint64 value to bytes
+// TODO: implement
+func EncodeUpvarint(i uint64) ([]byte, int, error) {
+	buf := new(bytes.Buffer)
+	len := 0
+	for {
+		if i == 0 {
+			if len == 0 {
+				buf.WriteByte(0x00)
+			}
+			return reverse(buf.Bytes()), buf.Len(), nil
+		}
+		p := i & 0x7F
+		if len == 0 {
+			buf.WriteByte(byte(p))
+		} else {
+			buf.WriteByte(byte(p | 0x80))
+		}
+		i = i >> 7
+		len++
+	}
+}
+
+func reverse(b []byte) (r []byte) {
+	l := len(b)
+	r = make([]byte, l)
+	for i, v := range b {
+		r[l-i-1] = v
+	}
+	return r
 }

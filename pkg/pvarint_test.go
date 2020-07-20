@@ -136,3 +136,39 @@ func Test2BytesPositive(t *testing.T) {
 		t.Errorf("step should %v, actual = %v", 2, step)
 	}
 }
+
+func TestPvarintEncode1(t *testing.T) {
+	var val uint64 = 127
+	expected := []byte{0x7F}
+	res, length, err := EncodeUpvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != 1 {
+		t.Errorf("expected length=1, actual=%v", length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+	if res[0] != expected[0] {
+		t.Errorf("expected res=%#x, actual=%#x", expected, res)
+	}
+}
+
+func TestPvarintEncode2(t *testing.T) {
+	var val uint64 = 128
+	expected := []byte{0x81, 0x00}
+	res, length, err := EncodeUpvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != 2 {
+		t.Errorf("expected length=2, actual=%v", length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+	if res[0] != expected[0] {
+		t.Errorf("expected res=%#x, actual=%#x", expected, res)
+	}
+}
