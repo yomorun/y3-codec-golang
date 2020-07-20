@@ -68,13 +68,28 @@ func TestEncoderNode1(t *testing.T) {
 	}
 }
 
+// type bar struct {
+// 	Name string
+// }
+
+// type foo struct {
+// 	ID int
+// 	*bar
+// }
+//
+// var obj = &foo{ID: 1, bar: &bar{Name: "C"}}
+//
+// encode obj as:
+//
 // 0x81: {
 //   0x02: 1,
 //   0x83 : {
 //     0x04: "C",
 //   },
 // }
+//
 // to
+//
 // [0x81, 0x08, 0x02, 0x01, 0x01, 0x83, 0x03, 0x04, 0x01, 0x43]
 func TestEncoderNode2(t *testing.T) {
 	expected := []byte{0x81, 0x08, 0x02, 0x01, 0x01, 0x83, 0x03, 0x04, 0x01, 0x43}
@@ -102,5 +117,4 @@ func TestEncoderNode2(t *testing.T) {
 			t.Errorf("i=%v, expected=%#x, actual=%#x", i, expected[i], res[i])
 		}
 	}
-
 }
