@@ -5,21 +5,21 @@ import (
 )
 
 // JSON-like node:
-// { '0x01': -1 }
+// { '0x01': 1 }
 // YoMo Codec should ->
 // 0x01 (is a node, sequence id=1)
 //   0x01 (node value length is 1 byte)
-//     0x7F (pvarint: -1)
-func TestEncoderPrimitiveInt64(t *testing.T) {
-	expected := []byte{0x01, 0x01, 0x7F}
+//     0x01 (pvarint: 1)
+func TestEncoderPrimitiveInt32(t *testing.T) {
+	expected := []byte{0x01, 0x01, 0x01}
 	// 0x01 - SeqID=1
 	var prim = NewPrimitivePacketEncoder(0x01)
 	// Value = -1
-	prim.SetInt64Value(-1)
+	prim.SetInt32Value(1)
 
 	res := prim.Encode()
 
-	t.Log("res=", res)
+	t.Logf("res=%0#x", res)
 
 	for i, p := range res {
 		if p != expected[i] {
@@ -97,7 +97,7 @@ func TestEncoderNode2(t *testing.T) {
 	var node1 = NewNodePacketEncoder(0x01)
 	// 0x02 - ID=1
 	var prim1 = NewPrimitivePacketEncoder(0x02)
-	prim1.SetInt64Value(1)
+	prim1.SetInt32Value(1)
 	node1.AddPrimitivePacket(prim1)
 
 	// 0x83 - &bar{}

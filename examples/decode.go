@@ -39,7 +39,7 @@ func encodePacket() {
 
 	// 0x02 - ID=1
 	var yp1 = y3.NewPrimitivePacketEncoder(0x02)
-	yp1.SetInt64Value(1)
+	yp1.SetInt32Value(1)
 	yFoo.AddPrimitivePacket(yp1)
 
 	// 0x83 - &bar{}
@@ -62,7 +62,7 @@ func parseNodePacket() {
 	res, _, err := y3.DecodeNodePacket(buf)
 	v1 := res.PrimitivePackets[0]
 
-	p1, err := v1.ToInt64()
+	p1, err := v1.ToInt32()
 	if err != nil {
 		panic(err)
 	}
@@ -82,7 +82,7 @@ func parseStringPrimitivePacket() {
 	fmt.Println(">> Parsing [0x0A, 0x01, 0x7F] EQUALS JSON= { 0x0A: 127 } ")
 	buf := []byte{0x0A, 0x01, 0x7F}
 	res, _, err := y3.DecodePrimitivePacket(buf)
-	v1, err := res.ToUInt64()
+	v1, err := res.ToUInt32()
 	if err != nil {
 		panic(err)
 	}

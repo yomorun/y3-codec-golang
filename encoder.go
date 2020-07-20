@@ -42,8 +42,8 @@ func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
 	return primEnc
 }
 
-// SetInt64Value encode int64 value
-func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
+// SetInt32Value encode int32 value
+func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
 	buf, _, err := encoding.EncodePvarint(v)
 	if err != nil {
 		panic(err)
@@ -107,7 +107,7 @@ func (enc *encoder) writeLengthBuf() {
 		panic("length must greater than 0")
 	}
 
-	buf, _, err := encoding.EncodePvarint(int64(vallen))
+	buf, _, err := encoding.EncodePvarint(int32(vallen))
 	if err != nil {
 		panic(err)
 	}
