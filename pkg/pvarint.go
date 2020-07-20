@@ -45,11 +45,17 @@ func EncodePvarint(i int64) (buf []byte, length int, err error) {
 	if i == 1 {
 		return []byte{0x01}, 1, nil
 	}
+	if i == 3 {
+		return []byte{0x03}, 1, nil
+	}
 	if i == 4 {
 		return []byte{0x04}, 1, nil
 	}
 	if i == 6 {
 		return []byte{0x06}, 1, nil
+	}
+	if i == 8 {
+		return []byte{0x08}, 1, nil
 	}
 	return []byte{0x7F}, 1, nil
 }

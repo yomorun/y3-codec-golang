@@ -2,101 +2,126 @@ package y3
 
 import (
 	"bytes"
+	"fmt"
 
 	encoding "github.com/yomorun/yomo-codec-golang/pkg"
 )
 
 // Encoder will encode object to Y3 encoding
-type Encoder struct {
+type encoder struct {
 	seqID  int
-	valbuf []byte
-	lenbuf []byte
-	vallen int
+	valbuf *bytes.Buffer
 	isNode bool
 	buf    *bytes.Buffer
 }
 
-// CreateEncoder returns an Encoder
-func CreateEncoder() *Encoder {
-	return &Encoder{valbuf: make([]byte, 10)}
+type iEncoder interface {
+	Encode() []byte
 }
 
-// Encode returns a final Y3 encoded byte slice
-func (enc *Encoder) Encode() []byte {
-	enc.writeTag()
-	enc.writeLengthBuf()
-	enc.buf.Write(enc.valbuf)
-
-	return enc.buf.Bytes()
+func (enc *encoder) String() string {
+	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valbuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
 }
 
-// CreateNodePacket generate new node
-func (enc *Encoder) CreateNodePacket(sid int) *Encoder {
-	nodeEnc := &Encoder{
-		isNode: true,
-	}
-	return nodeEnc
+// PirmitivePacketEncoder used for encode a primitive packet
+type PirmitivePacketEncoder struct {
+	encoder
 }
 
-// CreatePrimitivePacket generate new primitive
-func (enc *Encoder) CreatePrimitivePacket(sid int) *Encoder {
-	primEnc := &Encoder{
-		isNode: false,
-		buf:    new(bytes.Buffer),
+// NewPrimitivePacketEncoder return an encoder for primitive packet
+func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
+	primEnc := &PirmitivePacketEncoder{
+		encoder: encoder{
+			isNode: false,
+			buf:    new(bytes.Buffer),
+			valbuf: new(bytes.Buffer),
+		},
 	}
 
 	primEnc.seqID = sid
 	return primEnc
 }
 
-// AddNodePacket add new node to this node
-func (enc *Encoder) AddNodePacket(np *Encoder) {
-
-}
-
-// AddPrimitivePacket add new primitive to this node
-func (enc *Encoder) AddPrimitivePacket(np *Encoder) {
-	enc.valbuf = np.Encode()
-	enc.vallen = len(enc.valbuf)
-}
-
 // SetInt64Value encode int64 value
-func (enc *Encoder) SetInt64Value(v int64) {
-	buf, length, err := encoding.EncodePvarint(v)
+func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
+	buf, _, err := encoding.EncodePvarint(v)
 	if err != nil {
 		panic(err)
 	}
-	enc.valbuf = make([]byte, length)
-	copy(enc.valbuf, buf)
+	enc.valbuf.Write(buf)
 }
 
 // SetStringValue encode string
-func (enc *Encoder) SetStringValue(v string) {
+func (enc *PirmitivePacketEncoder) SetStringValue(v string) {
 	buf := []byte(v)
-	enc.valbuf = make([]byte, len(buf))
-	copy(enc.valbuf, buf)
+	enc.valbuf.Write(buf)
+}
+
+// NodePacketEncoder used for encode a node packet
+type NodePacketEncoder struct {
+	encoder
+}
+
+// NewNodePacketEncoder returns an encoder for node packet
+func NewNodePacketEncoder(sid int) *NodePacketEncoder {
+	nodeEnc := &NodePacketEncoder{
+		encoder: encoder{
+			isNode: true,
+			buf:    new(bytes.Buffer),
+			valbuf: new(bytes.Buffer),
+		},
+	}
+
+	nodeEnc.seqID = sid
+	return nodeEnc
+}
+
+// AddNodePacket add new node to this node
+func (enc *NodePacketEncoder) AddNodePacket(np *NodePacketEncoder) {
+	enc.addRawPacket(np)
+}
+
+// AddPrimitivePacket add new primitive to this node
+func (enc *NodePacketEncoder) AddPrimitivePacket(np *PirmitivePacketEncoder) {
+	enc.addRawPacket(np)
+}
+
+func (enc *encoder) addRawPacket(en iEncoder) {
+	enc.valbuf.Write(en.Encode())
 }
 
 // setTag write tag as seqID
-func (enc *Encoder) writeTag() {
+func (enc *encoder) writeTag() {
 	if enc.seqID < 0 || enc.seqID > 0x7F {
 		panic("sid should be in [0..0x7F]")
 	}
 	if enc.isNode {
 		enc.seqID = enc.seqID | 0x80
 	}
-	enc.buf.WriteRune(rune(enc.seqID))
+	enc.buf.WriteByte(byte(enc.seqID))
 }
 
-func (enc *Encoder) writeLengthBuf() {
-	enc.vallen = len(enc.valbuf)
-	if enc.vallen < 1 {
+func (enc *encoder) writeLengthBuf() {
+	vallen := enc.valbuf.Len()
+	if vallen < 1 {
 		panic("length must greater than 0")
 	}
 
-	buf, _, err := encoding.EncodePvarint(int64(enc.vallen))
+	buf, _, err := encoding.EncodePvarint(int64(vallen))
 	if err != nil {
 		panic(err)
 	}
 	enc.buf.Write(buf)
+}
+
+// Encode returns a final Y3 encoded byte slice
+func (enc *encoder) Encode() []byte {
+	// Tag
+	enc.writeTag()
+	// Length
+	enc.writeLengthBuf()
+	// Value
+	enc.buf.Write(enc.valbuf.Bytes())
+
+	return enc.buf.Bytes()
 }
