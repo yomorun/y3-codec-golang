@@ -32,7 +32,7 @@ func main() {
 	res, _, err := y3.DecodeNodePacket(buf)
 	v1 := res.PrimitivePackets[0]
 
-	p1, err := v1.ToInt64()
+	p1, err := v1.ToInt32()
 	if err != nil {
 		panic(err)
 	}

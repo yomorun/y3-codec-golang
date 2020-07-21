@@ -28,12 +28,12 @@ func TestSimple1Node(t *testing.T) {
 		t.Errorf("res.SeqID actual = %v, and expected = %v", res.SeqID(), 0x04)
 	}
 
-	v1, err := res.PrimitivePackets[0].ToInt64()
+	v1, err := res.PrimitivePackets[0].ToInt32()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if v1 != int64(-1) {
+	if v1 != int32(-1) {
 		t.Errorf("n1 value actual = %v, and expected = %v", v1, -1)
 	}
 
@@ -64,21 +64,21 @@ func TestSimple2Nodes(t *testing.T) {
 		t.Errorf("len(res.nodes) actual = %v, and expected = %v", len(res.NodePackets), 2)
 	}
 
-	v1, err := res.PrimitivePackets[0].ToInt64()
+	v1, err := res.PrimitivePackets[0].ToInt32()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if v1 != int64(-1) {
+	if v1 != int32(-1) {
 		t.Errorf("n1 value actual = %v, and expected = %v", v1, -1)
 	}
 
-	v2, err := res.PrimitivePackets[1].ToInt64()
+	v2, err := res.PrimitivePackets[1].ToInt32()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if v2 != int64(1) {
+	if v2 != int32(1) {
 		t.Errorf("n1 value actual = %v, and expected = %v", v2, 1)
 	}
 
@@ -132,7 +132,7 @@ func TestComplexNodes(t *testing.T) {
 		t.Errorf("n1.PrimitivePackets actual = %v, and expected = %v", len(n1.PrimitivePackets), 2)
 	}
 
-	n1p1, _ := n1.PrimitivePackets[0].ToInt64()
+	n1p1, _ := n1.PrimitivePackets[0].ToInt32()
 	n1p2, _ := n1.PrimitivePackets[1].ToUTF8String()
 
 	n2 := res.NodePackets[1]
@@ -140,7 +140,7 @@ func TestComplexNodes(t *testing.T) {
 		t.Errorf("n2.PrimitivePackets actual = %v, and expected = %v", len(n2.PrimitivePackets), 1)
 	}
 
-	n2p1, _ := n2.PrimitivePackets[0].ToInt64()
+	n2p1, _ := n2.PrimitivePackets[0].ToInt32()
 
 	if n1p1 != -1 || n1p2 != "C" || n2p1 != -2 {
 		t.Errorf("n1p1=%v, n1p2=%v, n2p1=%v", n1p1, n1p2, n2p1)

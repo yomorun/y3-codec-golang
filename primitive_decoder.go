@@ -11,7 +11,7 @@ import (
 // DecodePrimitivePacket 将一个完整的Packet的buffer全部读入，返回BasePacket对象
 //
 // Examples:
-// [0x01, 0x01, 0x01] -> Key=0x01, Value=-1
+// [0x01, 0x01, 0x01] -> Key=0x01, Value=0x01
 func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
 	logger.Debugf("buf=%v", buf)
@@ -36,14 +36,14 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	if len < 1 {
 		return nil, 0, errors.New("malformed, Length can not smaller than 1")
 	}
-	p.length = uint64(len) // Length的值是Value的字节长度
+	p.length = uint32(len) // Length的值是Value的字节长度
 	pos += bufLen
 
 	// read `Value` raw data, len(raw data) = p.Length - 1
 	valLength := p.length
 	p.valbuf = make([]byte, valLength)
 	endPos := pos + int(valLength)
-	copied := copy(p.valbuf, buf[pos:uint64(pos)+valLength])
+	copied := copy(p.valbuf, buf[pos:uint32(pos)+valLength])
 	logger.Debugf("copied raw data length = %v", copied)
 
 	return p, endPos, nil

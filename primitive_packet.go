@@ -22,13 +22,8 @@ func (p *PrimitivePacket) String() string {
 	return fmt.Sprintf("Tag=%#x, Length=%v, RawDataLength=%v, Raw=[%#x]", p.tag, p.length, len(p.valbuf), p.valbuf)
 }
 
-// // Length tells how many bytes the value stored
-// func (bp *basePacket) Length() uint64 {
-// 	return bp.length
-// }
-
-// ToInt64 parse raw as int64 value
-func (p *PrimitivePacket) ToInt64() (int64, error) {
+// ToInt32 parse raw as int32 value
+func (p *PrimitivePacket) ToInt32() (int32, error) {
 	dec, _, err := encoding.Pvarint(p.valbuf, 0)
 	if err != nil {
 		return 0, err
@@ -36,8 +31,8 @@ func (p *PrimitivePacket) ToInt64() (int64, error) {
 	return dec, nil
 }
 
-// ToUInt64 parse raw as int64 value
-func (p *PrimitivePacket) ToUInt64() (uint64, error) {
+// ToUInt32 parse raw as int32 value
+func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 	dec, _, err := encoding.Upvarint(p.valbuf, 0)
 	if err != nil {
 		return 0, err

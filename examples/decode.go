@@ -8,8 +8,52 @@ import (
 
 func main() {
 	fmt.Println("hello YoMo Codec golang implementation: Y3")
-	parseNodePacket()
-	parseStringPrimitivePacket()
+	encodePacket()
+	// parseNodePacket()
+	// parseStringPrimitivePacket()
+}
+
+type bar struct {
+	Name string
+}
+
+type foo struct {
+	ID int
+	*bar
+}
+
+func encodePacket() {
+	// We will encode JSON-like object `obj`:
+	// 0x81: {
+	//   0x02: -1,
+	//   0x83 : {
+	//     0x04: "C",
+	//   },
+	// }
+	// to
+	// [0x81, 0x08, 0x02, 0x01, 0x7F, 0x83, 0x03, 0x04, 0x01, 0x43]
+	var obj = &foo{ID: -1, bar: &bar{Name: "C"}}
+
+	// 0x81 - node
+	var yFoo = y3.NewNodePacketEncoder(0x01)
+
+	// 0x02 - ID=1
+	var yp1 = y3.NewPrimitivePacketEncoder(0x02)
+	yp1.SetInt32Value(-1)
+	yFoo.AddPrimitivePacket(yp1)
+
+	// 0x83 - &bar{}
+	var yBar = y3.NewNodePacketEncoder(0x03)
+
+	// 0x04 - Name: "C"
+	var yp2 = y3.NewPrimitivePacketEncoder(0x04)
+	yp2.SetStringValue("C")
+	yBar.AddPrimitivePacket(yp2)
+
+	yFoo.AddNodePacket(yBar)
+
+	fmt.Println(obj)
+	fmt.Printf("res=%#v", yFoo.Encode())
 }
 
 func parseNodePacket() {
@@ -18,7 +62,7 @@ func parseNodePacket() {
 	res, _, err := y3.DecodeNodePacket(buf)
 	v1 := res.PrimitivePackets[0]
 
-	p1, err := v1.ToInt64()
+	p1, err := v1.ToInt32()
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +82,7 @@ func parseStringPrimitivePacket() {
 	fmt.Println(">> Parsing [0x0A, 0x01, 0x7F] EQUALS JSON= { 0x0A: 127 } ")
 	buf := []byte{0x0A, 0x01, 0x7F}
 	res, _, err := y3.DecodePrimitivePacket(buf)
-	v1, err := res.ToUInt64()
+	v1, err := res.ToUInt32()
 	if err != nil {
 		panic(err)
 	}

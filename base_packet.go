@@ -7,11 +7,11 @@ import (
 
 type basePacket struct {
 	tag    *codec.Tag
-	length uint64
+	length uint32
 	valbuf []byte
 }
 
-func (bp *basePacket) Length() uint64 {
+func (bp *basePacket) Length() uint32 {
 	return bp.length
 }
 

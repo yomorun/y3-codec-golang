@@ -27,7 +27,7 @@ func TestPacketWrongLength(t *testing.T) {
 func TestPacketRead(t *testing.T) {
 	buf := []byte{0x04, 0x01, 0x7F}
 	expectedTag := byte(0x04)
-	var expectedLength int64 = 1
+	var expectedLength int32 = 1
 	expectedValue := []byte{0x7F}
 
 	res, endPos, err := DecodePrimitivePacket(buf)
@@ -39,7 +39,7 @@ func TestPacketRead(t *testing.T) {
 		t.Errorf("res.Tag actual = %v, and Expected = %v", res.SeqID(), expectedTag)
 	}
 
-	if res.length != uint64(expectedLength) {
+	if res.length != uint32(expectedLength) {
 		t.Errorf("res.Length actual = %v, and Expected = %v", res.length, expectedLength)
 	}
 
@@ -53,16 +53,16 @@ func TestPacketRead(t *testing.T) {
 }
 
 // 测试读取 0x0A:2
-func TestParseInt64(t *testing.T) {
+func TestParseInt32(t *testing.T) {
 	buf := []byte{0x0A, 0x02, 0x01, 0x02}
-	expected := int64(1)
+	expected := int32(1)
 
 	res, _, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
 
-	val, err := res.ToInt64()
+	val, err := res.ToInt32()
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
