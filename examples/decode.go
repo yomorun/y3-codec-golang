@@ -25,21 +25,21 @@ type foo struct {
 func encodePacket() {
 	// We will encode JSON-like object `obj`:
 	// 0x81: {
-	//   0x02: 1,
+	//   0x02: -1,
 	//   0x83 : {
 	//     0x04: "C",
 	//   },
 	// }
 	// to
-	// [0x81, 0x08, 0x02, 0x01, 0x01, 0x83, 0x03, 0x04, 0x01, 0x43]
-	var obj = &foo{ID: 1, bar: &bar{Name: "C"}}
+	// [0x81, 0x08, 0x02, 0x01, 0x7F, 0x83, 0x03, 0x04, 0x01, 0x43]
+	var obj = &foo{ID: -1, bar: &bar{Name: "C"}}
 
 	// 0x81 - node
 	var yFoo = y3.NewNodePacketEncoder(0x01)
 
 	// 0x02 - ID=1
 	var yp1 = y3.NewPrimitivePacketEncoder(0x02)
-	yp1.SetInt32Value(1)
+	yp1.SetInt32Value(-1)
 	yFoo.AddPrimitivePacket(yp1)
 
 	// 0x83 - &bar{}

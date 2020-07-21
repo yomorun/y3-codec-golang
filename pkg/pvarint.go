@@ -45,7 +45,55 @@ func EncodePvarint(i int32) ([]byte, int, error) {
 	if i >= 0 {
 		return EncodeUpvarint(uint32(i))
 	}
-	panic("!!!!!!!!!!!!!!!!!!!")
+	// 找到连续的符号位,i<0,sign-bit is 1
+	n := uint32(i)
+	width := 4 * 8
+	pos := width
+	// remove continuation sign-bit
+	for {
+		if pos < 7 {
+			n = n | (1 << pos)
+			return []byte{uint8(n)}, 1, nil
+		}
+		pos--
+		var k uint32 = 1
+		k = k << pos
+		if n&k == k {
+			n = (n << (width - pos)) >> (width - pos)
+		} else {
+			// found bit 0
+			pos++
+			n = n | (1 << pos)
+			break
+		}
+	}
+	availableBitLength := pos + 1
+	// every 7 bits in a room
+	step := 1
+	buf := new(bytes.Buffer)
+	first := true
+	for {
+		if step*7 >= availableBitLength {
+			bu := (step * 7) % availableBitLength
+			o := uint8((0xFF >> (7 - bu)) << (7 - bu))
+			tmp := uint8(n) | o
+			buf.WriteByte(tmp)
+			break
+		} else {
+			var tmp uint8 = 0
+			if first {
+				tmp = uint8(n & 0x7F)
+				first = false
+			} else {
+				tmp = uint8(n&0x7F) | 0x80
+			}
+
+			buf.WriteByte(tmp)
+			n = n >> 7
+		}
+		step++
+	}
+	return reverse(buf.Bytes()), buf.Len(), nil
 }
 
 // EncodeUpvarint encode an uint32 value to bytes

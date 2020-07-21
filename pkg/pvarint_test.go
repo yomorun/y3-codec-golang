@@ -228,8 +228,8 @@ func TestUpvarintEncode5(t *testing.T) {
 }
 
 func TestPvarintEncode1(t *testing.T) {
-	var val int32 = 2
-	expected := []byte{0x02}
+	var val int32 = -1
+	expected := []byte{0x7F}
 	res, length, err := EncodePvarint(val)
 	if err != nil {
 		t.Errorf("expected err=nil, actual=%v", err)
@@ -242,5 +242,147 @@ func TestPvarintEncode1(t *testing.T) {
 	}
 	if res[0] != expected[0] {
 		t.Errorf("expected res=%#x, actual=%#x", expected, res)
+	}
+
+	val = -64
+	expected = []byte{0x40}
+	res, length, err = EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != 1 {
+		t.Errorf("expected length=1, actual=%v", length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+	if res[0] != expected[0] {
+		t.Errorf("expected res=%#x, actual=%#x", expected, res)
+	}
+}
+
+func TestPvarintEncode11(t *testing.T) {
+	var val int32 = -65
+	expected := []byte{0xFF, 0x3F}
+	res, length, err := EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+
+	for i, v := range res {
+		if v != expected[i] {
+			t.Errorf("expected res=%#x, actual=%#x", expected[i], v)
+		}
+	}
+}
+
+func TestPvarintEncode2(t *testing.T) {
+	var val int32 = -4097
+	expected := []byte{0xDF, 0x7F}
+	res, length, err := EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+
+	for i, v := range res {
+		if v != expected[i] {
+			t.Errorf("expected res=%#x, actual=%#x", expected[i], v)
+		}
+	}
+}
+
+func TestPvarintEncode3(t *testing.T) {
+	var val int32 = -8193
+	expected := []byte{0xFF, 0xBF, 0x7F}
+	res, length, err := EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+
+	for i, v := range res {
+		if v != expected[i] {
+			t.Errorf("expected res=%#x, actual=%#x", expected[i], v)
+		}
+	}
+}
+
+func TestPvarintEncode4(t *testing.T) {
+	var val int32 = -2097152
+	expected := []byte{0xFF, 0x80, 0x80, 0x00}
+	res, length, err := EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+
+	for i, v := range res {
+		if v != expected[i] {
+			t.Errorf("expected res=%#x, actual=%#x", expected[i], v)
+		}
+	}
+}
+
+func TestPvarintEncode5(t *testing.T) {
+	var val int32 = -134217729
+	expected := []byte{0xFF, 0xBF, 0xFF, 0xFF, 0x7F}
+	res, length, err := EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+
+	for i, v := range res {
+		if v != expected[i] {
+			t.Errorf("expected res=%#x, actual=%#x", expected[i], v)
+		}
+	}
+}
+
+func TestPvarintEncode51(t *testing.T) {
+	var val int32 = -2147483648
+	expected := []byte{0xF8, 0x80, 0x80, 0x80, 0x00}
+	res, length, err := EncodePvarint(val)
+	if err != nil {
+		t.Errorf("expected err=nil, actual=%v", err)
+	}
+	if length != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), length)
+	}
+	if len(res) != len(expected) {
+		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))
+	}
+
+	for i, v := range res {
+		if v != expected[i] {
+			t.Errorf("expected res=%#x, actual=%#x", expected[i], v)
+		}
 	}
 }

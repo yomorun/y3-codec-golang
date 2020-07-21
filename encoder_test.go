@@ -19,8 +19,6 @@ func TestEncoderPrimitiveInt32(t *testing.T) {
 
 	res := prim.Encode()
 
-	t.Logf("res=%0#x", res)
-
 	for i, p := range res {
 		if p != expected[i] {
 			t.Errorf("i=%v, expected=%v, actual=%v", i, expected[i], res[i])
