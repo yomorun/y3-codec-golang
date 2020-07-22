@@ -348,12 +348,12 @@ func TestPvarintEncode4(t *testing.T) {
 func TestPvarintEncode5(t *testing.T) {
 	var val int32 = -134217729
 	expected := []byte{0xFF, 0xBF, 0xFF, 0xFF, 0x7F}
-	res, length, err := EncodePvarint(val)
+	var vic = new(VarIntCodec)
+	res := make([]byte, 10)
+	err := vic.EncodeInt32(res, val)
+	// res, length, err := EncodePvarint(val)
 	if err != nil {
 		t.Errorf("expected err=nil, actual=%v", err)
-	}
-	if length != len(expected) {
-		t.Errorf("expected length=%v, actual=%v", len(expected), length)
 	}
 	if len(res) != len(expected) {
 		t.Errorf("expected length=%v, actual=%v", len(expected), len(res))

@@ -9,8 +9,8 @@ import (
 func main() {
 	fmt.Println("hello YoMo Codec golang implementation: Y3")
 	encodePacket()
-	// parseNodePacket()
-	// parseStringPrimitivePacket()
+	parseNodePacket()
+	parseStringPrimitivePacket()
 }
 
 type bar struct {
@@ -35,30 +35,30 @@ func encodePacket() {
 	var obj = &foo{ID: -1, bar: &bar{Name: "C"}}
 
 	// 0x81 - node
-	var yFoo = y3.NewNodePacketEncoder(0x01)
+	var foo = y3.NewNodePacketEncoder(0x01)
 
-	// 0x02 - ID=1
+	// 0x02 - ID=-1
 	var yp1 = y3.NewPrimitivePacketEncoder(0x02)
 	yp1.SetInt32Value(-1)
-	yFoo.AddPrimitivePacket(yp1)
+	foo.AddPrimitivePacket(yp1)
 
 	// 0x83 - &bar{}
-	var yBar = y3.NewNodePacketEncoder(0x03)
+	var bar = y3.NewNodePacketEncoder(0x03)
 
-	// 0x04 - Name: "C"
+	// 0x04 - Name="C"
 	var yp2 = y3.NewPrimitivePacketEncoder(0x04)
 	yp2.SetStringValue("C")
-	yBar.AddPrimitivePacket(yp2)
+	bar.AddPrimitivePacket(yp2)
 
-	yFoo.AddNodePacket(yBar)
+	foo.AddNodePacket(bar)
 
-	fmt.Println(obj)
-	fmt.Printf("res=%#v", yFoo.Encode())
+	fmt.Printf("obj=%#v\n", obj)
+	fmt.Printf("res=%#v\n", foo.Encode())
 }
 
 func parseNodePacket() {
-	fmt.Println(">> Parsing [0x84, 0x0A, 0x0A, 0x01, 0x7F, 0x0B, 0x05, 0x43, 0x45, 0x4C, 0x4C, 0x41] EQUALS JSON= 0x84: { 0x0A: -1, 0x0B: 'CELLA' }")
-	buf := []byte{0x84, 0x0A, 0x0A, 0x01, 0x7F, 0x0B, 0x05, 0x43, 0x45, 0x4C, 0x4C, 0x41}
+	fmt.Println(">> Parsing [0x84, 0x06, 0x0A, 0x01, 0x7F, 0x0B, 0x01, 0x43] EQUALS JSON= 0x84: { 0x0A: -1, 0x0B: 'C' }")
+	buf := []byte{0x84, 0x06, 0x0A, 0x01, 0x7F, 0x0B, 0x01, 0x43}
 	res, _, err := y3.DecodeNodePacket(buf)
 	v1 := res.PrimitivePackets[0]
 
@@ -79,7 +79,7 @@ func parseNodePacket() {
 }
 
 func parseStringPrimitivePacket() {
-	fmt.Println(">> Parsing [0x0A, 0x01, 0x7F] EQUALS JSON= { 0x0A: 127 } ")
+	fmt.Println(">> Parsing [0x0A, 0x01, 0x7F] EQUALS key-value = 0x0A: 127")
 	buf := []byte{0x0A, 0x01, 0x7F}
 	res, _, err := y3.DecodePrimitivePacket(buf)
 	v1, err := res.ToUInt32()

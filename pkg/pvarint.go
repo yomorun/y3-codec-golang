@@ -1,15 +1,17 @@
 package encoding
 
 import (
-	"bytes"
 	"errors"
 )
 
-type BufferInsufficient struct { }
+// type BufferInsufficient struct{}
 
-func (e *BufferInsufficient) Error() string {
-	return "buffer insufficient"
-}
+// func (e *BufferInsufficient) Error() string {
+// 	return "buffer insufficient"
+// }
+
+// BufferInsufficient describes error
+var BufferInsufficient = errors.New("buffer insufficient")
 
 type VarIntCodec struct {
 	Ptr  int // next ptr in buf
@@ -47,10 +49,10 @@ func (codec *VarIntCodec) DecodeInt64(buffer []byte, value *int64) error {
 }
 
 func (codec *VarIntCodec) EncodeUInt64(buffer []byte, value uint64) error {
-	return encoding.encode(buffer, int64(value), 64)
+	return codec.encode(buffer, int64(value), 64)
 }
 
-func (codec *VarIntCodec) DecodingUInt64(buffer []byte, value *uint64) error {
+func (codec *VarIntCodec) DecodeUInt64(buffer []byte, value *uint64) error {
 	val := int64(*value)
 	err := codec.decode(buffer, &val)
 	*value = uint64(val)
@@ -65,27 +67,28 @@ func (codec *VarIntCodec) Reset() {
 }
 
 func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
-	if (codec == nil) {
+	if codec == nil {
 		return errors.New("nothing to encode")
 	}
-	if (codec.Ptr >= len(buffer)) {
+	if codec.Ptr >= len(buffer) {
 		return BufferInsufficient
 	}
 
-	const unit = 7                 // 编码组位宽
-	const mask = -1 ^ (-1 << unit) // 编码组掩码
-	const next = 1 << unit         // 后续标志位
-	const leading = value >> (width - 1) // MSB
+	const unit = 7                     // 编码组位宽
+	const mask = -1 ^ (-1 << unit)     // 编码组掩码
+	const next = 1 << unit             // 后续标志位
+	var leading = value >> (width - 1) // MSB
 
 	leadingSkip := false
 	if codec.Bits == 0 {
-		const align = width % unit // 非对齐位数
-		const shift = width - align
-		const lookAheadBit = value >> (shift - 1) // 多检查一位
+		var align = width % unit // 非对齐位数
+		var shift = width - align
+		var lookAheadBit = value >> (shift - 1) // 多检查一位
 		codec.Bits += align
 		if leading != lookAheadBit && align > 0 {
-			const signedHiBits = (leading << align) | (value >> shift)
-			buffer[codec.Ptr++] = next | signedHiBits
+			var signedHiBits = (leading << align) | (value >> shift)
+			buffer[codec.Ptr] = byte(next | signedHiBits)
+			codec.Ptr++
 			if codec.Ptr >= len(buffer) {
 				return BufferInsufficient
 			}
@@ -96,22 +99,27 @@ func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
 
 	for codec.Bits < width { // 编码组编码
 		codec.Bits += unit
-		const shift = width - codec.Bits
+		var shift = width - codec.Bits
 		if leadingSkip && codec.Bits < width {
-			const lookAheadBit = value >> (shift - 1)
+			var lookAheadBit = value >> (shift - 1)
 			if leading == lookAheadBit {
 				continue
 			}
 			leadingSkip = false // 无连续符号组
 		}
-		const more = codec.Bits == width ? 0 : next;
-		const part = mask & (value >> shift)
-		buffer[codec.Ptr++] = more | part
+		// const more = codec.Bits == width ? 0 : next;
+		var more = next
+		if codec.Bits == width {
+			more = 0
+		}
+		var part = mask & (value >> shift)
+		buffer[codec.Ptr] = byte(int64(more) | part)
+		codec.Ptr++
 		if codec.Ptr >= len(buffer) {
 			return BufferInsufficient
 		}
 	}
-	return nil
+	return BufferInsufficient
 }
 
 func (codec *VarIntCodec) decode(buffer []byte, value *int64) error {
@@ -126,11 +134,12 @@ func (codec *VarIntCodec) decode(buffer []byte, value *int64) error {
 	const mask = -1 ^ (-1 << unit)
 
 	if codec.Bits == 0 { // 初始化符号
-		*value = int8(buffer[codec.Ptr]) << 1 >> unit
+		*value = int64(int8(buffer[codec.Ptr]) << 1 >> unit)
 	}
 	for {
-		const part = int8(buffer[codec.Ptr++])
-		*value = (*value << unit) | (mask & part)
+		var part = int8(buffer[codec.Ptr])
+		codec.Ptr++
+		*value = (*value << unit) | int64(mask&part)
 		codec.Bits += unit
 		if part >= 0 { // 最后一个字节
 			return nil
@@ -139,4 +148,32 @@ func (codec *VarIntCodec) decode(buffer []byte, value *int64) error {
 			return BufferInsufficient
 		}
 	}
+}
+
+func EncodePvarint(val int32) (buf []byte, length int, err error) {
+	var c = VarIntCodec{}
+	buf = make([]byte, 10)
+	err = c.EncodeInt32(buf, val)
+	return buf, len(buf), err
+}
+
+func Pvarint(buf []byte, pos int) (res int32, length int, err error) {
+	var c = VarIntCodec{}
+	var r *int32
+	err = c.DecodeInt32(buf, r)
+	return *r, 0, err
+}
+
+func EncodeUpvarint(val uint32) (buf []byte, length int, err error) {
+	var c = VarIntCodec{}
+	buf = make([]byte, 10)
+	err = c.EncodeUInt32(buf, val)
+	return buf, len(buf), err
+}
+
+func Upvarint(buf []byte, pos int) (res uint32, length int, err error) {
+	var c = VarIntCodec{}
+	var r *uint32
+	err = c.DecodeUInt32(buf, r)
+	return uint32(*r), 0, err
 }
