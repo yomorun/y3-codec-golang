@@ -28,7 +28,7 @@ func (codec *VarIntCodec) DecodeInt32(buffer []byte, value *int32) error {
 }
 
 func (codec *VarIntCodec) EncodeUInt32(buffer []byte, value uint32) error {
-	return codec.encode(buffer, int64(value), 32)
+	return codec.encode(buffer, int64(int32(value)), 32)
 }
 
 func (codec *VarIntCodec) DecodeUInt32(buffer []byte, value *uint32) error {
@@ -73,7 +73,7 @@ func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
 	}
 
 	const unit = 7                 // 编码组位宽
-	const mask = -1 ^ (-1 << unit) // 编码组掩吗
+	const mask = -1 ^ (-1 << unit) // 编码组掩码
 	const leading = value >> (width - 1) // MSB
 
 	leadingSkip := false
