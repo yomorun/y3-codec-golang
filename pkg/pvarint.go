@@ -5,124 +5,138 @@ import (
 	"errors"
 )
 
-// Upvarint decode to a uint32 integer
-// Big-endien 与符号位相同的连续高位只保留1位，字节内填充（padding）时使用符号位填充，最高位（MSB）用于Continuation bit，表示the following byte是否是该数值的部分
-func Upvarint(buf []byte, posStart int) (uint32, int, error) {
-	var x uint32
-	var s int
-	var step int
-	for i, b := range buf[posStart:] {
-		step++
-		if b < 0x80 {
-			return x | uint32(b), step, nil
-		}
-		s = (i + 1) * 7
-		x |= uint32(b&0x7F) << s
-	}
-	return 0, 0, errors.New("malformed buffer")
+type BufferInsufficient struct { }
+
+func (e *BufferInsufficient) Error() string {
+	return "buffer insufficient"
 }
 
-// Pvarint decode to an int32 integer
-// Big-endien 与符号位相同的连续高位只保留1位，字节内填充（padding）时使用符号位填充，最高位（MSB）用于Continuation bit，表示the following byte是否是该数值的部分
-func Pvarint(buf []byte, posStart int) (int32, int, error) {
-	// 将Continuation Bit更换成符号位
-	var x int32 = -1
-	if (buf[posStart] & 0x40) == 0 {
-		x = 0
-	}
-	for i, b := range buf[posStart:] {
-		x <<= 7
-		x |= int32(uint8(b) & 0x7F)
-		if b < 0x80 {
-			return x, i + 1, nil
-		}
-	}
-	return 0, 0, errors.New("malformed buffer")
+type VarIntCodec struct {
+	Ptr  int // next ptr in buf
+	Bits int // encoded/decoded bits in value
 }
 
-// EncodePvarint encode an int32 value to bytes
-func EncodePvarint(i int32) ([]byte, int, error) {
-	if i >= 0 {
-		return EncodeUpvarint(uint32(i))
+func (codec *VarIntCodec) EncodeInt32(buffer []byte, value int32) error {
+	return codec.encode(buffer, int64(value), 32)
+}
+
+func (codec *VarIntCodec) DecodeInt32(buffer []byte, value *int32) error {
+	val := int64(*value)
+	err := codec.decode(buffer, &val)
+	*value = int32(val)
+	return err
+}
+
+func (codec *VarIntCodec) EncodeUInt32(buffer []byte, value uint32) error {
+	return codec.encode(buffer, int64(int32(value)), 32)
+}
+
+func (codec *VarIntCodec) DecodeUInt32(buffer []byte, value *uint32) error {
+	val := int64(int32(*value))
+	err := codec.decode(buffer, &val)
+	*value = uint32(val)
+	return err
+}
+
+func (codec *VarIntCodec) EncodeInt64(buffer []byte, value int64) error {
+	return codec.encode(buffer, value, 64)
+}
+
+func (codec *VarIntCodec) DecodeInt64(buffer []byte, value *int64) error {
+	return codec.decode(buffer, value)
+}
+
+func (codec *VarIntCodec) EncodeUInt64(buffer []byte, value uint64) error {
+	return encoding.encode(buffer, int64(value), 64)
+}
+
+func (codec *VarIntCodec) DecodingUInt64(buffer []byte, value *uint64) error {
+	val := int64(*value)
+	err := codec.decode(buffer, &val)
+	*value = uint64(val)
+	return err
+}
+
+func (codec *VarIntCodec) Reset() {
+	if codec != nil {
+		codec.Ptr = 0
+		codec.Bits = 0
 	}
-	// 找到连续的符号位,i<0,sign-bit is 1
-	n := uint32(i)
-	width := 4 * 8
-	pos := width
-	// remove continuation sign-bit
-	for {
-		if pos < 7 {
-			n = n | (1 << pos)
-			return []byte{uint8(n)}, 1, nil
-		}
-		pos--
-		var k uint32 = 1
-		k = k << pos
-		if n&k == k {
-			n = (n << (width - pos)) >> (width - pos)
-		} else {
-			// found bit 0
-			pos++
-			n = n | (1 << pos)
-			break
-		}
+}
+
+func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
+	if (codec == nil) {
+		return errors.New("nothing to encode")
 	}
-	availableBitLength := pos + 1
-	// every 7 bits in a room
-	step := 1
-	buf := new(bytes.Buffer)
-	first := true
-	for {
-		if step*7 >= availableBitLength {
-			bu := (step * 7) % availableBitLength
-			o := uint8((0xFF >> (7 - bu)) << (7 - bu))
-			tmp := uint8(n) | o
-			buf.WriteByte(tmp)
-			break
-		} else {
-			var tmp uint8 = 0
-			if first {
-				tmp = uint8(n & 0x7F)
-				first = false
-			} else {
-				tmp = uint8(n&0x7F) | 0x80
+	if (codec.Ptr >= len(buffer)) {
+		return BufferInsufficient
+	}
+
+	const unit = 7                 // 编码组位宽
+	const mask = -1 ^ (-1 << unit) // 编码组掩码
+	const next = 1 << unit         // 后续标志位
+	const leading = value >> (width - 1) // MSB
+
+	leadingSkip := false
+	if codec.Bits == 0 {
+		const align = width % unit // 非对齐位数
+		const shift = width - align
+		const lookAheadBit = value >> (shift - 1) // 多检查一位
+		codec.Bits += align
+		if leading != lookAheadBit && align > 0 {
+			const signedHiBits = (leading << align) | (value >> shift)
+			buffer[codec.Ptr++] = next | signedHiBits
+			if codec.Ptr >= len(buffer) {
+				return BufferInsufficient
 			}
-
-			buf.WriteByte(tmp)
-			n = n >> 7
-		}
-		step++
-	}
-	return reverse(buf.Bytes()), buf.Len(), nil
-}
-
-// EncodeUpvarint encode an uint32 value to bytes
-func EncodeUpvarint(i uint32) ([]byte, int, error) {
-	buf := new(bytes.Buffer)
-	len := 0
-	for {
-		if i == 0 {
-			if len == 0 {
-				buf.WriteByte(0x00)
-			}
-			return reverse(buf.Bytes()), buf.Len(), nil
-		}
-		p := i & 0x7F
-		if len == 0 {
-			buf.WriteByte(byte(p))
 		} else {
-			buf.WriteByte(byte(p | 0x80))
+			leadingSkip = true
 		}
-		i = i >> 7
-		len++
 	}
+
+	for codec.Bits < width { // 编码组编码
+		codec.Bits += unit
+		const shift = width - codec.Bits
+		if leadingSkip && codec.Bits < width {
+			const lookAheadBit = value >> (shift - 1)
+			if leading == lookAheadBit {
+				continue
+			}
+			leadingSkip = false // 无连续符号组
+		}
+		const more = codec.Bits == width ? 0 : next;
+		const part = mask & (value >> shift)
+		buffer[codec.Ptr++] = more | part
+		if codec.Ptr >= len(buffer) {
+			return BufferInsufficient
+		}
+	}
+	return nil
 }
 
-func reverse(b []byte) (r []byte) {
-	l := len(b)
-	r = make([]byte, l)
-	for i, v := range b {
-		r[l-i-1] = v
+func (codec *VarIntCodec) decode(buffer []byte, value *int64) error {
+	if codec == nil {
+		return errors.New("nothing to decode")
 	}
-	return r
+	if codec.Ptr >= len(buffer) {
+		return BufferInsufficient
+	}
+
+	const unit = 7
+	const mask = -1 ^ (-1 << unit)
+
+	if codec.Bits == 0 { // 初始化符号
+		*value = int8(buffer[codec.Ptr]) << 1 >> unit
+	}
+	for {
+		const part = int8(buffer[codec.Ptr++])
+		*value = (*value << unit) | (mask & part)
+		codec.Bits += unit
+		if part >= 0 { // 最后一个字节
+			return nil
+		}
+		if codec.Ptr >= len(buffer) {
+			return BufferInsufficient
+		}
+	}
 }
