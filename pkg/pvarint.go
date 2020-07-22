@@ -74,6 +74,7 @@ func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
 
 	const unit = 7                 // 编码组位宽
 	const mask = -1 ^ (-1 << unit) // 编码组掩码
+	const next = 1 << unit         // 后续标志位
 	const leading = value >> (width - 1) // MSB
 
 	leadingSkip := false
@@ -84,7 +85,7 @@ func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
 		codec.Bits += align
 		if leading != lookAheadBit && align > 0 {
 			const signedHiBits = (leading << align) | (value >> shift)
-			buffer[codec.Ptr++] = (1 << unit) | signedHiBits
+			buffer[codec.Ptr++] = next | signedHiBits
 			if codec.Ptr >= len(buffer) {
 				return BufferInsufficient
 			}
@@ -96,16 +97,16 @@ func (codec *VarIntCodec) encode(buffer []byte, value int64, width int) error {
 	for codec.Bits < width { // 编码组编码
 		codec.Bits += unit
 		const shift = width - codec.Bits
-		if leadingSkip {
+		if leadingSkip && codec.Bits < width {
 			const lookAheadBit = value >> (shift - 1)
 			if leading == lookAheadBit {
 				continue
 			}
 			leadingSkip = false // 无连续符号组
 		}
-		const next = codec.Bits == width ? 0 : 1 << unit
+		const more = codec.Bits == width ? 0 : next;
 		const part = mask & (value >> shift)
-		buffer[codec.Ptr++] = next | part
+		buffer[codec.Ptr++] = more | part
 		if codec.Ptr >= len(buffer) {
 			return BufferInsufficient
 		}
