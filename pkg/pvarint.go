@@ -67,14 +67,14 @@ func (codec *PVarIntCodec) encode(buffer []byte, value int64, width int) error {
 		return BufferInsufficient
 	}
 
-	const unit = 7          // 编码组位宽
-	const next = -1 << unit // 接续标志位
-	const mask = -1 ^ next  // 编码组掩码
-	const leading = value >> (width - 1) // 符号位符号扩展
+	const unit = 7                     // 编码组位宽
+	const next = -1 << unit            // 接续标志位
+	const mask = -1 ^ next             // 编码组掩码
+	var leading = value >> (width - 1) // 符号位符号扩展
 
 	var leadingSkip = false
 	if codec.Bits == 0 {
-		var align = width % unit  // 非对齐位数
+		var align = width % unit // 非对齐位数
 		var shift = width - align
 		var lookAheadBit = value >> (shift - 1) // 多检查一位
 
@@ -116,6 +116,9 @@ func (codec *PVarIntCodec) encode(buffer []byte, value int64, width int) error {
 			return BufferInsufficient
 		}
 	}
+
+	// C.C.
+	return nil
 }
 
 func (codec *PVarIntCodec) decode(buffer []byte, value *int64) error {
@@ -135,7 +138,7 @@ func (codec *PVarIntCodec) decode(buffer []byte, value *int64) error {
 
 	for {
 		var part = int8(buffer[codec.Ptr])
-		*value = (*value << unit) | int64(mask & part)
+		*value = (*value << unit) | int64(mask&part)
 
 		codec.Ptr++
 		codec.Bits += unit
