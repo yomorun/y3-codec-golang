@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"errors"
+	"fmt"
 )
 
 var BufferInsufficient = errors.New("buffer insufficient")
@@ -27,9 +28,13 @@ func (codec *PVarIntCodec) EncodeUInt32(buffer []byte, value uint32) error {
 }
 
 func (codec *PVarIntCodec) DecodeUInt32(buffer []byte, value *uint32) error {
+	// fmt.Printf("******** *value=%v \n", *value)
 	var val = int64(int32(*value))
+	// fmt.Printf("****PRE**** val=%v \n", val)
 	var err = codec.decode(buffer, &val)
+	// fmt.Printf("****POST**** val=%v \n", val)
 	*value = uint32(val)
+	// fmt.Printf("******** *value=%v \n", *value)
 	return err
 }
 
@@ -160,9 +165,9 @@ func EncodePvarint(val int32) (buf []byte, length int, err error) {
 
 func Pvarint(buf []byte, pos int) (res int32, length int, err error) {
 	var c = PVarIntCodec{}
-	var r *int32
-	err = c.DecodeInt32(buf, r)
-	return *r, 0, err
+	var r int32
+	err = c.DecodeInt32(buf, &r)
+	return r, 0, err
 }
 
 func EncodeUpvarint(val uint32) (buf []byte, length int, err error) {
@@ -173,8 +178,10 @@ func EncodeUpvarint(val uint32) (buf []byte, length int, err error) {
 }
 
 func Upvarint(buf []byte, pos int) (res uint32, length int, err error) {
+	fmt.Printf("******** buf=%#x, pos=%v \n", buf, pos)
 	var c = PVarIntCodec{}
-	var r *uint32
-	err = c.DecodeUInt32(buf, r)
-	return uint32(*r), 0, err
+	var r uint32 = 0
+	err = c.DecodeUInt32(buf, &r)
+	fmt.Printf("********POST------------- r=%v \n", r)
+	return r, 0, err
 }
