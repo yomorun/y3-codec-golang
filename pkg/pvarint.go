@@ -29,13 +29,9 @@ func (codec *VarIntCodec) EncodePVarUInt32(buffer []byte, value uint32) error {
 }
 
 func (codec *VarIntCodec) DecodePVarUInt32(buffer []byte, value *uint32) error {
-	// fmt.Printf("******** *value=%v \n", *value)
 	var val = int64(int32(*value))
-	// fmt.Printf("****PRE**** val=%v \n", val)
 	var err = codec.decodePVarInt(buffer, &val)
-	// fmt.Printf("****POST**** val=%v \n", val)
 	*value = uint32(val)
-	// fmt.Printf("******** *value=%v \n", *value)
 	return err
 }
 
@@ -71,7 +67,7 @@ func sizeOfPVarInt(value int64, width int) int {
 	var lead = value >> (width - 1)
 
 	for size := width / unit; size > 0; size-- {
-		var lookAhead = value >> (size * unit - 1)
+		var lookAhead = value >> (size*unit - 1)
 		if lookAhead != lead {
 			return size + 1
 		}
@@ -129,7 +125,7 @@ func (codec *VarIntCodec) decodePVarInt(buffer []byte, value *int64) error {
 		codec.Ptr++
 
 		codec.Size++
-		*value = (*value << unit) | int64(mask & part)
+		*value = (*value << unit) | int64(mask&part)
 
 		if part >= 0 { // 最后一个字节
 			return nil
@@ -150,22 +146,22 @@ func EncodePvarint(val int32) (buf []byte, length int, err error) {
 func Pvarint(buf []byte, pos int) (res int32, length int, err error) {
 	var c = VarIntCodec{}
 	var r int32
-	err = c.DecodePVarInt32(buf, &r)
+	err = c.DecodePVarInt32(buf[pos:], &r)
 	return r, 0, err
 }
 
 func EncodeUpvarint(val uint32) (buf []byte, length int, err error) {
 	var c = VarIntCodec{Size: SizeOfPVarUInt32(val)}
-	buf = make([]byte, 10)
+	buf = make([]byte, SizeOfPVarUInt32(val))
 	err = c.EncodePVarUInt32(buf, val)
-	return buf, len(buf), err
+	return buf, SizeOfPVarUInt32(val), err
 }
 
 func Upvarint(buf []byte, pos int) (res uint32, length int, err error) {
 	fmt.Printf("******** buf=%#x, pos=%v \n", buf, pos)
 	var c = VarIntCodec{}
 	var r uint32 = 0
-	err = c.DecodePVarUInt32(buf, &r)
+	err = c.DecodePVarUInt32(buf[pos:], &r)
 	fmt.Printf("********POST------------- r=%v \n", r)
 	return r, 0, err
 }
