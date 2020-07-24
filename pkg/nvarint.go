@@ -1,7 +1,6 @@
 package encoding
 
 import (
-	"bytes"
 	"errors"
 )
 
@@ -54,35 +53,28 @@ func DecodingUInt64(buffer []byte, size int) uint64 {
 }
 
 func sizeOf(value int64, width int) int {
-	const unit = 8
-	var size = width / unit
+	const lead = value >> (width - 1)
 
-	var shift = width - unit
-	const lead = value >> shift
-
-	for shift > 0 {
-		shift -= unit
-		if (lead != (value >> shift)) {
-			break
-		}
-		--size
+	var size = width / 8
+	for s = size - 1; s > 0; --s {
+	  if (lead == (value >> (s * 8))) {
+	    --size
+	  }
 	}
 	return size
 }
 
 func encode(buffer []byte, size int, value int64) {
-	const unit = 8
 	for i := 0; size > 0; ++i {
 		--size
-		buffer[i] = byte(value >> (size * unit))
+		buffer[i] = byte(value >> (size * 8))
 	}
 }
 
 func decode(buffer []byte, size int) int64 {
-	const unit = 8
 	var value = int64(int8(buffer[0]) >> 7)
 	for i := 0; i < size; ++i {
-		value = (value << unit) | int64(buffer[i])
+		value = (value << 8) | int64(buffer[i])
 	}
 	return value
 }
