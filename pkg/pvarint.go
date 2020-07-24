@@ -80,7 +80,7 @@ func sizeOfPVarInt(value int64, width int) int {
 }
 
 func (codec *VarIntCodec) encodePVarInt(buffer []byte, value int64) error {
-	if codec == nil {
+	if codec == nil || codec.Size == 0 {
 		return errors.New("nothing to encode")
 	}
 	if codec.Ptr >= len(buffer) {
@@ -155,7 +155,7 @@ func Pvarint(buf []byte, pos int) (res int32, length int, err error) {
 }
 
 func EncodeUpvarint(val uint32) (buf []byte, length int, err error) {
-	var c = VarIntCodec{Size: SizeOfUInt32(val)}
+	var c = VarIntCodec{Size: SizeOfPVarUInt32(val)}
 	buf = make([]byte, 10)
 	err = c.EncodePVarUInt32(buf, val)
 	return buf, len(buf), err
