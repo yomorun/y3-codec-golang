@@ -78,7 +78,7 @@ func sizeOfNVarInt(value int64, width int) int {
 	const unit = 8 // bit width of encoding unit
 
 	var lead = value >> (width - 1)
-	for size := width / unit; size > 0; size-- {
+	for size := width / unit - 1; size > 0; size-- {
 		var lookAhead = value >> (size*unit - 1)
 		if lookAhead != lead {
 			return size + 1
@@ -109,22 +109,24 @@ func (codec *VarCodec) decodeNVarInt(buffer []byte, value *int64) error {
 	if codec == nil || codec.Size == 0 {
 		return errors.New("nothing to decode")
 	}
-	if codec.Ptr >= len(buffer) {
-		return ErrBufferInsufficient
-	}
 
 	const unit = 8      // bit width of encoding unit
 	if codec.Size > 0 { // initialize sign bit
-		*value = int64(int8(buffer[codec.Ptr]) >> (unit - 1))
-		codec.Size = -codec.Size
-	}
-	for codec.Size < 0 {
-		codec.Size++
-		*value = (*value << unit) | int64(buffer[codec.Ptr])
-		codec.Ptr++
 		if codec.Ptr >= len(buffer) {
 			return ErrBufferInsufficient
 		}
+		*value = int64(int8(buffer[codec.Ptr]) >> (unit - 1))
+		codec.Size = -codec.Size
+	}
+
+	for codec.Size < 0 {
+		if codec.Ptr >= len(buffer) {
+			return ErrBufferInsufficient
+		}
+
+		codec.Size++
+		*value = (*value << unit) | int64(buffer[codec.Ptr])
+		codec.Ptr++
 	}
 	return nil
 }
