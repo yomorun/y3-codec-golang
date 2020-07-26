@@ -46,16 +46,21 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	pos++
 
 	// `Length`: the type is `varint`
-	_len, lengthOfLenBuffer, err := encoding.Upvarint(b, pos)
+	tmpBuf := make([]byte, len(b)-pos)
+	copy(tmpBuf, b[pos:])
+	var vallen int32
+	codec := encoding.VarIntCodec{}
+	err = codec.DecodePVarInt32(tmpBuf, &vallen)
+	// _len, vallen, err := encoding.Upvarint(b, pos)
 	if err != nil {
 		return nil, 0, err
 	}
-	pct.basePacket.length = _len // Length的值是Value的字节长度
-	// fmt.Printf("pos=%v, lengthOfLenBuffer=%v, n.Length=%v\n", pos, lengthOfLenBuffer, pct.Length())
-	pos += lengthOfLenBuffer
+	pct.basePacket.length = uint32(codec.Size) // Length的值是Value的字节长度
+	// fmt.Printf("pos=%v, vallen=%v, n.Length=%v\n", pos, vallen, pct.Length())
+	pos += codec.Size
 
 	// `raw` is pct.Length() length
-	vl := int(_len)
+	vl := int(vallen)
 	endPos = pos + vl
 	pct.basePacket.valbuf = make([]byte, vl)
 	copy(pct.basePacket.valbuf, b[pos:endPos])

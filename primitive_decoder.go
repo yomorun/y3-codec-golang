@@ -28,16 +28,26 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	pos++
 
 	// read `Varint` from buf as `Length`
-	len, bufLen, err := encoding.Pvarint(buf, pos)
+	tmpBuf := make([]byte, len(buf)-pos)
+	copy(tmpBuf, buf[pos:])
+	var bufLen int32
+	codec := encoding.VarIntCodec{}
+	err := codec.DecodePVarInt32(tmpBuf, &bufLen)
 	if err != nil {
 		return nil, 0, err
 	}
+	len := codec.Size
+
+	// len, bufLen, err := encoding.Pvarint(buf, pos)
+	// if err != nil {
+	// 	return nil, 0, err
+	// }
 	logger.Debugf(">>>len=%v", len)
 	if len < 1 {
 		return nil, 0, errors.New("malformed, Length can not smaller than 1")
 	}
 	p.length = uint32(len) // Length的值是Value的字节长度
-	pos += bufLen
+	pos += int(bufLen)
 
 	// read `Value` raw data, len(raw data) = p.Length - 1
 	valLength := p.length

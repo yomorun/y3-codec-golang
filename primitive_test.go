@@ -55,7 +55,7 @@ func TestPacketRead(t *testing.T) {
 // 测试读取 0x0A:2
 func TestParseInt32(t *testing.T) {
 	buf := []byte{0x0A, 0x02, 0x01, 0x02}
-	expected := int32(1)
+	expected := int32(2)
 
 	res, _, err := DecodePrimitivePacket(buf)
 	if err != nil {

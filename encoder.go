@@ -44,7 +44,11 @@ func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
 
 // SetInt32Value encode int32 value
 func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
-	buf, _, err := encoding.EncodePvarint(v)
+	size := encoding.SizeOfPVarInt32(v)
+	codec := encoding.VarIntCodec{Size: size}
+	buf := make([]byte, size)
+	err := codec.EncodePVarInt32(buf, v)
+	// buf, _, err := encoding.EncodePvarint(v)
 	if err != nil {
 		panic(err)
 	}
@@ -106,8 +110,18 @@ func (enc *encoder) writeLengthBuf() {
 	if vallen < 1 {
 		panic("length must greater than 0")
 	}
-	tmp := make([]byte, 10)
-	encoding.EncodeInt32(tmp, 4, int32(vallen))
+
+	size := encoding.SizeOfPVarInt32(int32(vallen))
+	codec := encoding.VarIntCodec{Size: size}
+	tmp := make([]byte, size)
+	err := codec.EncodePVarInt32(tmp, int32(vallen))
+	// buf, _, err := encoding.EncodePvarint(v)
+	if err != nil {
+		panic(err)
+	}
+
+	// tmp := make([]byte, 10)
+	// encoding.EncodeInt32(tmp, 4, int32(vallen))
 	// vic := new(encoding.VarIntCodec)
 	// vic.Size = 4
 	// err := vic.EncodePVarInt32(tmp, int32(vallen))
