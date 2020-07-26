@@ -1,76 +1,117 @@
 package encoding
 
-func SizeOfInt32(value int32) int {
-	return sizeOf(int64(value), 32)
+import (
+	"errors"
+)
+
+func SizeOfNVarInt32(value int32) int {
+	return sizeOfNVarInt(int64(value), 32)
 }
 
-func EncodeInt32(buffer []byte, size int, value int32) {
-	encode(buffer, size, int64(value))
+func (codec *VarIntCodec) EncodeNVarInt32(buffer []byte, value int32) error {
+	return codec.encodeNVarInt(buffer, int64(value))
 }
 
-func DecodeInt32(buffer []byte, size int) int32 {
-	return int32(decode(buffer, size))
+func (codec *VarIntCodec) DecodeNVarInt32(buffer []byte, value *int32) error {
+	var val = int64(*value)
+	var err = codec.decodeNVarInt(buffer, &val)
+	*value = int32(val)
+	return err
 }
 
-func SizeOfUInt32(value uint32) int {
-	return sizeOf(int64(int32(value)), 32)
+func SizeOfNVarUInt32(value uint32) int {
+	return sizeOfNVarInt(int64(int32(value)), 32)
 }
 
-func EncodeUInt32(buffer []byte, size int, value uint32) {
-	encode(buffer, size, int64(int32(value)))
+func (codec *VarIntCodec) EncodeNVarUInt32(buffer []byte, value uint32) error {
+	return codec.encodeNVarInt(buffer, int64(int32(value)))
 }
 
-func DecodeUInt32(buffer []byte, size int) uint32 {
-	return uint32(decode(buffer, size))
+func (codec *VarIntCodec) DecodeNVarUInt32(buffer []byte, value *uint32) error {
+	var val = int64(int32(*value))
+	var err = codec.decodeNVarInt(buffer, &val)
+	*value = uint32(val)
+	return err
 }
 
-func SizeOfInt64(value int64) int {
-	return sizeOf(value, 64)
+func SizeOfNVarInt64(value int64) int {
+	return sizeOfNVarInt(value, 64)
 }
 
-func EncodeInt64(buffer []byte, size int, value int64) {
-	encode(buffer, size, value)
+func (codec *VarIntCodec) EncodeNVarInt64(buffer []byte, value int64) error {
+	return codec.encodeNVarInt(buffer, value)
 }
 
-func DecodeInt64(buffer []byte, size int) int64 {
-	return decode(buffer, size)
+func (codec *VarIntCodec) DecodeNVarInt64(buffer []byte, value *int64) error {
+	return codec.decodeNVarInt(buffer, value)
 }
 
-func SizeOfUInt64(value uint64) int {
-	return sizeOf(int64(value), 64)
+func SizeOfNVarUInt64(value uint64) int {
+	return sizeOfNVarInt(int64(value), 64)
 }
 
-func EncodeUInt64(buffer []byte, size int, value uint64) {
-	encode(buffer, size, int64(value))
+func (codec *VarIntCodec) EncodeNVarUInt64(buffer []byte, value uint64) error {
+	return codec.encodeNVarInt(buffer, int64(value))
 }
 
-func DecodingUInt64(buffer []byte, size int) uint64 {
-	return uint64(decode(buffer, size))
+func (codec *VarIntCodec) DecodeNVarUInt64(buffer []byte, value *uint64) error {
+	var val = int64(*value)
+	var err = codec.decodeNVarInt(buffer, &val)
+	*value = uint64(val)
+	return err
 }
 
-func sizeOf(value int64, width int) int {
+func sizeOfNVarInt(value int64, width int) int {
+	const unit = 8 // 编码组位宽
 	var lead = value >> (width - 1)
 
-	var size = width / 8
-	for s := size - 1; s > 0; s-- {
-		if lead == (value >> (s * 8)) {
-			size--
+	for size := width / unit; size > 0; size-- {
+		var lookAhead = value >> (size * unit - 1)
+		if lookAhead != lead {
+			return size + 1
 		}
 	}
-	return size
+	return 1
 }
 
-func encode(buffer []byte, size int, value int64) {
-	for i := 0; size > 0; i++ {
-		size--
-		buffer[i] = byte(value >> (size * 8))
+func (codec *VarIntCodec) encodeNVarInt(buffer []byte, value int64) error {
+	if codec == nil || codec.Size == 0 {
+		return errors.New("nothing to encode")
 	}
+
+	const unit = 8
+	for codec.Size > 0 {
+		if codec.Ptr >= len(buffer) {
+			return BufferInsufficient
+		}
+
+		codec.Size--
+		buffer[codec.Ptr] = byte(value >> (codec.Size * unit))
+		codec.Ptr++
+	}
+	return nil
 }
 
-func decode(buffer []byte, size int) int64 {
-	var value = int64(int8(buffer[0]) >> 7)
-	for i := 0; i < size; i++ {
-		value = (value << 8) | int64(buffer[i])
+func (codec *VarIntCodec) decodeNVarInt(buffer []byte, value *int64) error {
+	if codec == nil || codec.Size == 0 {
+		return errors.New("nothing to decode")
 	}
-	return value
+	if codec.Ptr >= len(buffer) {
+		return BufferInsufficient
+	}
+
+	const unit = 8
+	if codec.Size > 0 { // 初始化符号
+		*value = int64(int8(buffer[codec.Ptr]) >> 7)
+		codec.Size = - codec.Size
+	}
+	for codec.Size < 0 {
+		codec.Size++
+		*value = (*value << unit) | int64(buffer[codec.Ptr])
+		codec.Ptr++
+		if codec.Ptr >= len(buffer) {
+			return BufferInsufficient
+		}
+	}
+	return nil
 }
