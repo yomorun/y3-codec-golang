@@ -16,3 +16,6 @@ lint:
 
 test:
 	$(GO) test -v ./...
+
+cover:
+	$(GO) test -coverprofile=prof.out && $(GO) tool cover -html=prof.out && rm prof.out
