@@ -110,7 +110,12 @@ func TestEncoderNode2(t *testing.T) {
 
 	res := node1.Encode()
 
+	if len(expected) != len(res) {
+		t.Errorf("len(expected)=%v, len(res)=%v", len(expected), len(res))
+	}
+
 	for i, p := range res {
+		t.Logf("👂i=%v, expected=%#x, actual=%#x", i, expected[i], res[i])
 		if p != expected[i] {
 			t.Errorf("i=%v, expected=%#x, actual=%#x", i, expected[i], res[i])
 		}

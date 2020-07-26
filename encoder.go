@@ -10,7 +10,7 @@ import (
 // Encoder will encode object to Y3 encoding
 type encoder struct {
 	seqID  int
-	valbuf *bytes.Buffer
+	valbuf []byte
 	isNode bool
 	buf    *bytes.Buffer
 }
@@ -34,7 +34,6 @@ func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
 		encoder: encoder{
 			isNode: false,
 			buf:    new(bytes.Buffer),
-			valbuf: new(bytes.Buffer),
 		},
 	}
 
@@ -46,18 +45,19 @@ func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
 func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
 	size := encoding.SizeOfPVarInt32(v)
 	codec := encoding.VarCodec{Size: size}
-	buf := make([]byte, size)
-	err := codec.EncodePVarInt32(buf, v)
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodePVarInt32(enc.valbuf, v)
 	if err != nil {
 		panic(err)
 	}
-	enc.valbuf.Write(buf)
+	// enc.valbuf.Write(buf)
 }
 
 // SetStringValue encode string
 func (enc *PirmitivePacketEncoder) SetStringValue(v string) {
-	buf := []byte(v)
-	enc.valbuf.Write(buf)
+	// buf := []byte(v)
+	// enc.valbuf.Write(buf)
+	enc.valbuf = []byte(v)
 }
 
 // NodePacketEncoder used for encode a node packet
@@ -71,7 +71,6 @@ func NewNodePacketEncoder(sid int) *NodePacketEncoder {
 		encoder: encoder{
 			isNode: true,
 			buf:    new(bytes.Buffer),
-			valbuf: new(bytes.Buffer),
 		},
 	}
 
@@ -90,7 +89,8 @@ func (enc *NodePacketEncoder) AddPrimitivePacket(np *PirmitivePacketEncoder) {
 }
 
 func (enc *encoder) addRawPacket(en iEncoder) {
-	enc.valbuf.Write(en.Encode())
+	enc.valbuf = append(enc.valbuf, en.Encode()...)
+	fmt.Println(enc.valbuf)
 }
 
 // setTag write tag as seqID
@@ -105,7 +105,8 @@ func (enc *encoder) writeTag() {
 }
 
 func (enc *encoder) writeLengthBuf() {
-	vallen := enc.valbuf.Len()
+	// vallen := enc.valbuf.Len()
+	vallen := len(enc.valbuf)
 	if vallen < 1 {
 		panic("length must greater than 0")
 	}
@@ -129,7 +130,8 @@ func (enc *encoder) Encode() []byte {
 	// Length
 	enc.writeLengthBuf()
 	// Value
-	enc.buf.Write(enc.valbuf.Bytes())
+	// enc.buf.Write(enc.valbuf.Bytes())
+	enc.buf.Write(enc.valbuf)
 
 	return enc.buf.Bytes()
 }
