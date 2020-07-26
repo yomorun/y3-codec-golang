@@ -119,22 +119,8 @@ func (enc *encoder) writeLengthBuf() {
 	if err != nil {
 		panic(err)
 	}
-
-	// tmp := make([]byte, 10)
-	// encoding.EncodeInt32(tmp, 4, int32(vallen))
-	// vic := new(encoding.VarIntCodec)
-	// vic.Size = 4
-	// err := vic.EncodePVarInt32(tmp, int32(vallen))
-	// fmt.Println(err)
-	// fmt.Printf("size=%v\n", vic.Size)
-	fmt.Printf("tmp=%#x, vallen=%v", tmp, vallen)
+	// fmt.Printf("tmp=%#x, vallen=%v", tmp, vallen)
 	enc.buf.Write(tmp)
-
-	// buf, _, err := encoding.EncodePvarint(int32(vallen))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// enc.buf.Write(buf)
 }
 
 // Encode returns a final Y3 encoded byte slice
