@@ -31,7 +31,7 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	tmpBuf := make([]byte, len(buf)-pos)
 	copy(tmpBuf, buf[pos:])
 	var bufLen int32
-	codec := encoding.VarIntCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarInt32(tmpBuf, &bufLen)
 	if err != nil {
 		return nil, 0, err
