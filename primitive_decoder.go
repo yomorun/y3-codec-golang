@@ -28,8 +28,7 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	pos++
 
 	// read `Varint` from buf as `Length`
-	tmpBuf := make([]byte, len(buf)-pos)
-	copy(tmpBuf, buf[pos:])
+	tmpBuf := buf[pos:]
 	var bufLen int32
 	codec := encoding.VarCodec{}
 	err := codec.DecodePVarInt32(tmpBuf, &bufLen)
@@ -47,10 +46,11 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 
 	// read `Value` raw data, len(raw data) = p.Length - 1
 	valLength := p.length
-	p.valbuf = make([]byte, valLength)
+	// p.valbuf = make([]byte, valLength)
 	endPos := pos + int(valLength)
-	copied := copy(p.valbuf, buf[pos:uint32(pos)+valLength])
-	logger.Debugf("copied raw data length = %v", copied)
+	// copied := copy(p.valbuf, buf[pos:uint32(pos)+valLength])
+	p.valbuf = buf[pos : uint32(pos)+valLength]
+	// logger.Debugf("copied raw data length = %v", copied)
 
 	return p, endPos, nil
 }

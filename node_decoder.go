@@ -46,8 +46,7 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	pos++
 
 	// `Length`: the type is `varint`
-	tmpBuf := make([]byte, len(b)-pos)
-	copy(tmpBuf, b[pos:])
+	tmpBuf := b[pos:]
 	var vallen int32
 	codec := encoding.VarCodec{}
 	err = codec.DecodePVarInt32(tmpBuf, &vallen)
