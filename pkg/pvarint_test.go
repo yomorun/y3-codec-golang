@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInt32(t *testing.T) {
+func TestPInt32(t *testing.T) {
 	testPVarInt32(t, -1, []byte{0x7F})
 	testPVarInt32(t, -5, []byte{0x7B})
 	testPVarInt32(t, 63, []byte{0x3F})
@@ -21,7 +21,7 @@ func TestInt32(t *testing.T) {
 	testPVarInt32(t, -2147483648, []byte{0xF8, 0x80, 0x80, 0x80, 0x00})
 }
 
-func TestUInt32(t *testing.T) {
+func TestPUInt32(t *testing.T) {
 	testPVarUInt32(t, 1, []byte{0x01})
 	testPVarUInt32(t, 127, []byte{0x80, 0x7F})
 	testPVarUInt32(t, 128, []byte{0x81, 0x00})
@@ -31,20 +31,20 @@ func TestUInt32(t *testing.T) {
 	testPVarUInt32(t, 4294967295, []byte{0x7F})
 }
 
-func TestInt64(t *testing.T) {
+func TestPInt64(t *testing.T) {
 	testPVarInt64(t, 0, []byte{0x00})
 	testPVarInt64(t, 1, []byte{0x01})
 	testPVarInt64(t, -1, []byte{0x7F})
 }
 
-func TestUInt64(t *testing.T) {
+func TestPUInt64(t *testing.T) {
 	testPVarUInt64(t, 0, []byte{0x00})
 	testPVarUInt64(t, 1, []byte{0x01})
 	testPVarUInt64(t, 18446744073709551615, []byte{0x7F})
 }
 
 func testPVarInt32(t *testing.T, value int32, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v: %v", value, bytes)
+	var msg = fmt.Sprintf("testing %v (%X): %X", value, uint32(value), bytes)
 	var size = SizeOfPVarInt32(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -60,7 +60,7 @@ func testPVarInt32(t *testing.T, value int32, bytes []byte) {
 }
 
 func testPVarUInt32(t *testing.T, value uint32, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v: %v", value, bytes)
+	var msg = fmt.Sprintf("testing %v (%X): %X", value, value, bytes)
 	var size = SizeOfPVarUInt32(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -76,7 +76,7 @@ func testPVarUInt32(t *testing.T, value uint32, bytes []byte) {
 }
 
 func testPVarInt64(t *testing.T, value int64, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v: %v", value, bytes)
+	var msg = fmt.Sprintf("testing %v (%X): %X", value, uint64(value), bytes)
 	var size = SizeOfPVarInt64(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -92,7 +92,7 @@ func testPVarInt64(t *testing.T, value int64, bytes []byte) {
 }
 
 func testPVarUInt64(t *testing.T, value uint64, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v: %v", value, bytes)
+	var msg = fmt.Sprintf("testing %v (%X): %X", value, value, bytes)
 	var size = SizeOfPVarUInt64(value)
 	assert.Equal(t, len(bytes), size, msg)
 
