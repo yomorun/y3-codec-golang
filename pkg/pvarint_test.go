@@ -49,12 +49,12 @@ func testPVarInt32(t *testing.T, value int32, bytes []byte) {
 	assert.Equal(t, len(bytes), size, msg)
 
 	buffer := make([]byte, len(bytes))
-	codec := VarIntCodec{Size: size}
+	codec := VarCodec{Size: size}
 	assert.Nil(t, codec.EncodePVarInt32(buffer, value), msg)
 	assert.Equal(t, bytes, buffer, msg)
 
 	var val int32
-	codec = VarIntCodec{}
+	codec = VarCodec{}
 	assert.Nil(t, codec.DecodePVarInt32(bytes, &val), msg)
 	assert.Equal(t, value, val, msg)
 }
@@ -65,12 +65,12 @@ func testPVarUInt32(t *testing.T, value uint32, bytes []byte) {
 	assert.Equal(t, len(bytes), size, msg)
 
 	buffer := make([]byte, len(bytes))
-	codec := VarIntCodec{Size: size}
+	codec := VarCodec{Size: size}
 	assert.Nil(t, codec.EncodePVarUInt32(buffer, value), msg)
 	assert.Equal(t, bytes, buffer, msg)
 
 	var val uint32
-	codec = VarIntCodec{}
+	codec = VarCodec{}
 	assert.Nil(t, codec.DecodePVarUInt32(bytes, &val), msg)
 	assert.Equal(t, value, val, msg)
 }
@@ -81,12 +81,12 @@ func testPVarInt64(t *testing.T, value int64, bytes []byte) {
 	assert.Equal(t, len(bytes), size, msg)
 
 	buffer := make([]byte, len(bytes))
-	codec := VarIntCodec{Size: size}
+	codec := VarCodec{Size: size}
 	assert.Nil(t, codec.EncodePVarInt64(buffer, value), msg)
 	assert.Equal(t, bytes, buffer, msg)
 
 	var val int64
-	codec = VarIntCodec{}
+	codec = VarCodec{}
 	assert.Nil(t, codec.DecodePVarInt64(bytes, &val), msg)
 	assert.Equal(t, value, val, msg)
 }
@@ -97,12 +97,12 @@ func testPVarUInt64(t *testing.T, value uint64, bytes []byte) {
 	assert.Equal(t, len(bytes), size, msg)
 
 	buffer := make([]byte, len(bytes))
-	codec := VarIntCodec{Size: size}
+	codec := VarCodec{Size: size}
 	assert.Nil(t, codec.EncodePVarUInt64(buffer, value), msg)
 	assert.Equal(t, bytes, buffer, msg)
 
 	var val uint64
-	codec = VarIntCodec{}
+	codec = VarCodec{}
 	assert.Nil(t, codec.DecodePVarUInt64(bytes, &val), msg)
 	assert.Equal(t, value, val)
 }

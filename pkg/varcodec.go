@@ -8,7 +8,7 @@ import (
 var ErrBufferInsufficient = errors.New("buffer insufficient")
 
 // VarIntCodec for encode/decode VarInt
-type VarIntCodec struct {
+type VarCodec struct {
 	// next ptr in buf
 	Ptr int
 	// Encoder: bytes are to be written

@@ -25,7 +25,7 @@ func (p *PrimitivePacket) String() string {
 // ToInt32 parse raw as int32 value
 func (p *PrimitivePacket) ToInt32() (int32, error) {
 	var val int32
-	codec := encoding.VarIntCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarInt32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -36,7 +36,7 @@ func (p *PrimitivePacket) ToInt32() (int32, error) {
 // ToUInt32 parse raw as int32 value
 func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 	var val uint32
-	codec := encoding.VarIntCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarUInt32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
