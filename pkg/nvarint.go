@@ -66,7 +66,7 @@ func sizeOfNVarInt(value int64, width int) int {
 	var lead = value >> (width - 1)
 
 	for size := width / unit; size > 0; size-- {
-		var lookAhead = value >> (size * unit - 1)
+		var lookAhead = value >> (size*unit - 1)
 		if lookAhead != lead {
 			return size + 1
 		}
@@ -103,7 +103,7 @@ func (codec *VarIntCodec) decodeNVarInt(buffer []byte, value *int64) error {
 	const unit = 8
 	if codec.Size > 0 { // 初始化符号
 		*value = int64(int8(buffer[codec.Ptr]) >> 7)
-		codec.Size = - codec.Size
+		codec.Size = -codec.Size
 	}
 	for codec.Size < 0 {
 		codec.Size++

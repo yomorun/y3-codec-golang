@@ -6,7 +6,7 @@ import (
 )
 
 func SizeOfVarFloat32(value float32) int {
-	return sizeOfVarFloat(uint64(math.Float32bits(value)), 32);
+	return sizeOfVarFloat(uint64(math.Float32bits(value)), 32)
 }
 
 func (codec *VarIntCodec) EncodeVarFloat32(buffer []byte, value float32) error {
@@ -41,7 +41,7 @@ func sizeOfVarFloat(bits uint64, width int) int {
 	const mask = 0xFF
 	var size = width / unit
 	for s := 0; size > 1; s += unit {
-		if (bits & (mask << s) != 0) {
+		if bits&(mask<<s) != 0 {
 			return size
 		}
 		size--

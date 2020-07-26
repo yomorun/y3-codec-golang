@@ -8,7 +8,7 @@ var BufferInsufficient = errors.New("buffer insufficient")
 
 type VarIntCodec struct {
 	// next ptr in buf
-	Ptr  int
+	Ptr int
 	// Encoder: bytes are to be written
 	// Decoder: bytes have been consumed
 	Size int

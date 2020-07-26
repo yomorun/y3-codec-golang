@@ -2,8 +2,8 @@ package encoding
 
 import (
 	"fmt"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestInt32(t *testing.T) {
