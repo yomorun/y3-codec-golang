@@ -4,14 +4,17 @@ import (
 	"errors"
 )
 
+// SizeOfPVarInt32 return the buffer size after encoding value as PVarInt32
 func SizeOfPVarInt32(value int32) int {
 	return sizeOfPVarInt(int64(value), 32)
 }
 
+// EncodePVarInt32 encode value as PVarInt32 to buffer
 func (codec *VarIntCodec) EncodePVarInt32(buffer []byte, value int32) error {
 	return codec.encodePVarInt(buffer, int64(value))
 }
 
+// DecodePVarInt32 decode to value as PVarInt32 from buffer
 func (codec *VarIntCodec) DecodePVarInt32(buffer []byte, value *int32) error {
 	var val = int64(*value)
 	var err = codec.decodePVarInt(buffer, &val)
@@ -19,14 +22,17 @@ func (codec *VarIntCodec) DecodePVarInt32(buffer []byte, value *int32) error {
 	return err
 }
 
+// SizeOfPVarUInt32 return the buffer size after encoding value as PVarUInt32
 func SizeOfPVarUInt32(value uint32) int {
 	return sizeOfPVarInt(int64(int32(value)), 32)
 }
 
+// EncodePVarUInt32 encode value as PVarUInt32 to buffer
 func (codec *VarIntCodec) EncodePVarUInt32(buffer []byte, value uint32) error {
 	return codec.encodePVarInt(buffer, int64(int32(value)))
 }
 
+// DecodePVarUInt32 decode to value as PVarUInt32 from buffer
 func (codec *VarIntCodec) DecodePVarUInt32(buffer []byte, value *uint32) error {
 	var val = int64(int32(*value))
 	var err = codec.decodePVarInt(buffer, &val)
@@ -34,26 +40,32 @@ func (codec *VarIntCodec) DecodePVarUInt32(buffer []byte, value *uint32) error {
 	return err
 }
 
+// SizeOfPVarInt64 return the buffer size after encoding value as PVarInt64
 func SizeOfPVarInt64(value int64) int {
 	return sizeOfPVarInt(value, 64)
 }
 
+// EncodePVarInt64 encode value as PVarInt64 to buffer
 func (codec *VarIntCodec) EncodePVarInt64(buffer []byte, value int64) error {
 	return codec.encodePVarInt(buffer, value)
 }
 
+// DecodePVarInt64 decode to value as PVarInt64 from buffer
 func (codec *VarIntCodec) DecodePVarInt64(buffer []byte, value *int64) error {
 	return codec.decodePVarInt(buffer, value)
 }
 
+// SizeOfPVarUInt64 return the buffer size after encoding value as PVarUInt64
 func SizeOfPVarUInt64(value uint64) int {
 	return sizeOfPVarInt(int64(value), 64)
 }
 
+// EncodePVarUInt64 encode value as PVarUInt64 to buffer
 func (codec *VarIntCodec) EncodePVarUInt64(buffer []byte, value uint64) error {
 	return codec.encodePVarInt(buffer, int64(value))
 }
 
+// DecodePVarUInt64 decode to value as PVarUInt64 from buffer
 func (codec *VarIntCodec) DecodePVarUInt64(buffer []byte, value *uint64) error {
 	var val = int64(*value)
 	var err = codec.decodePVarInt(buffer, &val)
@@ -79,7 +91,7 @@ func (codec *VarIntCodec) encodePVarInt(buffer []byte, value int64) error {
 		return errors.New("nothing to encode")
 	}
 	if codec.Ptr >= len(buffer) {
-		return BufferInsufficient
+		return ErrBufferInsufficient
 	}
 
 	const unit = 7
@@ -93,7 +105,7 @@ func (codec *VarIntCodec) encodePVarInt(buffer []byte, value int64) error {
 		codec.Ptr++
 
 		if codec.Ptr >= len(buffer) {
-			return BufferInsufficient
+			return ErrBufferInsufficient
 		}
 	}
 
@@ -109,7 +121,7 @@ func (codec *VarIntCodec) decodePVarInt(buffer []byte, value *int64) error {
 		return errors.New("nothing to decode")
 	}
 	if codec.Ptr >= len(buffer) {
-		return BufferInsufficient
+		return ErrBufferInsufficient
 	}
 
 	const unit = 7
@@ -130,7 +142,7 @@ func (codec *VarIntCodec) decodePVarInt(buffer []byte, value *int64) error {
 			return nil
 		}
 		if codec.Ptr >= len(buffer) {
-			return BufferInsufficient
+			return ErrBufferInsufficient
 		}
 	}
 }

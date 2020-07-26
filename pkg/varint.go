@@ -4,8 +4,10 @@ import (
 	"errors"
 )
 
-var BufferInsufficient = errors.New("buffer insufficient")
+// ErrBufferInsufficient describes error when encode/decode malformed VarInt
+var ErrBufferInsufficient = errors.New("buffer insufficient")
 
+// VarIntCodec for encode/decode VarInt
 type VarIntCodec struct {
 	// next ptr in buf
 	Ptr int
