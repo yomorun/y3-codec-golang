@@ -31,13 +31,6 @@ func (p *PrimitivePacket) ToInt32() (int32, error) {
 		return 0, err
 	}
 	return val, nil
-	// len := codec.Size
-
-	// dec, _, err := encoding.Pvarint(p.valbuf, 0)
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return dec, nil
 }
 
 // ToUInt32 parse raw as int32 value
@@ -49,11 +42,6 @@ func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 		return 0, err
 	}
 	return val, nil
-	// dec, _, err := encoding.Upvarint(p.valbuf, 0)
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return dec, nil
 }
 
 // ToUTF8String parse raw data as string value

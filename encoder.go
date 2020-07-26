@@ -48,7 +48,6 @@ func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
 	codec := encoding.VarIntCodec{Size: size}
 	buf := make([]byte, size)
 	err := codec.EncodePVarInt32(buf, v)
-	// buf, _, err := encoding.EncodePvarint(v)
 	if err != nil {
 		panic(err)
 	}

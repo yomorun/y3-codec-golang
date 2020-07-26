@@ -38,10 +38,6 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	}
 	len := codec.Size
 
-	// len, bufLen, err := encoding.Pvarint(buf, pos)
-	// if err != nil {
-	// 	return nil, 0, err
-	// }
 	logger.Debugf(">>>len=%v", len)
 	if len < 1 {
 		return nil, 0, errors.New("malformed, Length can not smaller than 1")
