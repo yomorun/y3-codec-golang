@@ -115,7 +115,6 @@ func TestEncoderNode2(t *testing.T) {
 	}
 
 	for i, p := range res {
-		t.Logf("👂i=%v, expected=%#x, actual=%#x", i, expected[i], res[i])
 		if p != expected[i] {
 			t.Errorf("i=%v, expected=%#x, actual=%#x", i, expected[i], res[i])
 		}

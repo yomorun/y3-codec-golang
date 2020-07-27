@@ -90,7 +90,6 @@ func (enc *NodePacketEncoder) AddPrimitivePacket(np *PirmitivePacketEncoder) {
 
 func (enc *encoder) addRawPacket(en iEncoder) {
 	enc.valbuf = append(enc.valbuf, en.Encode()...)
-	fmt.Println(enc.valbuf)
 }
 
 // setTag write tag as seqID
