@@ -3,6 +3,8 @@
 > ⛳️ STATE: WIP
 
 # Y3
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_shield)
+
 
 Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
@@ -114,3 +116,7 @@ More examples in `/examples/`
 ## YoMo Codec
 
 See [SPEC](https://github.com/yomorun/yomo-codec)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_large)
