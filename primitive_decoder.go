@@ -12,12 +12,13 @@ import (
 //
 // Examples:
 // [0x01, 0x01, 0x01] -> Key=0x01, Value=0x01
-func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
+// [0x41, 0x06, 0x03, 0x01, 0x61, 0x04, 0x01, 0x62] -> key=0x03, value=0x61; key=0x04, value=0x62
+func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, sizeL int, err error) {
 	logger := utils.Logger.WithPrefix(utils.DefaultLogger, "BasePacket::Decode")
-	logger.Debugf("buf=%v", buf)
+	logger.Debugf("buf=%#X", buf)
 
 	if buf == nil || len(buf) < primitivePacketBufferMinimalLength {
-		return nil, 0, errors.New("invalid y3 packet minimal size")
+		return nil, 0, 0, errors.New("invalid y3 packet minimal size")
 	}
 
 	p := &PrimitivePacket{valbuf: buf}
@@ -27,30 +28,32 @@ func DecodePrimitivePacket(buf []byte) (*PrimitivePacket, int, error) {
 	p.tag = codec.NewTag(buf[pos])
 	pos++
 
-	// read `Varint` from buf as `Length`
+	// read `Varint` from buf for `Length of value`
 	tmpBuf := buf[pos:]
 	var bufLen int32
 	codec := encoding.VarCodec{}
-	err := codec.DecodePVarInt32(tmpBuf, &bufLen)
+	err = codec.DecodePVarInt32(tmpBuf, &bufLen)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
-	len := codec.Size
+	sizeL = codec.Size
 
-	logger.Debugf(">>>len=%v", len)
-	if len < 1 {
-		return nil, 0, errors.New("malformed, Length can not smaller than 1")
+	if sizeL < 1 {
+		return nil, 0, sizeL, errors.New("malformed, size of Length can not smaller than 1")
 	}
-	p.length = uint32(len) // Length的值是Value的字节长度
-	pos += int(bufLen)
 
-	// read `Value` raw data, len(raw data) = p.Length - 1
-	valLength := p.length
-	// p.valbuf = make([]byte, valLength)
-	endPos := pos + int(valLength)
-	// copied := copy(p.valbuf, buf[pos:uint32(pos)+valLength])
-	p.valbuf = buf[pos : uint32(pos)+valLength]
-	// logger.Debugf("copied raw data length = %v", copied)
+	// 根据文档表述，p.length指的是value的长度，所以修改为bufLen的值
+	//p.length = uint32(len)
+	//pos += int(bufLen)
+	p.length = uint32(bufLen)
+	pos += sizeL
 
-	return p, endPos, nil
+	endPos = pos + int(p.length)
+
+	logger.Debugf(">>> sizeL=%v, length=%v, pos=%v, endPos=%v", sizeL, p.length, pos, endPos)
+
+	p.valbuf = buf[pos:endPos]
+	logger.Debugf("valbuf = %#X", p.valbuf)
+
+	return p, endPos, sizeL, nil
 }

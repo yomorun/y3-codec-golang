@@ -8,7 +8,7 @@ import (
 func TestLackLengthPacket(t *testing.T) {
 	buf := []byte{0x01, 0x01}
 	expected := "invalid y3 packet minimal size"
-	_, _, err := DecodePrimitivePacket(buf)
+	_, _, _, err := DecodePrimitivePacket(buf)
 	if err.Error() != expected {
 		t.Errorf("err actual = %v, and Expected = %v", err, expected)
 	}
@@ -17,7 +17,7 @@ func TestLackLengthPacket(t *testing.T) {
 func TestPacketWrongLength(t *testing.T) {
 	buf := []byte{0x04, 0x00, 0x02, 0x01}
 	expected := "malformed, Length can not smaller than 1"
-	_, _, err := DecodePrimitivePacket(buf)
+	_, _, _, err := DecodePrimitivePacket(buf)
 	if err != nil && err.Error() != expected {
 		t.Errorf("err should %v, actual = %v", expected, err)
 	}
@@ -30,7 +30,7 @@ func TestPacketRead(t *testing.T) {
 	var expectedLength int32 = 1
 	expectedValue := []byte{0x7F}
 
-	res, endPos, err := DecodePrimitivePacket(buf)
+	res, endPos, _, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
@@ -54,10 +54,12 @@ func TestPacketRead(t *testing.T) {
 
 // 测试读取 0x0A:2
 func TestParseInt32(t *testing.T) {
-	buf := []byte{0x0A, 0x02, 0x01, 0x02}
-	expected := int32(2)
+	// 原例子数据存在问题，修改如下：
+	//buf := []byte{0x0A, 0x02, 0x01, 0x02}
+	buf := []byte{0x0A, 0x02, 0x81, 0x7F}
+	expected := int32(255)
 
-	res, _, err := DecodePrimitivePacket(buf)
+	res, _, _, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
@@ -77,7 +79,7 @@ func TestParseString(t *testing.T) {
 	buf := []byte{0x0B, 0x01, 0x43}
 	expectedValue := "C"
 
-	res, _, err := DecodePrimitivePacket(buf)
+	res, _, _, err := DecodePrimitivePacket(buf)
 	if err != nil {
 		t.Errorf("err should nil, actual = %v", err)
 	}
