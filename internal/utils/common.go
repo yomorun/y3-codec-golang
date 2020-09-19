@@ -4,4 +4,10 @@ package utils
 const MSB byte = 0x80
 
 // DropMSB 描述了`0111 1111`, 用于去除标识位使用
-const DropMSB = 0x7F
+const DropMSB = 0x3F
+
+// DropMSBArrayFlag 描述了`0011 1111`, 用于去除标识位使用
+const DropMSBArrayFlag = 0x3F
+
+// ArrayFlag 描述了`0100 0000`, 用于表示该节点的Value为Slice类型
+const ArrayFlag = 0x40

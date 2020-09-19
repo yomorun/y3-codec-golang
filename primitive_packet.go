@@ -1,6 +1,7 @@
 package y3
 
 import (
+	"errors"
 	"fmt"
 
 	encoding "github.com/yomorun/yomo-codec-golang/pkg"
@@ -47,4 +48,37 @@ func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 // ToUTF8String parse raw data as string value
 func (p *PrimitivePacket) ToUTF8String() (string, error) {
 	return string(p.valbuf), nil
+}
+
+// HasPacketArray determine if the value is an array
+func (p *PrimitivePacket) HasPacketArray() bool {
+	return p.tag.IsArray()
+}
+
+// ToPacketArray parse raw data as primitive packet array
+func (p *PrimitivePacket) ToPacketArray() (arr []*PrimitivePacket, err error) {
+	arr = make([]*PrimitivePacket, 0)
+	if !p.HasPacketArray() {
+		return arr, errors.New("value is not an array")
+	}
+
+	buf := p.valbuf
+
+	for {
+		packet, _, size, err := DecodePrimitivePacket(buf)
+		if err != nil {
+			return arr, err
+		}
+
+		arr = append(arr, packet)
+
+		tlvLength := 1 + uint32(size) + packet.length
+		if uint32(len(buf)) > tlvLength {
+			buf = buf[tlvLength:]
+			continue
+		}
+		break
+	}
+
+	return arr, nil
 }

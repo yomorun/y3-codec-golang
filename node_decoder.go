@@ -20,7 +20,7 @@ func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *
 		return endPos, true, np, nil, err
 	}
 
-	pp, endPos, err = DecodePrimitivePacket(b)
+	pp, endPos, _, err = DecodePrimitivePacket(b)
 	// fmt.Printf("\t\tb=[%#x], pp:%v\n", b, pp)
 	return endPos, false, nil, pp, err
 }
@@ -54,8 +54,11 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	pct.basePacket.length = uint32(codec.Size) // Length的值是Value的字节长度
+
+	//pct.basePacket.length = uint32(codec.Size) // Length的值是Value的字节长度
 	// fmt.Printf("pos=%v, vallen=%v, n.Length=%v\n", pos, vallen, pct.Length())
+	// TODO:根据文档表述，pct.basePacket.length指的是value的长度，所以修改为vallen的值
+	pct.basePacket.length = uint32(vallen)
 	pos += codec.Size
 
 	// `raw` is pct.Length() length
