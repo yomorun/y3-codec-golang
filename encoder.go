@@ -9,10 +9,11 @@ import (
 
 // Encoder will encode object to Y3 encoding
 type encoder struct {
-	seqID  int
-	valbuf []byte
-	isNode bool
-	buf    *bytes.Buffer
+	seqID   int
+	valbuf  []byte
+	isNode  bool
+	isArray bool
+	buf     *bytes.Buffer
 }
 
 type iEncoder interface {
@@ -78,6 +79,19 @@ func NewNodePacketEncoder(sid int) *NodePacketEncoder {
 	return nodeEnc
 }
 
+func NewNodeArrayPacketEncoder(sid int) *NodePacketEncoder {
+	nodeEnc := &NodePacketEncoder{
+		encoder: encoder{
+			isNode:  true,
+			isArray: true,
+			buf:     new(bytes.Buffer),
+		},
+	}
+
+	nodeEnc.seqID = sid
+	return nodeEnc
+}
+
 // AddNodePacket add new node to this node
 func (enc *NodePacketEncoder) AddNodePacket(np *NodePacketEncoder) {
 	enc.addRawPacket(np)
@@ -94,11 +108,15 @@ func (enc *encoder) addRawPacket(en iEncoder) {
 
 // setTag write tag as seqID
 func (enc *encoder) writeTag() {
+	//fmt.Printf("#60 enc.seqID=%#x\n", enc.seqID)
 	if enc.seqID < 0 || enc.seqID > 0x7F {
 		panic("sid should be in [0..0x7F]")
 	}
 	if enc.isNode {
 		enc.seqID = enc.seqID | 0x80
+	}
+	if enc.isArray {
+		enc.seqID = enc.seqID | 0x40
 	}
 	enc.buf.WriteByte(byte(enc.seqID))
 }
