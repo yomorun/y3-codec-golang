@@ -11,6 +11,8 @@ import (
 func main() {
 	fmt.Println("hello YoMo Codec golang implementation: Y3")
 	encodePacket()
+	encodeArrayPacket()
+
 	parseNodePacket()
 	parseComplexNodePacket()
 
@@ -26,6 +28,11 @@ type bar struct {
 type foo struct {
 	ID int
 	*bar
+}
+
+type club struct {
+	bars  []*bar
+	kinds []int32
 }
 
 func encodePacket() {
@@ -60,6 +67,76 @@ func encodePacket() {
 
 	fmt.Printf("obj=%#v\n", obj)
 	fmt.Printf("res=%#v\n", foo.Encode())
+}
+
+func encodeArrayPacket() {
+	/*
+		{
+			"club": {
+				"bars": [{
+					"Name": "a1"
+				}, {
+					"Name": "a2"
+				}],
+				"kinds": [10, 11]
+			}
+		}
+		-->
+		0x81:
+			0xc2:
+				0x80: 0x03: 0x61 0x31
+				0x80: 0x03: 0x61 0x32
+			0xc4:
+				0x00: 0x80, 0x7F
+				0x00: 0x81, 0x7F
+		-->
+		0x81, [0x0e], 0xc2, [0x0c], 0x80, [0x04], 0x03, [0x02], 0x61 0x31, 0x80, [0x04], 0x03, [0x02], 0x61 0x32
+		0x81, [0x18], 0xc2, [0x0c], 0x80, [0x04], 0x03, [0x02], 0x61 0x31, 0x80, [0x04], 0x03, [0x02], 0x61 0x32, 0xc4, [0x08], 0x00, [0x02], 0x80, 0x7F, 0x00, [0x02], 0x81, 0x7F
+	*/
+	var obj = &club{bars: []*bar{{Name: "a1"}, {Name: "a2"}}}
+
+	// 0x81 - node
+	var club = y3.NewNodePacketEncoder(0x01)
+
+	// 0xc2 - []*bar
+	var bars = y3.NewNodeArrayPacketEncoder(0x02)
+
+	// 0x03 - Name="a1"
+	var bar1 = y3.NewNodePacketEncoder(0x00)
+	var a1 = y3.NewPrimitivePacketEncoder(0x03)
+	a1.SetStringValue("a1")
+	bar1.AddPrimitivePacket(a1)
+	bars.AddNodePacket(bar1)
+
+	// 0x03 - Name="a2"
+	var bar2 = y3.NewNodePacketEncoder(0x00)
+	var a2 = y3.NewPrimitivePacketEncoder(0x03)
+	a2.SetStringValue("a2")
+	bar2.AddPrimitivePacket(a2)
+	bars.AddNodePacket(bar2)
+
+	// 0x44 - kinds
+	var kinds = y3.NewNodeArrayPacketEncoder(0x04)
+
+	// 0x44 - item1
+	var item1 = y3.NewPrimitivePacketEncoder(0x00)
+	item1.SetInt32Value(127)
+	kinds.AddPrimitivePacket(item1)
+
+	// 0x44 - item2
+	var item2 = y3.NewPrimitivePacketEncoder(0x00)
+	item2.SetInt32Value(255)
+	kinds.AddPrimitivePacket(item2)
+
+	club.AddNodePacket(bars)
+	club.AddNodePacket(kinds)
+
+	buf := club.Encode()
+	fmt.Printf("obj=%#v\n", obj)
+	fmt.Printf("bars=%#v\n", buf)
+
+	res, _, _ := y3.DecodeNodePacket(buf)
+	printNodePacket(res)
 }
 
 func parseNodePacket() {
