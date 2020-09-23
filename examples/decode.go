@@ -31,7 +31,8 @@ type foo struct {
 }
 
 type club struct {
-	bars []*bar
+	bars  []*bar
+	kinds []int32
 }
 
 func encodePacket() {
