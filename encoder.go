@@ -54,11 +54,70 @@ func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
 	// enc.valbuf.Write(buf)
 }
 
+// SetUInt32Value encode uint32 value
+func (enc *PirmitivePacketEncoder) SetUInt32Value(v uint32) {
+	size := encoding.SizeOfPVarUInt32(v)
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodePVarUInt32(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// SetInt64Value encode int64 value
+func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
+	size := encoding.SizeOfPVarInt64(v)
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodePVarInt64(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// SetUInt64Value encode uint64 value
+func (enc *PirmitivePacketEncoder) SetUInt64Value(v uint64) {
+	size := encoding.SizeOfPVarUInt64(v)
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodePVarUInt64(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// SetFloat32Value encode float32 value
+func (enc *PirmitivePacketEncoder) SetFloat32Value(v float32) {
+	var size = encoding.SizeOfVarFloat32(v)
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodeVarFloat32(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// SetFloat64Value encode float64 value
+func (enc *PirmitivePacketEncoder) SetFloat64Value(v float64) {
+	var size = encoding.SizeOfVarFloat64(v)
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodeVarFloat64(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // SetStringValue encode string
 func (enc *PirmitivePacketEncoder) SetStringValue(v string) {
 	// buf := []byte(v)
 	// enc.valbuf.Write(buf)
 	enc.valbuf = []byte(v)
+}
+
+func (enc *PirmitivePacketEncoder) SetBytes(buf []byte) {
+	enc.valbuf = buf
 }
 
 // NodePacketEncoder used for encode a node packet
@@ -104,6 +163,10 @@ func (enc *NodePacketEncoder) AddPrimitivePacket(np *PirmitivePacketEncoder) {
 
 func (enc *encoder) addRawPacket(en iEncoder) {
 	enc.valbuf = append(enc.valbuf, en.Encode()...)
+}
+
+func (enc *encoder) AddBytes(buf []byte) {
+	enc.valbuf = append(enc.valbuf, buf...)
 }
 
 // setTag write tag as seqID

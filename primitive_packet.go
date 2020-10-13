@@ -45,6 +45,50 @@ func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 	return val, nil
 }
 
+// ToInt64 parse raw as int32 value
+func (p *PrimitivePacket) ToInt64() (int64, error) {
+	var val int64
+	codec := encoding.VarCodec{}
+	err := codec.DecodePVarInt64(p.valbuf, &val)
+	if err != nil {
+		return 0, err
+	}
+	return val, nil
+}
+
+// ToUInt64 parse raw as uint64 value
+func (p *PrimitivePacket) ToUInt64() (uint64, error) {
+	var val uint64
+	codec := encoding.VarCodec{}
+	err := codec.DecodePVarUInt64(p.valbuf, &val)
+	if err != nil {
+		return 0, err
+	}
+	return val, nil
+}
+
+// ToFloat32 parse raw as float32 value
+func (p *PrimitivePacket) ToFloat32() (float32, error) {
+	var val float32
+	codec := encoding.VarCodec{Size: len(p.valbuf)}
+	err := codec.DecodeVarFloat32(p.valbuf, &val)
+	if err != nil {
+		return 0, err
+	}
+	return val, nil
+}
+
+// ToFloat64 parse raw as float64 value
+func (p *PrimitivePacket) ToFloat64() (float64, error) {
+	var val float64
+	codec := encoding.VarCodec{Size: len(p.valbuf)}
+	err := codec.DecodeVarFloat64(p.valbuf, &val)
+	if err != nil {
+		return 0, err
+	}
+	return val, nil
+}
+
 // ToUTF8String parse raw data as string value
 func (p *PrimitivePacket) ToUTF8String() (string, error) {
 	return string(p.valbuf), nil
@@ -81,4 +125,8 @@ func (p *PrimitivePacket) ToPacketArray() (arr []*PrimitivePacket, err error) {
 	}
 
 	return arr, nil
+}
+
+func (p *PrimitivePacket) ToBytes() []byte {
+	return p.valbuf
 }

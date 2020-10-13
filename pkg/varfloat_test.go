@@ -39,7 +39,7 @@ func testVarFloat32(t *testing.T, value float32, bytes []byte) {
 	assert.Equal(t, bytes, buffer, msg)
 
 	var val float32
-	codec = VarCodec{Size:len(bytes)}
+	codec = VarCodec{Size: len(bytes)}
 	assert.Nil(t, codec.DecodeVarFloat32(bytes, &val), msg)
 	assert.Equal(t, value, val, msg)
 }

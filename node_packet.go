@@ -14,3 +14,7 @@ type NodePacket struct {
 func (n *NodePacket) SeqID() byte {
 	return n.basePacket.tag.SeqID()
 }
+
+func (n *NodePacket) IsArray() bool {
+	return n.basePacket.tag.IsArray()
+}
