@@ -133,7 +133,7 @@ func encodeArrayPacket() {
 
 	buf := club.Encode()
 	fmt.Printf("obj=%#v\n", obj)
-	fmt.Printf("bars=%#v\n", buf)
+	fmt.Printf("club=%#v\n", buf)
 
 	res, _, _ := y3.DecodeNodePacket(buf)
 	printNodePacket(res)

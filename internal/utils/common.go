@@ -11,3 +11,6 @@ const DropMSBArrayFlag = 0x3F
 
 // ArrayFlag 描述了`0100 0000`, 用于表示该节点的Value为Slice类型
 const ArrayFlag = 0x40
+
+// KeyOfArrayItem 描述数组项的TLV的sid值
+const KeyOfArrayItem = 0x00
