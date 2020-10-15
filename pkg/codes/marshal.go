@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
-	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
@@ -63,48 +63,48 @@ func marshalString(T interface{}) (buf []byte, err error) {
 }
 
 func marshalInt32(T interface{}) (buf []byte, err error) {
-	size := encoding2.SizeOfPVarInt32(T.(int32))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarInt32(T.(int32))
+	codec := encoding.VarCodec{Size: size}
 	buf = make([]byte, size)
 	err = codec.EncodePVarInt32(buf, T.(int32))
 	return buf, err
 }
 
 func marshalUint32(T interface{}) (buf []byte, err error) {
-	size := encoding2.SizeOfPVarUInt32(T.(uint32))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarUInt32(T.(uint32))
+	codec := encoding.VarCodec{Size: size}
 	buf = make([]byte, size)
 	err = codec.EncodePVarUInt32(buf, T.(uint32))
 	return buf, err
 }
 
 func marshalInt64(T interface{}) (buf []byte, err error) {
-	size := encoding2.SizeOfPVarInt64(T.(int64))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarInt64(T.(int64))
+	codec := encoding.VarCodec{Size: size}
 	buf = make([]byte, size)
 	err = codec.EncodePVarInt64(buf, T.(int64))
 	return buf, err
 }
 
 func marshalUint64(T interface{}) (buf []byte, err error) {
-	size := encoding2.SizeOfPVarUInt64(T.(uint64))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarUInt64(T.(uint64))
+	codec := encoding.VarCodec{Size: size}
 	buf = make([]byte, size)
 	err = codec.EncodePVarUInt64(buf, T.(uint64))
 	return buf, err
 }
 
 func marshalFloat32(T interface{}) (buf []byte, err error) {
-	size := encoding2.SizeOfVarFloat32(T.(float32))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfVarFloat32(T.(float32))
+	codec := encoding.VarCodec{Size: size}
 	buf = make([]byte, size)
 	err = codec.EncodeVarFloat32(buf, T.(float32))
 	return buf, err
 }
 
 func marshalFloat64(T interface{}) (buf []byte, err error) {
-	size := encoding2.SizeOfVarFloat64(T.(float64))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfVarFloat64(T.(float64))
+	codec := encoding.VarCodec{Size: size}
 	buf = make([]byte, size)
 	err = codec.EncodeVarFloat64(buf, T.(float64))
 	return buf, err

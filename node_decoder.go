@@ -3,9 +3,9 @@ package y3
 import (
 	"errors"
 
-	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
-	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
+	"github.com/yomorun/yomo-codec-golang/internal/codec"
 )
 
 func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {
@@ -49,7 +49,7 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	// `Length`: the type is `varint`
 	tmpBuf := b[pos:]
 	var vallen int32
-	codec := encoding2.VarCodec{}
+	codec := encoding.VarCodec{}
 	err = codec.DecodePVarInt32(tmpBuf, &vallen)
 	// _len, vallen, err := encoding.Upvarint(b, pos)
 	if err != nil {

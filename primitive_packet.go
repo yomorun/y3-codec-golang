@@ -3,7 +3,7 @@ package y3
 import (
 	"fmt"
 
-	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 )
 
 // 描述最小的Packet大小为4个字节
@@ -25,7 +25,7 @@ func (p *PrimitivePacket) String() string {
 // ToInt32 parse raw as int32 value
 func (p *PrimitivePacket) ToInt32() (int32, error) {
 	var val int32
-	codec := encoding2.VarCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarInt32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -36,7 +36,7 @@ func (p *PrimitivePacket) ToInt32() (int32, error) {
 // ToUInt32 parse raw as int32 value
 func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 	var val uint32
-	codec := encoding2.VarCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarUInt32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -47,7 +47,7 @@ func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 // ToInt64 parse raw as int32 value
 func (p *PrimitivePacket) ToInt64() (int64, error) {
 	var val int64
-	codec := encoding2.VarCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarInt64(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -58,7 +58,7 @@ func (p *PrimitivePacket) ToInt64() (int64, error) {
 // ToUInt64 parse raw as uint64 value
 func (p *PrimitivePacket) ToUInt64() (uint64, error) {
 	var val uint64
-	codec := encoding2.VarCodec{}
+	codec := encoding.VarCodec{}
 	err := codec.DecodePVarUInt64(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -69,7 +69,7 @@ func (p *PrimitivePacket) ToUInt64() (uint64, error) {
 // ToFloat32 parse raw as float32 value
 func (p *PrimitivePacket) ToFloat32() (float32, error) {
 	var val float32
-	codec := encoding2.VarCodec{Size: len(p.valbuf)}
+	codec := encoding.VarCodec{Size: len(p.valbuf)}
 	err := codec.DecodeVarFloat32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -80,7 +80,7 @@ func (p *PrimitivePacket) ToFloat32() (float32, error) {
 // ToFloat64 parse raw as float64 value
 func (p *PrimitivePacket) ToFloat64() (float64, error) {
 	var val float64
-	codec := encoding2.VarCodec{Size: len(p.valbuf)}
+	codec := encoding.VarCodec{Size: len(p.valbuf)}
 	err := codec.DecodeVarFloat64(p.valbuf, &val)
 	if err != nil {
 		return 0, err

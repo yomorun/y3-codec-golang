@@ -7,7 +7,7 @@ import (
 
 	y3 "github.com/yomorun/yomo-codec-golang"
 
-	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 
@@ -174,7 +174,7 @@ func keyOf(hexStr string) byte {
 }
 
 func decodeLength(buf []byte) (length int32, size int32, err error) {
-	varCodec := encoding2.VarCodec{}
+	varCodec := encoding.VarCodec{}
 	err = varCodec.DecodePVarInt32(buf, &length)
 	size = int32(varCodec.Size)
 	return
