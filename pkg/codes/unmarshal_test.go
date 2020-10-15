@@ -1,4 +1,4 @@
-package y3
+package codes
 
 import (
 	"fmt"

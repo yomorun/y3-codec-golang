@@ -1,16 +1,18 @@
-package y3
+package codes
 
 import (
 	"fmt"
 	"io"
 	"time"
+
+	y3 "github.com/yomorun/yomo-codec-golang"
 )
 
-func PrintNodePacket(node *NodePacket) {
+func PrintNodePacket(node *y3.NodePacket) {
 	printNodeFormat(node, " %#X=%v ", false, true)
 }
 
-func printNodeFormat(node *NodePacket, format string, isArray bool, isRoot bool) {
+func printNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bool) {
 	if isRoot {
 		fmt.Printf("%#x:{ ", node.SeqID())
 	}
@@ -37,9 +39,9 @@ func printNodeFormat(node *NodePacket, format string, isArray bool, isRoot bool)
 	if len(node.PrimitivePackets) > 0 {
 		for _, p := range node.PrimitivePackets {
 			if isArray {
-				fmt.Printf(" %#x ", p.valbuf)
+				fmt.Printf(" %#x ", p.ToBytes())
 			} else {
-				fmt.Printf(format, p.SeqID(), fmt.Sprintf("%#x", p.valbuf))
+				fmt.Printf(format, p.SeqID(), fmt.Sprintf("%#x", p.ToBytes()))
 			}
 		}
 	}
@@ -53,7 +55,7 @@ type FmtOut struct{ io.Writer }
 
 func (w FmtOut) Write(buf []byte) (int, error) {
 	fmt.Printf("FmtOut: %s\n", FormatBytes(buf)) // debug:
-	res, _, _ := DecodeNodePacket(buf)
+	res, _, _ := y3.DecodeNodePacket(buf)
 	fmt.Printf("%v:\t", time.Now().Format("2006-01-02 15:04:05")) // debug:
 	PrintNodePacket(res)
 	fmt.Println()

@@ -1,10 +1,9 @@
 package y3
 
 import (
-	"errors"
 	"fmt"
 
-	encoding "github.com/yomorun/yomo-codec-golang/pkg"
+	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 )
 
 // 描述最小的Packet大小为4个字节
@@ -26,7 +25,7 @@ func (p *PrimitivePacket) String() string {
 // ToInt32 parse raw as int32 value
 func (p *PrimitivePacket) ToInt32() (int32, error) {
 	var val int32
-	codec := encoding.VarCodec{}
+	codec := encoding2.VarCodec{}
 	err := codec.DecodePVarInt32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -37,7 +36,7 @@ func (p *PrimitivePacket) ToInt32() (int32, error) {
 // ToUInt32 parse raw as int32 value
 func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 	var val uint32
-	codec := encoding.VarCodec{}
+	codec := encoding2.VarCodec{}
 	err := codec.DecodePVarUInt32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -48,7 +47,7 @@ func (p *PrimitivePacket) ToUInt32() (uint32, error) {
 // ToInt64 parse raw as int32 value
 func (p *PrimitivePacket) ToInt64() (int64, error) {
 	var val int64
-	codec := encoding.VarCodec{}
+	codec := encoding2.VarCodec{}
 	err := codec.DecodePVarInt64(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -59,7 +58,7 @@ func (p *PrimitivePacket) ToInt64() (int64, error) {
 // ToUInt64 parse raw as uint64 value
 func (p *PrimitivePacket) ToUInt64() (uint64, error) {
 	var val uint64
-	codec := encoding.VarCodec{}
+	codec := encoding2.VarCodec{}
 	err := codec.DecodePVarUInt64(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -70,7 +69,7 @@ func (p *PrimitivePacket) ToUInt64() (uint64, error) {
 // ToFloat32 parse raw as float32 value
 func (p *PrimitivePacket) ToFloat32() (float32, error) {
 	var val float32
-	codec := encoding.VarCodec{Size: len(p.valbuf)}
+	codec := encoding2.VarCodec{Size: len(p.valbuf)}
 	err := codec.DecodeVarFloat32(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -81,7 +80,7 @@ func (p *PrimitivePacket) ToFloat32() (float32, error) {
 // ToFloat64 parse raw as float64 value
 func (p *PrimitivePacket) ToFloat64() (float64, error) {
 	var val float64
-	codec := encoding.VarCodec{Size: len(p.valbuf)}
+	codec := encoding2.VarCodec{Size: len(p.valbuf)}
 	err := codec.DecodeVarFloat64(p.valbuf, &val)
 	if err != nil {
 		return 0, err
@@ -94,38 +93,38 @@ func (p *PrimitivePacket) ToUTF8String() (string, error) {
 	return string(p.valbuf), nil
 }
 
-// HasPacketArray determine if the value is an array
-func (p *PrimitivePacket) HasPacketArray() bool {
-	return p.tag.IsArray()
-}
+//// HasPacketArray determine if the value is an array
+//func (p *PrimitivePacket) HasPacketArray() bool {
+//	return p.tag.IsArray()
+//}
 
-// ToPacketArray parse raw data as primitive packet array
-func (p *PrimitivePacket) ToPacketArray() (arr []*PrimitivePacket, err error) {
-	arr = make([]*PrimitivePacket, 0)
-	if !p.HasPacketArray() {
-		return arr, errors.New("value is not an array")
-	}
-
-	buf := p.valbuf
-
-	for {
-		packet, _, size, err := DecodePrimitivePacket(buf)
-		if err != nil {
-			return arr, err
-		}
-
-		arr = append(arr, packet)
-
-		tlvLength := 1 + uint32(size) + packet.length
-		if uint32(len(buf)) > tlvLength {
-			buf = buf[tlvLength:]
-			continue
-		}
-		break
-	}
-
-	return arr, nil
-}
+//// ToPacketArray parse raw data as primitive packet array
+//func (p *PrimitivePacket) ToPacketArray() (arr []*PrimitivePacket, err error) {
+//	arr = make([]*PrimitivePacket, 0)
+//	if !p.HasPacketArray() {
+//		return arr, errors.New("value is not an array")
+//	}
+//
+//	buf := p.valbuf
+//
+//	for {
+//		packet, _, size, err := DecodePrimitivePacket(buf)
+//		if err != nil {
+//			return arr, err
+//		}
+//
+//		arr = append(arr, packet)
+//
+//		tlvLength := 1 + uint32(size) + packet.length
+//		if uint32(len(buf)) > tlvLength {
+//			buf = buf[tlvLength:]
+//			continue
+//		}
+//		break
+//	}
+//
+//	return arr, nil
+//}
 
 func (p *PrimitivePacket) ToBytes() []byte {
 	return p.valbuf

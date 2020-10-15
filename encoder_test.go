@@ -6,7 +6,7 @@ import (
 
 // JSON-like node:
 // { '0x01': -1 }
-// YoMo Codec should ->
+// YoMo YomoCodec should ->
 // 0x01 (is a node, sequence id=1)
 //   0x01 (node value length is 1 byte)
 //     0x01 (pvarint: -1)
@@ -28,7 +28,7 @@ func TestEncoderPrimitiveInt32(t *testing.T) {
 
 // JSON-like node:
 // { '0x01': "YoMo" }
-// YoMo Codec should ->
+// YoMo YomoCodec should ->
 // 0x01 (is a node, sequence id=1)
 //   0x04 (pvarint, node value length is 4 bytes)
 //     0x59, 0x6F, 0x4D, 0x6F (utf-8 string: "YoMo")

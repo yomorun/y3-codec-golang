@@ -3,9 +3,10 @@ package y3
 import (
 	"errors"
 
+	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+
 	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
-	encoding "github.com/yomorun/yomo-codec-golang/pkg"
 )
 
 // DecodePrimitivePacket 将一个完整的Packet的buffer全部读入，返回BasePacket对象
@@ -31,7 +32,7 @@ func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, siz
 	// read `Varint` from buf for `Length of value`
 	tmpBuf := buf[pos:]
 	var bufLen int32
-	codec := encoding.VarCodec{}
+	codec := encoding2.VarCodec{}
 	err = codec.DecodePVarInt32(tmpBuf, &bufLen)
 	if err != nil {
 		return nil, 0, 0, err

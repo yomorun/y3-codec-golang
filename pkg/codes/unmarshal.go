@@ -1,14 +1,16 @@
-package y3
+package codes
 
 import (
 	"errors"
 	"reflect"
+
+	y3 "github.com/yomorun/yomo-codec-golang"
 )
 
 // []byte to interface, deserialization
-func (codec *Codec) Unmarshal(data []byte, mold *interface{}) error {
+func (codec *yomoCodec) Unmarshal(data []byte, mold *interface{}) error {
 	key := keyOf(codec.Observe)
-	pct, _, err := DecodeNodePacket(data)
+	pct, _, err := y3.DecodeNodePacket(data)
 	if err != nil {
 		return err
 	}
@@ -30,7 +32,7 @@ func (codec *Codec) Unmarshal(data []byte, mold *interface{}) error {
 // TODO: unfinished
 func toMold(packet interface{}, isNode bool, mold *interface{}) error {
 	if isNode == false {
-		primitivePacket := packet.(PrimitivePacket)
+		primitivePacket := packet.(y3.PrimitivePacket)
 		return unmarshalPrimitivePacket(primitivePacket, mold)
 	}
 
@@ -38,7 +40,7 @@ func toMold(packet interface{}, isNode bool, mold *interface{}) error {
 	//_, _ = mapping.NewDecoder(nil)
 
 	//fmt.Printf("#78 reflect.TypeOf(*output).Kind()=%v\n", reflect.TypeOf(*output).Kind())
-	nodePacket := packet.(NodePacket)
+	nodePacket := packet.(y3.NodePacket)
 	if nodePacket.IsArray() && len(nodePacket.PrimitivePackets) > 0 {
 		return unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
 	}
@@ -47,7 +49,7 @@ func toMold(packet interface{}, isNode bool, mold *interface{}) error {
 }
 
 // convertPrimitivePacketToMold convert PrimitivePacket to Mold
-func unmarshalPrimitivePacket(primitivePacket PrimitivePacket, mold *interface{}) error {
+func unmarshalPrimitivePacket(primitivePacket y3.PrimitivePacket, mold *interface{}) error {
 	switch reflect.TypeOf(*mold).Kind() {
 	case reflect.String:
 		v, err := primitivePacket.ToUTF8String()
@@ -99,7 +101,7 @@ func unmarshalPrimitivePacket(primitivePacket PrimitivePacket, mold *interface{}
 }
 
 // convertPrimitivePacketArrayToMold convert []PrimitivePacket to Mold
-func unmarshalPrimitivePacketArray(primitivePackets []PrimitivePacket, mold *interface{}) error {
+func unmarshalPrimitivePacketArray(primitivePackets []y3.PrimitivePacket, mold *interface{}) error {
 	result := make([]interface{}, 0)
 	switch reflect.TypeOf(*mold).Kind() {
 	case reflect.Array, reflect.Slice:

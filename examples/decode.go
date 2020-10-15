@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("hello YoMo Codec golang implementation: Y3")
+	fmt.Println("hello YoMo YomoCodec golang implementation: Y3")
 	encodePacket()
 	encodeArrayPacket()
 
