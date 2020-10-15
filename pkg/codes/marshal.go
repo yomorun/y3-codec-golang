@@ -1,17 +1,18 @@
-package y3
+package codes
 
 import (
 	"errors"
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	y3 "github.com/yomorun/yomo-codec-golang"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
-	encoding "github.com/yomorun/yomo-codec-golang/pkg"
+	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
 // interface to []byte, serialization
-func (codec *Codec) Marshal(T interface{}) (buf []byte, err error) {
+func (codec *yomoCodec) Marshal(T interface{}) (buf []byte, err error) {
 	//fmt.Printf("#74 reflect.ValueOf(T)=%v\n", reflect.ValueOf(T))
 	switch reflect.ValueOf(T).Kind() {
 	case reflect.String:
@@ -111,91 +112,91 @@ func marshalFloat64(T interface{}) (buf []byte, err error) {
 
 func marshalStringSlice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToStringSliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetStringValue(fmt.Sprintf("%v", v))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }
 
 func marshalInt32Slice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToInt64SliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetInt32Value(int32(v.(int64)))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }
 
 func marshalUint32Slice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToUInt64SliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetUInt32Value(uint32(v.(uint64)))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }
 
 func marshalInt64Slice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToInt64SliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetInt64Value(v.(int64))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }
 
 func marshalUint64Slice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToUInt64SliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetUInt64Value(v.(uint64))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }
 
 func marshalFloat32Slice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToUFloat64SliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetFloat32Value(float32(v.(float64)))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }
 
 func marshalFloat64Slice(observe string, T interface{}) []byte {
 	key := keyOf(observe)
-	var node = NewNodeArrayPacketEncoder(int(key))
+	var node = y3.NewNodeArrayPacketEncoder(int(key))
 	if out, ok := utils.ToUFloat64SliceArray(T); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
 			item.SetFloat64Value(v.(float64))
 			node.AddPrimitivePacket(item)
 		}
 	}
-	return node.valbuf
+	return node.GetValBuf()
 }

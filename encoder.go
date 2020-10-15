@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	encoding "github.com/yomorun/yomo-codec-golang/pkg"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 )
 
 // Encoder will encode object to Y3 encoding
@@ -18,6 +18,10 @@ type encoder struct {
 
 type iEncoder interface {
 	Encode() []byte
+}
+
+func (enc *encoder) GetValBuf() []byte {
+	return enc.valbuf
 }
 
 func (enc *encoder) String() string {
