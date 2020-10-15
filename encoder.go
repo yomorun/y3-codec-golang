@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	encoding2 "github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 )
 
 // Encoder will encode object to Y3 encoding
@@ -48,8 +48,8 @@ func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
 
 // SetInt32Value encode int32 value
 func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
-	size := encoding2.SizeOfPVarInt32(v)
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarInt32(v)
+	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodePVarInt32(enc.valbuf, v)
 	if err != nil {
@@ -60,8 +60,8 @@ func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
 
 // SetUInt32Value encode uint32 value
 func (enc *PirmitivePacketEncoder) SetUInt32Value(v uint32) {
-	size := encoding2.SizeOfPVarUInt32(v)
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarUInt32(v)
+	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodePVarUInt32(enc.valbuf, v)
 	if err != nil {
@@ -71,8 +71,8 @@ func (enc *PirmitivePacketEncoder) SetUInt32Value(v uint32) {
 
 // SetInt64Value encode int64 value
 func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
-	size := encoding2.SizeOfPVarInt64(v)
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarInt64(v)
+	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodePVarInt64(enc.valbuf, v)
 	if err != nil {
@@ -82,8 +82,8 @@ func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
 
 // SetUInt64Value encode uint64 value
 func (enc *PirmitivePacketEncoder) SetUInt64Value(v uint64) {
-	size := encoding2.SizeOfPVarUInt64(v)
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarUInt64(v)
+	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodePVarUInt64(enc.valbuf, v)
 	if err != nil {
@@ -93,8 +93,8 @@ func (enc *PirmitivePacketEncoder) SetUInt64Value(v uint64) {
 
 // SetFloat32Value encode float32 value
 func (enc *PirmitivePacketEncoder) SetFloat32Value(v float32) {
-	var size = encoding2.SizeOfVarFloat32(v)
-	codec := encoding2.VarCodec{Size: size}
+	var size = encoding.SizeOfVarFloat32(v)
+	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodeVarFloat32(enc.valbuf, v)
 	if err != nil {
@@ -104,8 +104,8 @@ func (enc *PirmitivePacketEncoder) SetFloat32Value(v float32) {
 
 // SetFloat64Value encode float64 value
 func (enc *PirmitivePacketEncoder) SetFloat64Value(v float64) {
-	var size = encoding2.SizeOfVarFloat64(v)
-	codec := encoding2.VarCodec{Size: size}
+	var size = encoding.SizeOfVarFloat64(v)
+	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodeVarFloat64(enc.valbuf, v)
 	if err != nil {
@@ -195,8 +195,8 @@ func (enc *encoder) writeLengthBuf() {
 		panic("length must greater than 0")
 	}
 
-	size := encoding2.SizeOfPVarInt32(int32(vallen))
-	codec := encoding2.VarCodec{Size: size}
+	size := encoding.SizeOfPVarInt32(int32(vallen))
+	codec := encoding.VarCodec{Size: size}
 	tmp := make([]byte, size)
 	err := codec.EncodePVarInt32(tmp, int32(vallen))
 	// buf, _, err := encoding.EncodePvarint(v)
