@@ -1,6 +1,8 @@
-> 📚 VERSION: draft-01
+> 📚 VERSION: draft-02
 >
 > ⛳️ STATE: WIP
+>
+> 🇨🇳 [简体中文](README_CN.md)  🇬🇧 [English](https://github.com/yomorun/yomo-codec-golang/blob/master/README.md)
 
 # Y3
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_shield)
@@ -369,6 +371,13 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 
 See [SPEC](https://github.com/yomorun/yomo-codec)
 
+## Contributors
+
+[//]: contributor-faces
+
+<a href="https://github.com/figroc"><img src="https://avatars1.githubusercontent.com/u/2026460?v=3" title="figroc" width="80" height="80"></a>
+
+[//]: contributor-faces
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_large)
