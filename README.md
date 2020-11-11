@@ -5,8 +5,11 @@
 # Y3
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_shield)
 
+Y3 is the golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec), which describe a fast and low CPU binding data encoder/decoder focus on edge computing and streaming processing.
 
-Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
+## YoMo Codec
+
+See [YoMo Codec SPEC](https://github.com/yomorun/yomo-codec)
 
 ## Test
 
@@ -113,10 +116,13 @@ func main() {
 
 More examples in `/examples/`
 
-## YoMo Codec
+## Contributors
 
-See [SPEC](https://github.com/yomorun/yomo-codec)
+[//]: contributor-faces
 
+<a href="https://github.com/figroc"><img src="https://avatars1.githubusercontent.com/u/2026460?v=3" title="figroc" width="80" height="80"></a>
+
+[//]: contributor-faces
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_large)
