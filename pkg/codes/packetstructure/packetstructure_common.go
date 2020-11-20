@@ -38,3 +38,15 @@ func keyOf(hexStr string) byte {
 
 	return data[0]
 }
+
+func fieldNameByTag(tagNaqme string, field reflect.StructField) string {
+	fieldName := field.Name
+
+	tagValue := field.Tag.Get(tagNaqme)
+	tagValue = strings.SplitN(tagValue, ",", 2)[0]
+	if tagValue != "" {
+		fieldName = tagValue
+	}
+
+	return fieldName
+}

@@ -88,6 +88,17 @@ func (p *PrimitivePacket) ToFloat64() (float64, error) {
 	return val, nil
 }
 
+// ToBool parse raw as bool value
+func (p *PrimitivePacket) ToBool() (bool, error) {
+	var val bool
+	codec := encoding.VarCodec{Size: len(p.valbuf)}
+	err := codec.DecodePVarBool(p.valbuf, &val)
+	if err != nil {
+		return false, err
+	}
+	return val, nil
+}
+
 // ToUTF8String parse raw data as string value
 func (p *PrimitivePacket) ToUTF8String() (string, error) {
 	return string(p.valbuf), nil

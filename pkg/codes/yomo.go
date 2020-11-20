@@ -2,7 +2,9 @@ package codes
 
 import (
 	"encoding/hex"
+	"fmt"
 	"io"
+	"reflect"
 	"strings"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
@@ -22,7 +24,7 @@ var (
 type YomoCodec interface {
 	protoCodec
 	Decoder(buf []byte)
-	Read(mold interface{}) (interface{}, error)
+	Read(mold interface{}) (interface{}, error) // TODO: 考虑掉返回interface{}
 	Write(w io.Writer, T interface{}, mold interface{}) (int, error)
 	Refresh(w io.Writer) (int, error)
 }
@@ -188,11 +190,47 @@ func (codec *yomoCodec) Read(mold interface{}) (interface{}, error) {
 	result := codec.Result[0]
 	codec.Result = codec.Result[1:]
 
+	// #1
 	// take value from node
-	err := codec.Unmarshal(result, &mold)
-	if err != nil {
-		return nil, err
+	//err := codec.Unmarshal(result, &mold)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	// #2
+	//err := codec.UnmarshalStruct(result, mold)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	// #3 start...
+	isStruct := false
+
+	// 判断是结构体还是基础类型?
+	moldValue := reflect.Indirect(reflect.ValueOf(mold))
+	moldType := moldValue.Type()
+	switch moldType.Kind() {
+	case reflect.Struct:
+		isStruct = true
+	case reflect.Slice:
+		if moldType.Elem().Kind() == reflect.Struct {
+			isStruct = true
+		}
 	}
+	fmt.Printf("#1 Read isStruct=%v\n", isStruct)
+
+	if isStruct {
+		err := codec.UnmarshalStruct(result, mold)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := codec.UnmarshalBasic(result, &mold)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// #3 end.....
 
 	// for Encoder::merge
 	codec.Value = result

@@ -113,6 +113,17 @@ func (enc *PirmitivePacketEncoder) SetFloat64Value(v float64) {
 	}
 }
 
+// SetBoolValue encode bool value
+func (enc *PirmitivePacketEncoder) SetBoolValue(v bool) {
+	var size = encoding.SizeOfPVarUInt32(uint32(1))
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodePVarBool(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // SetStringValue encode string
 func (enc *PirmitivePacketEncoder) SetStringValue(v string) {
 	// buf := []byte(v)

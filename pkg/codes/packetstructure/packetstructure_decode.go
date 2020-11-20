@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
 )
@@ -42,9 +41,22 @@ func NewDecoder(config *DecoderConfig) (*Decoder, error) {
 }
 
 func Decode(input *y3.NodePacket, output interface{}) error {
+	//fmt.Printf("#21 Type=%v, Kind=%v\n", reflect.TypeOf(output), reflect.TypeOf(output).Kind())
+	//tmp := reflect.ValueOf(output)
+	//fmt.Printf("#21 tmp Type=%v, Kind=%v\n", tmp.Elem().Type(), tmp.Elem().Kind())
+	////fmt.Printf("#21 tmp Type=%v, Kind=%v\n", tmp.Elem().Elem().Type(), tmp.Elem().Elem().Kind())
+
 	config := &DecoderConfig{
+		// #1
 		Result: output,
+		// #2
+		//Result:
 	}
+
+	//tmp2 := reflect.ValueOf(config.Result).Elem()
+	//fmt.Printf("#21 tmp2 Type=%v, Kind=%v\n", tmp2.Type(), tmp2.Kind())
+	////tmp3 := tmp2.Elem()
+	////fmt.Printf("#21 tmp3 Type=%v, Kind=%v\n", tmp3.Type(), tmp3.Kind())
 
 	decoder, err := NewDecoder(config)
 	if err != nil {
@@ -87,10 +99,10 @@ func (d *Decoder) decode(name byte, input *y3.NodePacket, outVal reflect.Value) 
 	var err error
 	outputKind := d.getKind(outVal)
 	switch outputKind {
-	//case reflect.String:
-	//	err = d.decodeString(name, input, outVal)
 	case reflect.Struct:
-		err = d.decodeStruct(name, input, outVal)
+		err = d.decodeStruct(input, outVal)
+	case reflect.Slice:
+		err = d.decodeSlice(input, outVal)
 	default:
 		return fmt.Errorf("%#x: unsupported type: %s", name, outputKind)
 	}
@@ -98,18 +110,55 @@ func (d *Decoder) decode(name byte, input *y3.NodePacket, outVal reflect.Value) 
 	return err
 }
 
-func (d *Decoder) decodeStruct(name byte, data *y3.NodePacket, val reflect.Value) error {
+func (d *Decoder) Bare(v reflect.Value) reflect.Value {
+	if v.Kind() != reflect.Interface {
+		return v
+	}
+	return v.Elem()
+}
+
+func (d *Decoder) decodeSlice(data *y3.NodePacket, val reflect.Value) error {
+	elemType := val.Type().Elem()
+
+	items := make([]reflect.Value, 0)
+	for _, node := range data.NodePackets {
+		elemValue := reflect.Indirect(reflect.New(elemType))
+		err := d.decodeStruct(&node, elemValue)
+		if err != nil {
+			return err
+		}
+		items = append(items, elemValue)
+	}
+
+	sliceType := reflect.SliceOf(elemType)
+	sliceValue := reflect.New(sliceType).Elem()
+	sliceValue = reflect.Append(sliceValue, items...)
+	val.Set(sliceValue)
+
+	if len(data.PrimitivePackets) > 0 {
+		panic(fmt.Errorf("root primitive slice is unsupported: PrimitivePackets-len=%v", len(data.PrimitivePackets)))
+	}
+
+	return nil
+}
+
+func (d *Decoder) decodeStruct(data *y3.NodePacket, val reflect.Value) error {
 	var fields []field
 	valType := val.Type()
 	for i := 0; i < valType.NumField(); i++ {
 		structField := valType.Field(i)
 		fields = append(fields, field{structField, val.Field(i)})
 	}
-	//fmt.Printf("#202 structs len=%v\n", len(fields))
+	//debug:
+	//fmt.Printf("#202 val val=%v, Type=%v, CanSet=%v\n", val, val.Type(), val.CanSet())
+	//fmt.Printf("#202 structs len=%v, fields=%v\n", len(fields), fields)
+	//for _, f := range fields {
+	//	fmt.Printf("#202 field Name=%v, CanSet=%v\n", f.field.Name, f.val.CanSet())
+	//}
 
 	for _, f := range fields {
 		structField, fieldValue := f.field, f.val
-		err := d.decodeStructFromNodePacket(structField.Type, d.fieldNameByTag(structField), fieldValue, data)
+		err := d.decodeStructFromNodePacket(structField.Type, fieldNameByTag(d.config.TagName, structField), fieldValue, data)
 		if err != nil {
 			return err
 		}
@@ -122,15 +171,20 @@ func (d *Decoder) decodeStructFromNodePacket(fieldType reflect.Type, fieldName s
 	if fieldType.Kind() == reflect.Struct {
 		fieldValueType := fieldValue.Type()
 		for i := 0; i < fieldValueType.NumField(); i++ {
-			thisFieldName := d.fieldNameByTag(fieldValueType.Field(i))
-			thisFieldValue := fieldValue.Field(i)
-			err := d.decodeStructFromNodePacket(thisFieldValue.Type(), thisFieldName, thisFieldValue, dataVal)
+			currentFieldName := fieldNameByTag(d.config.TagName, fieldValueType.Field(i))
+			currentFieldValue := fieldValue.Field(i)
+			err := d.decodeStructFromNodePacket(currentFieldValue.Type(), currentFieldName, currentFieldValue, dataVal)
 			if err != nil {
 				return err
 			}
 		}
 		return nil
 	}
+
+	//debug:
+	//if fieldType.Kind() == reflect.Slice {
+	//	fmt.Printf("#606 fieldValue=%v\n", fieldValue)
+	//}
 
 	obtainedValue, flag := d.takeValueByKey(fieldName, fieldType, dataVal)
 	if !flag {
@@ -142,11 +196,11 @@ func (d *Decoder) decodeStructFromNodePacket(fieldType reflect.Type, fieldName s
 		panic("structField is not valid")
 	}
 
+	//fmt.Printf("#40 fieldValue=%v, fieldType=%v, fieldName=%v\n", fieldValue, fieldType, fieldName)
 	if !fieldValue.CanSet() {
 		return fmt.Errorf("fieldValue can not set:%v", fieldValue)
 	}
 
-	//fmt.Printf("#306 obtainedValue=%v, type=%v\n", obtainedValue, obtainedValue.Type())
 	fieldValue.Set(obtainedValue)
 
 	key := keyOf(fieldName)
@@ -158,103 +212,100 @@ func (d *Decoder) decodeStructFromNodePacket(fieldType reflect.Type, fieldName s
 }
 
 func (d *Decoder) getKind(val reflect.Value) reflect.Kind {
-	kind := val.Kind()
-
-	switch {
-	//case kind >= reflect.Int && kind <= reflect.Int64:
-	//	return reflect.Int
-	//case kind >= reflect.Uint && kind <= reflect.Uint64:
-	//	return reflect.Uint
-	//case kind >= reflect.Float32 && kind <= reflect.Float64:
-	//	return reflect.Float32
-	default:
-		return kind
-	}
+	return val.Kind()
 }
 
-func (d *Decoder) takeValueByKey(name string, fieldType reflect.Type, node *y3.NodePacket) (reflect.Value, bool) {
-	key := keyOf(name)
+func (d *Decoder) takeValueByKey(fieldName string, fieldType reflect.Type, node *y3.NodePacket) (reflect.Value, bool) {
+	key := keyOf(fieldName)
 	flag, isNode, packet := d.matchingKey(key, node)
-	//fmt.Printf("#404 flag=%v, isNode=%v, packet_type=%v\n", flag, isNode, reflect.ValueOf(packet).Type())
 	if flag == false {
 		return reflect.Indirect(reflect.ValueOf(packet)), false
 	}
 	if isNode {
 		nodePacket := packet.(y3.NodePacket)
-		if nodePacket.IsArray() {
-			switch fieldType.Kind() {
-			case reflect.Array:
-				return d.paddingToArray(fieldType, nodePacket), true
-			case reflect.Slice:
-				return d.paddingToSlice(fieldType, nodePacket), true
-			default:
-				panic(fmt.Errorf("unimplemented type %v", fieldType.Kind()))
-			}
-		}
-		return reflect.Indirect(reflect.ValueOf(packet)), true
+		return d.takeNodeValue(fieldType, nodePacket)
 	}
 
 	primitivePacket := packet.(y3.PrimitivePacket)
 	return d.takePrimitiveValue(fieldType, primitivePacket)
+}
 
-	//switch fieldType.Kind() {
-	//case reflect.String:
-	//	val, err := primitivePacket.ToUTF8String()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	//case reflect.Int32:
-	//	val, err := primitivePacket.ToInt32()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	//case reflect.Int64:
-	//	val, err := primitivePacket.ToInt64()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	//case reflect.Uint32:
-	//	val, err := primitivePacket.ToUInt32()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	//case reflect.Uint64:
-	//	val, err := primitivePacket.ToUInt64()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	//case reflect.Float32:
-	//	val, err := primitivePacket.ToFloat32()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	//case reflect.Float64:
-	//	val, err := primitivePacket.ToFloat64()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return reflect.Indirect(reflect.ValueOf(val)), true
-	////case reflect.Array:
-	////	fmt.Printf("#404 Array %v\n", )
-	//default:
-	//	panic(errors.New("::takeValueByKey error: no matching type"))
-	//}
+func (d *Decoder) takeNodeValue(fieldType reflect.Type, nodePacket y3.NodePacket) (reflect.Value, bool) {
+	if nodePacket.IsArray() {
+		switch fieldType.Kind() {
+		case reflect.Array:
+			return d.paddingToArray(fieldType, nodePacket), true
+		case reflect.Slice:
+			return d.paddingToSlice(fieldType, nodePacket), true
+		default:
+			panic(fmt.Errorf("unimplemented type %v", fieldType.Kind()))
+		}
+	}
+
+	if len(nodePacket.PrimitivePackets) > 0 || len(nodePacket.NodePackets) > 0 {
+		switch fieldType.Kind() {
+		case reflect.Struct:
+			return d.paddingToStruct(fieldType, nodePacket), true
+		default:
+			panic(fmt.Errorf("unimplemented type %v when have PrimitivePackets", fieldType.Kind()))
+		}
+	}
+
+	return reflect.Indirect(reflect.ValueOf(nodePacket)), true
+}
+
+func (d *Decoder) paddingToStruct(fieldType reflect.Type, nodePacket y3.NodePacket) reflect.Value {
+	obj := reflect.New(fieldType)
+	obj = reflect.Indirect(obj)
+
+	for _, v := range nodePacket.PrimitivePackets {
+		for i := 0; i < obj.NumField(); i++ {
+			structField := obj.Type().Field(i)
+			valueField := obj.Field(i)
+			fieldName := fieldNameByTag(d.config.TagName, structField)
+			if v.SeqID() == keyOf(fieldName) {
+				vv, _ := d.takePrimitiveValue(valueField.Type(), v)
+				valueField.Set(vv)
+			}
+		}
+	}
+
+	for _, v := range nodePacket.NodePackets {
+		for i := 0; i < obj.NumField(); i++ {
+			structField := obj.Type().Field(i)
+			valueField := obj.Field(i)
+			fieldName := fieldNameByTag(d.config.TagName, structField)
+			if v.SeqID() == keyOf(fieldName) {
+				vv, _ := d.takeNodeValue(structField.Type, v)
+				valueField.Set(vv)
+			}
+		}
+	}
+
+	return reflect.Indirect(obj)
 }
 
 func (d *Decoder) paddingToArray(fieldType reflect.Type, nodePacket y3.NodePacket) reflect.Value {
 	sliceType := reflect.SliceOf(fieldType.Elem())
 	sliceValue := reflect.New(sliceType).Elem()
 
+	if len(nodePacket.NodePackets) > 0 {
+		items := make([]reflect.Value, 0)
+		for _, node := range nodePacket.NodePackets {
+			itemValue, _ := d.takeNodeValue(fieldType.Elem(), node)
+			items = append(items, itemValue)
+		}
+		slice := reflect.Append(sliceValue, items...)
+
+		arrayType := reflect.ArrayOf(len(nodePacket.NodePackets), fieldType.Elem())
+		arrayValue := reflect.New(arrayType).Elem()
+		reflect.Copy(arrayValue, slice)
+		return arrayValue
+	}
+
 	items := make([]reflect.Value, 0)
 	for _, primitivePacket := range nodePacket.PrimitivePackets {
 		itemValue, _ := d.takePrimitiveValue(fieldType.Elem(), primitivePacket)
-		//fmt.Printf("#404 itemValue=%v, type=%v\n", itemValue, itemValue.Type())
 		items = append(items, itemValue)
 	}
 	slice := reflect.Append(sliceValue, items...)
@@ -269,10 +320,18 @@ func (d *Decoder) paddingToSlice(fieldType reflect.Type, nodePacket y3.NodePacke
 	sliceType := reflect.SliceOf(fieldType.Elem())
 	sliceValue := reflect.New(sliceType).Elem()
 
+	if len(nodePacket.NodePackets) > 0 {
+		items := make([]reflect.Value, 0)
+		for _, node := range nodePacket.NodePackets {
+			itemValue, _ := d.takeNodeValue(fieldType.Elem(), node)
+			items = append(items, itemValue)
+		}
+		return reflect.Append(sliceValue, items...)
+	}
+
 	items := make([]reflect.Value, 0)
 	for _, primitivePacket := range nodePacket.PrimitivePackets {
 		itemValue, _ := d.takePrimitiveValue(fieldType.Elem(), primitivePacket)
-		//fmt.Printf("#404 itemValue=%v, type=%v\n", itemValue, itemValue.Type())
 		items = append(items, itemValue)
 	}
 	slice := reflect.Append(sliceValue, items...)
@@ -324,6 +383,12 @@ func (d *Decoder) takePrimitiveValue(fieldType reflect.Type, primitivePacket y3.
 			panic(err)
 		}
 		return reflect.Indirect(reflect.ValueOf(val)), true
+	case reflect.Bool:
+		val, err := primitivePacket.ToBool()
+		if err != nil {
+			panic(err)
+		}
+		return reflect.Indirect(reflect.ValueOf(val)), true
 	default:
 		panic(errors.New("::takeValueByKey error: no matching type"))
 	}
@@ -360,16 +425,4 @@ func (d *Decoder) allowCustomizedKey(key byte) bool {
 		return false
 	}
 	return true
-}
-
-func (d *Decoder) fieldNameByTag(field reflect.StructField) string {
-	fieldName := field.Name
-
-	tagValue := field.Tag.Get(d.config.TagName)
-	tagValue = strings.SplitN(tagValue, ",", 2)[0]
-	if tagValue != "" {
-		fieldName = tagValue
-	}
-
-	return fieldName
 }
