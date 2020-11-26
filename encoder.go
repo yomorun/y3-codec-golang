@@ -24,6 +24,10 @@ func (enc *encoder) GetValBuf() []byte {
 	return enc.valbuf
 }
 
+func (enc *encoder) IsEmpty() bool {
+	return len(enc.valbuf) == 0
+}
+
 func (enc *encoder) String() string {
 	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valbuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
 }
@@ -108,6 +112,17 @@ func (enc *PirmitivePacketEncoder) SetFloat64Value(v float64) {
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
 	err := codec.EncodeVarFloat64(enc.valbuf, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// SetBoolValue encode bool value
+func (enc *PirmitivePacketEncoder) SetBoolValue(v bool) {
+	var size = encoding.SizeOfPVarUInt32(uint32(1))
+	codec := encoding.VarCodec{Size: size}
+	enc.valbuf = make([]byte, size)
+	err := codec.EncodePVarBool(enc.valbuf, v)
 	if err != nil {
 		panic(err)
 	}

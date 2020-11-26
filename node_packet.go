@@ -18,3 +18,7 @@ func (n *NodePacket) SeqID() byte {
 func (n *NodePacket) IsArray() bool {
 	return n.basePacket.tag.IsArray()
 }
+
+func (n *NodePacket) GetValbuf() []byte {
+	return n.valbuf
+}

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	utils2 "github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
@@ -16,8 +18,9 @@ func main() {
 	parseNodePacket()
 	parseComplexNodePacket()
 
-	parseStringPrimitivePacket()
-	parseArrayPrimitivePacket()
+	parseInt32PrimitivePacket()
+	parseUInt32PrimitivePacket()
+	parseArrayPacket()
 	parseNestedArrayPrimitivePacket()
 }
 
@@ -215,26 +218,27 @@ func parseComplexNodePacket() {
 }
 
 func printNodePacket(node *y3.NodePacket) {
-	if len(node.NodePackets) > 0 {
-		for _, n := range node.NodePackets {
-			printNodePacket(&n)
-		}
-	}
-	if len(node.PrimitivePackets) > 0 {
-		for _, p := range node.PrimitivePackets {
-			if p.HasPacketArray() {
-				printPacketArray(&p)
-				continue
-			}
-			fmt.Printf("#35 %#X=%v\n", p.SeqID(), valueOf(&p))
-		}
-	}
+	//if len(node.NodePackets) > 0 {
+	//	for _, n := range node.NodePackets {
+	//		printNodePacket(&n)
+	//	}
+	//}
+	//if len(node.PrimitivePackets) > 0 {
+	//	for _, p := range node.PrimitivePackets {
+	//		if p.HasPacketArray() {
+	//			printPacketArray(&p)
+	//			continue
+	//		}
+	//		fmt.Printf("#35 %#X=%v\n", p.SeqID(), valueOf(&p))
+	//	}
+	//}
+
+	utils2.PrintNodePacket(node)
 }
 
-func parseStringPrimitivePacket() {
+func parseInt32PrimitivePacket() {
 	fmt.Println(">> Parsing [0x0A, 0x01, 0x7F] EQUALS key-value = 0x0A: 127")
 	buf := []byte{0x0A, 0x01, 0x7F}
-	//res, _, err := y3.DecodePrimitivePacket(buf)
 	res, _, _, err := y3.DecodePrimitivePacket(buf)
 	v1, err := res.ToInt32()
 	if err != nil {
@@ -244,27 +248,49 @@ func parseStringPrimitivePacket() {
 	fmt.Printf("Tag Key=[%#X], Value=%v\n", res.SeqID(), v1)
 }
 
-func parseArrayPrimitivePacket() {
+func parseUInt32PrimitivePacket() {
+	fmt.Println(">> Parsing [0x0A, 0x02, 0x80, 0x7F], which like Key-Value format = 0x0A: 127")
+	buf := []byte{0x0A, 0x02, 0x80, 0x7F}
+	res, _, _, err := y3.DecodePrimitivePacket(buf)
+	v1, err := res.ToUInt32()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Tag Key=[%#X], Value=%v\n", res.SeqID(), v1)
+}
+
+func printArrayNode(node *y3.NodePacket) {
+	utils2.PrintNodePacket(node)
+}
+
+func parseArrayPacket() {
 	utils.DefaultLogger.SetLogLevel(utils.LogLevelDebug)
 	/*
-		0x41:[ { 0x03:0x61 }, { 0x04:0x62 } ]
+		0xc1:[ { 0x03:0x61 }, { 0x04:0x62 } ]
 	*/
-	fmt.Println(">> Parsing [0x41, 0x06, 0x03, 0x01, 0x61, 0x04, 0x01, 0x62] EQUALS 0x41:[{0x03:0x61},{0x04:0x62}]")
-	buf := []byte{0x41, 0x06, 0x03, 0x01, 0x61, 0x04, 0x01, 0x62}
-	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-	printPacketArray(res)
+	fmt.Println(">> Parsing [0xc1, 0x06, 0x03, 0x01, 0x61, 0x04, 0x01, 0x62] EQUALS 0xc1:[{0x03:0x61},{0x04:0x62}]")
+	buf := []byte{0xc1, 0x06, 0x03, 0x01, 0x61, 0x04, 0x01, 0x62}
+	//res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	res, _, _ := y3.DecodeNodePacket(buf)
+	printArrayNode(res)
+	println()
 
 	/*
-		0x41:[ 0x00:0x61, 0x00:0x62 ]
+		0xc1:[ 0x00:0x61, 0x00:0x62 ]
 	*/
-	fmt.Println(">> Parsing [0x41, 0x06, 0x00, 0x01, 0x61, 0x00, 0x01, 0x62] EQUALS 0x41:[{0x00:0x02},{0x00:0x04}]")
-	buf = []byte{0x41, 0x06, 0x00, 0x01, 0x02, 0x00, 0x01, 0x04}
-	res, _, _, _ = y3.DecodePrimitivePacket(buf)
-	arr, _ := res.ToPacketArray()
-	for _, item := range arr {
-		i, _ := item.ToInt32()
-		fmt.Println("#30", "Item:", fmt.Sprintf("value=%v", i))
-	}
+	fmt.Println(">> Parsing [0xc1, 0x06, 0x00, 0x01, 0x61, 0x00, 0x01, 0x62] EQUALS 0xc1:[0x02,0x04]")
+	buf = []byte{0xc1, 0x06, 0x00, 0x01, 0x02, 0x00, 0x01, 0x04}
+	//res, _, _, _ = y3.DecodePrimitivePacket(buf)
+	res, _, _ = y3.DecodeNodePacket(buf)
+	//printArray(res)
+	utils2.PrintArrayPacket(res)
+	//codes.PrintNodeFormat(res, "", true, true)
+	//arr, _ := res.ToPacketArray()
+	//for _, item := range arr {
+	//	i, _ := item.ToInt32()
+	//	fmt.Println("#30", "Item:", fmt.Sprintf("value=%v", i))
+	//}
 }
 
 func parseNestedArrayPrimitivePacket() {
@@ -272,30 +298,31 @@ func parseNestedArrayPrimitivePacket() {
 	/*
 		0x41:[
 			0x42: [
-				0x03: 0x61 0x31,
-				0x04: 0x62 0x32
+				0x00: 0x61 0x31,
+				0x00: 0x62 0x32
 			],
 			0x05: 0x63
 		]
 	*/
-	fmt.Println(">> Parsing [0x41, 0x0d, 0x42, 0x08, 0x03, 0x02, 0x61, 0x31, 0x04, 0x02, 0x62, 0x32, 0x05, 0x01, 0x63] EQUALS 0x41:[0x42:[0x03:0x610x31,0x04:0x620x32],0x05:0x63]")
-	buf := []byte{0x41, 0x0d, 0x42, 0x08, 0x03, 0x02, 0x61, 0x31, 0x04, 0x02, 0x62, 0x32, 0x05, 0x01, 0x63}
+	fmt.Println(">> Parsing [0xc1, 0x0d, 0xc2, 0x08, 0x00, 0x02, 0x61, 0x31, 0x00, 0x02, 0x62, 0x32, 0x05, 0x01, 0x63] EQUALS 0x41:[0x42:[0x6131,0x6232],0x05:0x63]")
+	buf := []byte{0xc1, 0x0d, 0xc2, 0x08, 0x00, 0x02, 0x61, 0x31, 0x00, 0x02, 0x62, 0x32, 0x05, 0x01, 0x63}
 	//fmt.Println("#5", "len(buf):", len(buf))
-	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-	printPacketArray(res)
+	//res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	res, _, _ := y3.DecodeNodePacket(buf)
+	printNodePacket(res)
 }
 
-func printPacketArray(packet *y3.PrimitivePacket) {
-	arr, _ := packet.ToPacketArray()
-	//fmt.Println("#20", "len(arr):", len(arr))
-	for _, item := range arr {
-		if item.HasPacketArray() {
-			printPacketArray(item)
-		} else {
-			fmt.Println("#20", "Item:", fmt.Sprintf("key=%v value=%v", item.SeqID(), valueOf(item)))
-		}
-	}
-}
+//func printPacketArray(packet *y3.PrimitivePacket) {
+//	arr, _ := packet.ToPacketArray()
+//	//fmt.Println("#20", "len(arr):", len(arr))
+//	for _, item := range arr {
+//		if item.HasPacketArray() {
+//			printPacketArray(item)
+//		} else {
+//			fmt.Println("#20", "Item:", fmt.Sprintf("key=%v value=%v", item.SeqID(), valueOf(item)))
+//		}
+//	}
+//}
 
 func valueOf(packet *y3.PrimitivePacket) interface{} {
 	num, err := packet.ToInt32()

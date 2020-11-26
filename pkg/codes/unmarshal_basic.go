@@ -2,54 +2,57 @@ package codes
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
 )
 
-// []byte to interface, deserialization
-func (codec *yomoCodec) Unmarshal(data []byte, mold *interface{}) error {
-	key := keyOf(codec.Observe)
+// BasicDecoder: for UnmarshalBasic
+type BasicDecoder struct {
+	Observe string
+}
+
+func newBasicDecoder(observe string) *BasicDecoder {
+	return &BasicDecoder{Observe: observe}
+}
+
+// Unmarshal: Unmarshal []byte to interface
+func (d BasicDecoder) Unmarshal(data []byte, mold *interface{}) error {
+	key := packetutils.KeyOf(d.Observe)
 	pct, _, err := y3.DecodeNodePacket(data)
 	if err != nil {
 		return err
 	}
 
-	flag, isNode, packet := matchingKey(key, pct)
-	if !flag && []byte("*")[0] != key {
-		return errors.New("not found mold in result")
+	ok, isNode, packet := packetutils.MatchingKey(key, pct)
+	if !ok {
+		return errors.New(fmt.Sprintf("not found mold in result. key:%#x", key))
 	}
 
-	// map to struct
-	err = toMold(packet, isNode, mold)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return d.unmarshalPrimitive(packet, isNode, mold)
 }
 
-// TODO: unfinished
-func toMold(packet interface{}, isNode bool, mold *interface{}) error {
+// unmarshalPrimitive: Unmarshal packet to interface, for Primitive Node
+func (d BasicDecoder) unmarshalPrimitive(packet interface{}, isNode bool, mold *interface{}) error {
 	if isNode == false {
 		primitivePacket := packet.(y3.PrimitivePacket)
-		return unmarshalPrimitivePacket(primitivePacket, mold)
+		return d.unmarshalPrimitivePacket(primitivePacket, mold)
 	}
-
-	// TODO: unfinished
-	//_, _ = mapping.NewDecoder(nil)
 
 	//fmt.Printf("#78 reflect.TypeOf(*output).Kind()=%v\n", reflect.TypeOf(*output).Kind())
 	nodePacket := packet.(y3.NodePacket)
 	if nodePacket.IsArray() && len(nodePacket.PrimitivePackets) > 0 {
-		return unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
+		return d.unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
 	}
 
 	return nil
 }
 
 // convertPrimitivePacketToMold convert PrimitivePacket to Mold
-func unmarshalPrimitivePacket(primitivePacket y3.PrimitivePacket, mold *interface{}) error {
+func (d BasicDecoder) unmarshalPrimitivePacket(primitivePacket y3.PrimitivePacket, mold *interface{}) error {
 	switch reflect.TypeOf(*mold).Kind() {
 	case reflect.String:
 		v, err := primitivePacket.ToUTF8String()
@@ -101,7 +104,7 @@ func unmarshalPrimitivePacket(primitivePacket y3.PrimitivePacket, mold *interfac
 }
 
 // convertPrimitivePacketArrayToMold convert []PrimitivePacket to Mold
-func unmarshalPrimitivePacketArray(primitivePackets []y3.PrimitivePacket, mold *interface{}) error {
+func (d BasicDecoder) unmarshalPrimitivePacketArray(primitivePackets []y3.PrimitivePacket, mold *interface{}) error {
 	result := make([]interface{}, 0)
 	switch reflect.TypeOf(*mold).Kind() {
 	case reflect.Array, reflect.Slice:
