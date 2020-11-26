@@ -20,7 +20,7 @@ func (t *Tag) IsNode() bool {
 
 // SeqID get the sequence ID, as key in JSON format
 func (t *Tag) SeqID() byte {
-	//return t.raw & utils.DropMSB
+	//return t.raw & packetutils.DropMSB
 	return t.raw & utils.DropMSBArrayFlag
 }
 

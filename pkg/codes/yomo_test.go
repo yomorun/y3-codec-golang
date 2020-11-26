@@ -10,99 +10,90 @@ func TestReadThermometer(t *testing.T) {
 
 	codec := NewCodec("0x20")
 	codec.Decoder(inputBuf)
-	fmt.Printf("#71 buf=%s\n", FormatBytes(inputBuf))
 
-	// #1
-	var mold = Thermometer{}
-	//var mold = getThermometerInterface()
-	val, err := codec.Read(&mold)
+	var mold = &ThermometerTest{}
+	val, err := codec.Read(mold)
 	if err != nil {
-		fmt.Printf("#71 err1=%v\n", err)
-		_ = val
+		t.Errorf("Read error: %v", err)
 	}
-	fmt.Printf("#71 mold=%v\n", mold)
 
-	result, err := handleThermometer(mold)
+	if val == nil {
+		t.Errorf("Read val is nil")
+	}
+
+	result, err := handleThermometer(val)
 	if err != nil {
-		fmt.Printf("#71 err2=%v\n", err)
+		t.Errorf("handleThermometer error: %v", err)
 	}
-	fmt.Printf("#71 result=%v\n", result)
 
-	// #2
-	//var mold = getThermometerInterface()
-	//val, err := codec.Read(&mold)
-	//if err != nil {
-	//	fmt.Printf("#71 err1=%v\n", err)
-	//	_ = val
-	//}
-	//fmt.Printf("#71 mold=%v\n", mold)
+	if result.(*ThermometerTest).Id != "the1" {
+		t.Errorf("Id value should be: the1")
+	}
+
 }
 
 func buildThermometerInputData() []byte {
-	input := Thermometer{
+	input := ThermometerTest{
 		Id:          "the0",
 		Temperature: float32(64.88),
 		Humidity:    float32(93.02),
 		Stored:      true,
 	}
 
-	codec := NewCodec("0x20")
-	inputBuf, _ := codec.Marshal(input)
-	//fmt.Printf("#70 buf=%s\n", FormatBytes(inputBuf))
+	proto := NewProtoCodec("0x20")
+	inputBuf, _ := proto.Marshal(input)
+
 	return inputBuf
 }
 
 func handleThermometer(value interface{}) (interface{}, error) {
-	the := value.(Thermometer)
+	the := value.(*ThermometerTest)
 	the.Id = "the1"
 	return the, nil
 }
 
-func getThermometerInterface() interface{} {
-	return Thermometer{}
-}
-
-//
 func TestReadThermometerSlice(t *testing.T) {
 	inputBuf := buildThermometerSliceInputData()
 
 	codec := NewCodec("0x20")
 	codec.Decoder(inputBuf)
-	fmt.Printf("#70 buf=%s\n", FormatBytes(inputBuf))
 
-	// #1
-	var mold = []Thermometer{}
-	val, err := codec.Read(&mold)
+	var mold = &[]ThermometerTest{}
+	val, err := codec.Read(mold)
 	if err != nil {
 		fmt.Printf("#70 err1=%v\n", err)
 		_ = val
 	}
-	fmt.Printf("#70 mold=%v\n", mold)
-	////fmt.Printf("#70 val=%v\n", val)
-	//fmt.Printf("#70 mold=%v\n", mold)
-	//val = val.([]Thermometer)
-	//fmt.Printf("#70 val=%v\n", val)
+
 	result, err := handleThermometerSlice(mold)
 	if err != nil {
 		fmt.Printf("#70 err2=%v\n", err)
 	}
-	fmt.Printf("#70 result=%v\n", result)
+	//fmt.Printf("#70 result=%v\n", result)
 
-	// #2
-	//mold := getThermometerSliceInterface()
-	//val, err := codec.Read(mold)
-	//fmt.Printf("#70 err=%v\n", err)
-	//fmt.Printf("#70 val=%v\n", val)
+	res := result.([]ThermometerTest)
+	if len(res) != 3 {
+		t.Errorf("new result len should be: 3")
+	}
 
-}
-
-func getThermometerSliceInterface() interface{} {
-	return []Thermometer{}
+	last := res[len(res)-1]
+	if last.Id != "the1" {
+		t.Errorf("last Id value should be: the1")
+	}
+	if last.Temperature != 1 {
+		t.Errorf("last Temperature value should be: 1")
+	}
+	if last.Humidity != 2 {
+		t.Errorf("last Humidity value should be: 2")
+	}
+	if last.Stored != false {
+		t.Errorf("last Stored value should be: false")
+	}
 }
 
 func handleThermometerSlice(value interface{}) (interface{}, error) {
-	the := value.([]Thermometer)
-	the = append(the, Thermometer{
+	the := *value.(*[]ThermometerTest)
+	the = append(the, ThermometerTest{
 		Id:          "the1",
 		Temperature: float32(1),
 		Humidity:    float32(2),
@@ -112,7 +103,7 @@ func handleThermometerSlice(value interface{}) (interface{}, error) {
 }
 
 func buildThermometerSliceInputData() []byte {
-	input := []Thermometer{
+	input := []ThermometerTest{
 		{
 			Id:          "the0",
 			Temperature: float32(64.88),
@@ -127,8 +118,8 @@ func buildThermometerSliceInputData() []byte {
 		},
 	}
 
-	codec := NewCodec("0x20")
-	inputBuf, _ := codec.Marshal(input)
-	//fmt.Printf("#70 buf=%s\n", FormatBytes(inputBuf))
+	proto := NewProtoCodec("0x20")
+	inputBuf, _ := proto.Marshal(input)
+
 	return inputBuf
 }

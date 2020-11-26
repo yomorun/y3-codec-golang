@@ -1,11 +1,9 @@
 package codes
 
 import (
-	"encoding/hex"
-	"fmt"
 	"io"
-	"reflect"
-	"strings"
+
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
 
@@ -21,14 +19,15 @@ var (
 	logger      = utils.Logger.WithPrefix(utils.DefaultLogger, "yomoCodec")
 )
 
+// YomoCodec: codec interface for yomo
 type YomoCodec interface {
-	protoCodec
 	Decoder(buf []byte)
 	Read(mold interface{}) (interface{}, error) // TODO: 考虑掉返回interface{}
 	Write(w io.Writer, T interface{}, mold interface{}) (int, error)
 	Refresh(w io.Writer) (int, error)
 }
 
+// yomoCodec: Implementation of the YomoCodec Interface
 type yomoCodec struct {
 	Value []byte
 
@@ -61,8 +60,9 @@ func NewCodec(observe string) YomoCodec {
 	return codec
 }
 
+// Decoder: Collects bytes from buf and decodes them
 func (codec *yomoCodec) Decoder(buf []byte) {
-	key := keyOf(codec.Observe)
+	key := packetutils.KeyOf(codec.Observe)
 	for _, c := range buf {
 		// tag
 		if codec.Tag == nil {
@@ -75,7 +75,7 @@ func (codec *yomoCodec) Decoder(buf []byte) {
 		if codec.Size == 0 {
 			codec.LengthBuf = append(codec.LengthBuf, c)
 			codec.Sbuf = append(codec.Sbuf, c)
-			length, size, err := decodeLength(codec.LengthBuf)
+			length, size, err := codec.decodeLength(codec.LengthBuf)
 			if err != nil {
 				continue
 			}
@@ -103,7 +103,7 @@ func (codec *yomoCodec) Decoder(buf []byte) {
 
 			//matching
 			var matching = false
-			flag, _, _ := matchingKey(key, packet)
+			flag, _, _ := packetutils.MatchingKey(key, packet)
 			if flag || []byte("*")[0] == key {
 				matching = true
 				result = originResult
@@ -121,6 +121,7 @@ func (codec *yomoCodec) Decoder(buf []byte) {
 	}
 }
 
+// reset: reset status of the codec
 func (codec *yomoCodec) reset() {
 	codec.Tag = nil
 	codec.LengthBuf = make([]byte, 0)
@@ -129,59 +130,15 @@ func (codec *yomoCodec) reset() {
 	codec.Sbuf = make([]byte, 0)
 }
 
-func matchingKey(key byte, node *y3.NodePacket) (flag bool, isNode bool, packet interface{}) {
-	if len(node.PrimitivePackets) > 0 {
-		for _, p := range node.PrimitivePackets {
-			if key == p.SeqID() {
-				return true, false, p
-			}
-		}
-	}
-
-	if len(node.NodePackets) > 0 {
-		for _, n := range node.NodePackets {
-			if key == n.SeqID() {
-				return true, true, n
-			}
-			//return matchingKey(key, &n)
-			flag, isNode, packet = matchingKey(key, &n)
-			if flag {
-				return
-			}
-		}
-	}
-
-	return false, false, nil
-}
-
-func keyOf(hexStr string) byte {
-	if strings.HasPrefix(hexStr, "0x") {
-		hexStr = strings.TrimPrefix(hexStr, "0x")
-	} else if strings.HasPrefix(hexStr, "0X") {
-		hexStr = strings.TrimPrefix(hexStr, "0X")
-	}
-
-	data, err := hex.DecodeString(hexStr)
-	if err != nil {
-		logger.Errorf("hex.DecodeString error: %v", err)
-		return 0xff
-	}
-
-	if len(data) == 0 {
-		logger.Errorf("hex.DecodeString data is []")
-		return 0xff
-	}
-
-	return data[0]
-}
-
-func decodeLength(buf []byte) (length int32, size int32, err error) {
+// decodeLength: decode length of `V`
+func (codec *yomoCodec) decodeLength(buf []byte) (length int32, size int32, err error) {
 	varCodec := encoding.VarCodec{}
 	err = varCodec.DecodePVarInt32(buf, &length)
 	size = int32(varCodec.Size)
 	return
 }
 
+// Read: read and unmarshal data to mold
 func (codec *yomoCodec) Read(mold interface{}) (interface{}, error) {
 	if len(codec.Result) == 0 {
 		return nil, nil
@@ -190,47 +147,18 @@ func (codec *yomoCodec) Read(mold interface{}) (interface{}, error) {
 	result := codec.Result[0]
 	codec.Result = codec.Result[1:]
 
-	// #1
-	// take value from node
-	//err := codec.Unmarshal(result, &mold)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	// #2
-	//err := codec.UnmarshalStruct(result, mold)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	// #3 start...
-	isStruct := false
-
-	// 判断是结构体还是基础类型?
-	moldValue := reflect.Indirect(reflect.ValueOf(mold))
-	moldType := moldValue.Type()
-	switch moldType.Kind() {
-	case reflect.Struct:
-		isStruct = true
-	case reflect.Slice:
-		if moldType.Elem().Kind() == reflect.Struct {
-			isStruct = true
-		}
-	}
-	fmt.Printf("#1 Read isStruct=%v\n", isStruct)
-
-	if isStruct {
-		err := codec.UnmarshalStruct(result, mold)
+	proto := NewProtoCodec(codec.Observe)
+	if proto.IsStruct(mold) {
+		err := proto.UnmarshalStruct(result, mold)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := codec.UnmarshalBasic(result, &mold)
+		err := proto.UnmarshalBasic(result, &mold)
 		if err != nil {
 			return nil, err
 		}
 	}
-	// #3 end.....
 
 	// for Encoder::merge
 	codec.Value = result
@@ -238,15 +166,16 @@ func (codec *yomoCodec) Read(mold interface{}) (interface{}, error) {
 	return mold, nil
 }
 
+// Write: write interface to stream
 func (codec *yomoCodec) Write(w io.Writer, T interface{}, mold interface{}) (int, error) {
 	// #1. mold --> NodePacket
 	// #2. merge NodePacket --> codec.Value NodePacket
 	// #3. NodePacket --> []byte
 	// #4. Write []byte
-
-	buf, err := codec.Marshal(T)
+	proto := NewProtoCodec(codec.Observe)
+	buf, err := proto.MarshalNoWrapper(T)
 	if err != nil {
-		logger.Errorf("Write::Marshal error:%v", err)
+		logger.Errorf("Write::MarshalNoWrapper error:%v", err)
 		return 0, err
 	}
 
@@ -258,16 +187,17 @@ func (codec *yomoCodec) Write(w io.Writer, T interface{}, mold interface{}) (int
 	return w.Write(data)
 }
 
+// Encoder: encode []byte of T, and merge them to the original result
 func (codec *yomoCodec) Encoder(buf []byte, mold interface{}) ([]byte, error) {
 	result := make([]byte, 0)
 	index := 0
 	for _, data := range codec.OriginResult {
 		index = index + 1
-		if isDecoder(data) {
+		if codec.isDecoder(data) {
 			source, _, _ := y3.DecodeNodePacket(codec.Value)
 
-			key := keyOf(codec.Observe)
-			_buf, err := mergePacket(source, key, buf, mold)
+			key := packetutils.KeyOf(codec.Observe)
+			_buf, err := codec.mergePacket(source, key, buf, mold)
 			if err != nil {
 				return nil, err
 			}
@@ -285,13 +215,15 @@ func (codec *yomoCodec) Encoder(buf []byte, mold interface{}) ([]byte, error) {
 	return result, nil
 }
 
-func mergePacket(source *y3.NodePacket, key byte, value []byte, mold interface{}) ([]byte, error) {
-	np := copyPacket(nil, source, key, value)
+// mergePacket: merge packet
+func (codec *yomoCodec) mergePacket(source *y3.NodePacket, key byte, value []byte, mold interface{}) ([]byte, error) {
+	np := codec.copyPacket(nil, source, key, value)
 	buf := np.Encode()
 	return buf, nil
 }
 
-func copyPacket(root *y3.NodePacketEncoder, source *y3.NodePacket, key byte, value []byte) *y3.NodePacketEncoder {
+// copyPacket: copy packet
+func (codec *yomoCodec) copyPacket(root *y3.NodePacketEncoder, source *y3.NodePacket, key byte, value []byte) *y3.NodePacketEncoder {
 	if root == nil {
 		root = y3.NewNodePacketEncoder(int(source.SeqID()))
 	}
@@ -324,7 +256,7 @@ func copyPacket(root *y3.NodePacketEncoder, source *y3.NodePacket, key byte, val
 				root.AddNodePacket(temp)
 				continue
 			}
-			np := copyPacket(temp, &n, key, value)
+			np := codec.copyPacket(temp, &n, key, value)
 			root.AddNodePacket(np)
 		}
 	}
@@ -332,19 +264,21 @@ func copyPacket(root *y3.NodePacketEncoder, source *y3.NodePacket, key byte, val
 	return root
 }
 
+// Refresh: refresh the OriginResult to stream
 func (codec *yomoCodec) Refresh(w io.Writer) (int, error) {
 	if len(codec.OriginResult) == 0 {
 		return 0, nil
 	}
 	originResult := codec.OriginResult[0]
-	if !isDecoder(originResult) {
+	if !codec.isDecoder(originResult) {
 		codec.OriginResult = codec.OriginResult[1:]
 		return w.Write(originResult)
 	}
 	return 0, nil
 }
 
-func isDecoder(buf []byte) bool {
+// isDecoder: is placeholder?
+func (codec *yomoCodec) isDecoder(buf []byte) bool {
 	if len(buf) != len(placeholder) {
 		return false
 	}

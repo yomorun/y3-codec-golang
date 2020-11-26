@@ -24,6 +24,10 @@ func (enc *encoder) GetValBuf() []byte {
 	return enc.valbuf
 }
 
+func (enc *encoder) IsEmpty() bool {
+	return len(enc.valbuf) == 0
+}
+
 func (enc *encoder) String() string {
 	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valbuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
 }

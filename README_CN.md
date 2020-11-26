@@ -365,7 +365,6 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
   - [ ] 支持两种出理流程的切换
 - [ ] v0.9.0 - 支持简单的控制指令和错误码
 - [ ] v1.0.0 - 支持与QUIC-for-YoMo框架的集成
-- [ ] 
 
 ## YoMo Codec
 
