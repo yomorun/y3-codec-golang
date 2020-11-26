@@ -41,18 +41,32 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 * protoCodec：实现了序列化和反序列化的接口方法，支持基础数据类型及其数组、结构体类型；为以此为基础构建特定框架适配的编解码接口工具提供必要的封装和能力，不需重复开发。
 
   ```go 
-  type protoCodec interface {
-  	Marshal(v interface{}) ([]byte, error)
-  	Unmarshal(data []byte, v *interface{}) error
-  }
+  type ProtoCodec interface {
+  	// Marshal: Marshal interface to []byte
+  	Marshal(input interface{}) ([]byte, error)
+  	// MarshalNoWrapper: Marshal interface to []byte, but no Outside Nodes
+  	MarshalNoWrapper(input interface{}) ([]byte, error)
+	// UnmarshalStruct: Unmarshal struct to interface
+  	UnmarshalStruct(data []byte, mold interface{}) error
+	// UnmarshalBasic: Unmarshal basic type to interface
+  	UnmarshalBasic(data []byte, mold *interface{}) error
+	// IsStruct: mold is Struct?
+  	IsStruct(mold interface{}) bool
+}
   ```
-
+  
   * Marshal：提供序列化能力
-
-  * Unmarshal：提供反序化能力
-
-  * mapstructure：为protoCodec接口提供对结构体的编解码能力，并在定义struct时通过"yomo"标签描述其编解码的行为(key)：
-
+  
+  * Marshal：提供序列化能力，但不填充额外的包装节点
+  
+  * UnmarshalStruct：提供struct的反序化能力
+  
+  * UnmarshalBasic：提供基础类型的反序化能力
+  
+  * IsStruct: 判断当前对象是否为可被解析的struct，可以调用UnmarshalStruct
+  
+  * packetstructure：为ProtoCodec接口提供对结构体的编解码能力，并在定义struct时通过"yomo"标签描述其编解码的行为(key)：
+  
     ```go 
     type Example struct {
     	Id   int32  `yomo:"0x22"`
@@ -64,15 +78,14 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
   ```go 
   type YomoCodec interface {
-  	protoCodec
   	Decoder(buf []byte)
   	Read(mold interface{}) (interface{}, error)
   	Write(w io.Writer, T interface{}, mold interface{}) (int, error)
   	Refresh(w io.Writer) (int, error)
   }
   ```
-
-  在YoMo中如何使用该YomoCodec接口？将会在例子一节中描述其伪代码。
+  
+在YoMo中如何使用该YomoCodec接口？将会在例子一节中描述其伪代码。
 
 
 ## 例子
@@ -117,8 +130,8 @@ import (
 func main() {
 	// "y-new" serialize to `0x79, 0x2d, 0x6e, 0x65, 0x77`
 	str := "y-new"
-	codec := codes.NewCodec("")
-	buf, _ := codec.Marshal(str)
+	proto := codes.NewProtoCodec("")
+	buf, _ := proto.Marshal(str)
 	fmt.Printf("buf=%#x\n", buf)
 }
 ```
@@ -137,9 +150,9 @@ import (
 )
 
 func main() {
-	example := &Example{Id: 1, Name: "y"}
-	codec := codes.NewCodec("")
-	buf, _ := codec.Marshal(example)
+	example := Example{Id: 1, Name: "y"}
+	proto := codes.NewProtoCodec("")
+	buf, _ := proto.Marshal(example)
 	fmt.Printf("buf=%#x\n", buf)
 }
 
@@ -165,9 +178,9 @@ func main() {
 	// `0x01, 0x03, 0x23, 0x1, 0x79` deserialize to "y"
   // observe key 0x23
 	data := []byte{0x01, 0x03, 0x23, 0x1, 0x79}
-	codec := codes.NewCodec("0x23")
+	proto := codes.NewProtoCodec("0x23")
 	var mold interface{} = ""
-	_ = codec.Unmarshal(data, &mold)
+	_ = proto.UnmarshalBasic(data, &mold)
 	fmt.Printf("mold is %v, value=%v\n", reflect.TypeOf(mold).Kind(), mold)
 }
 ```
@@ -187,12 +200,11 @@ import (
 )
 
 func main() {
-	data := []byte{0x81, 0x08, 0x90, 0x6, 0x22, 0x1, 0x1, 0x23, 0x1, 0x79}
-	codec := codes.NewCodec("0x10")
-	var mold interface{} = &Example{}
-	_ = codec.Unmarshal(data, &mold)
-	fmt.Printf("mold is %v, Id=%v, Name=%v\n", 
-		reflect.TypeOf(mold).Kind(), mold.(*Example).Id, mold.(*Example).Name)
+	data := []byte{0x81, 0x8, 0xb0, 0x6, 0x22, 0x1, 0x1, 0x23, 0x1, 0x79}
+	proto := codes.NewProtoCodec("0x30")
+	var mold = Example{}
+	_ = proto.UnmarshalStruct(data, &mold)
+	fmt.Printf("%v\n", mold)
 }
 
 type Example struct {
@@ -349,17 +361,18 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
   - [x] 支持基础类型的数组
   - [x] 支持[YoMo](https://github.com/yomorun/yomo)框架的集成(基础类型)
     - [x] 满足处理流程：解析--监听--存储--读取--处理--合并--写入
-- [ ] v0.30 - protoCode/YomoCode增强
-  - [ ] 支持结构体struct
-  - [ ] 支持结构体的数组
-- [ ] v0.4.0 - 支持[yomo-thermometer-plugin](https://github.com/10cella/yomo-thermometer-plugin)插件
-  - [ ] 支持[]Thermometer{}的Mold形式
-  - [ ] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang)
+- [x] v0.30 - protoCode/YomoCode增强
+  - [x] 支持结构体struct
+  - [x] 支持结构体的数组
+  - [x] 支持Bool类型
+- [x] v0.4.0 - 支持[yomo-thermometer-plugin](https://github.com/10cella/yomo-thermometer-plugin)插件
+  - [x] 支持[]Thermometer{}的Mold形式
+  - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang)
 - [ ] v0.5.0 - 性能压测及优化重构
-- [ ] v0.6.0 - 支持UUID及Bool类型
+- [ ] v0.6.0 - 支持UUID及Map类型
   - [ ] encoding
   - [ ] PrimitivePacket
-  - [ ] protoCode
+  - [ ] ProtoCode
 - [ ] v0.7.0 - 支持[YoMo](https://github.com/yomorun/yomo)框架的新的解析需求
   - [ ] 满足处理流程：解析--监听--读取--处理--写入
   - [ ] 支持两种出理流程的切换
