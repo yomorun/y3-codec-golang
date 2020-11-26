@@ -1,7 +1,6 @@
 package packetstructure
 
 import (
-	"encoding/hex"
 	"reflect"
 	"strings"
 
@@ -18,31 +17,11 @@ type field struct {
 	val   reflect.Value
 }
 
-func keyOf(hexStr string) byte {
-	if strings.HasPrefix(hexStr, "0x") {
-		hexStr = strings.TrimPrefix(hexStr, "0x")
-	} else if strings.HasPrefix(hexStr, "0X") {
-		hexStr = strings.TrimPrefix(hexStr, "0X")
-	}
-
-	data, err := hex.DecodeString(hexStr)
-	if err != nil {
-		logger.Errorf("hex.DecodeString error: %v", err)
-		return 0xff
-	}
-
-	if len(data) == 0 {
-		logger.Errorf("hex.DecodeString data is []")
-		return 0xff
-	}
-
-	return data[0]
-}
-
-func fieldNameByTag(tagNaqme string, field reflect.StructField) string {
+// fieldNameByTag: get fieldName or tagName
+func fieldNameByTag(tagName string, field reflect.StructField) string {
 	fieldName := field.Name
 
-	tagValue := field.Tag.Get(tagNaqme)
+	tagValue := field.Tag.Get(tagName)
 	tagValue = strings.SplitN(tagValue, ",", 2)[0]
 	if tagValue != "" {
 		fieldName = tagValue

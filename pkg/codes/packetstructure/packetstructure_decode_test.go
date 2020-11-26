@@ -1,8 +1,11 @@
 package packetstructure
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 
 	y3 "github.com/yomorun/yomo-codec-golang"
 )
@@ -110,10 +113,10 @@ func TestBasic_Struct(t *testing.T) {
 	node, _ := Encode(input)
 
 	//debug:
-	//fmt.Println("#404 DEBUG::TestBasic_Struct:")
-	//fmt.Println(input)
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
+	fmt.Println("#404 DEBUG::TestBasic_Struct:")
+	fmt.Println(input)
+	packetutils.PrintNodePacket(node)
+	fmt.Println()
 
 	//result := Basic{}
 	var result Basic

@@ -1,4 +1,4 @@
-package codes
+package packetutils
 
 import (
 	"fmt"
@@ -9,19 +9,28 @@ import (
 )
 
 func PrintNodePacket(node *y3.NodePacket) {
-	printNodeFormat(node, " %#X=%v ", false, true)
+	PrintNodeFormat(node, " %#X=%v ", false, true)
 }
 
-func printNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bool) {
+func PrintArrayPacket(node *y3.NodePacket) {
+	//Parsing [0xc1, 0x06, 0x00, 0x01, 0x61, 0x00, 0x01, 0x62] EQUALS 0xc1:[0x02,0x04]")
+	PrintNodeFormat(node, " %#X=%v ", true, true)
+}
+
+func PrintNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bool) {
 	if isRoot {
-		fmt.Printf("%#x:{ ", node.SeqID())
+		if isArray {
+			fmt.Printf("%#x:[ ", node.SeqID())
+		} else {
+			fmt.Printf("%#x:{ ", node.SeqID())
+		}
 	}
 
 	if len(node.NodePackets) > 0 {
 		for _, n := range node.NodePackets {
 			if n.IsArray() {
 				fmt.Printf(" %#x:[ ", n.SeqID())
-				printNodeFormat(&n, format, true, false)
+				PrintNodeFormat(&n, format, true, false)
 				fmt.Printf(" ]")
 				continue
 			}
@@ -31,7 +40,7 @@ func printNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bo
 			} else {
 				fmt.Printf(" %#x:{ ", n.SeqID())
 			}
-			printNodeFormat(&n, format, false, false)
+			PrintNodeFormat(&n, format, false, false)
 			fmt.Printf(" }")
 
 		}
@@ -47,14 +56,17 @@ func printNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bo
 	}
 
 	if isRoot {
-		fmt.Printf(" }")
+		if isArray {
+			fmt.Printf(" ]")
+		} else {
+			fmt.Printf(" }")
+		}
 	}
 }
 
 type FmtOut struct{ io.Writer }
 
 func (w FmtOut) Write(buf []byte) (int, error) {
-	fmt.Printf("FmtOut: %s\n", FormatBytes(buf)) // debug:
 	res, _, _ := y3.DecodeNodePacket(buf)
 	fmt.Printf("%v:\t", time.Now().Format("2006-01-02 15:04:05")) // debug:
 	PrintNodePacket(res)
