@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-type Thermometer struct {
+type ThermometerTest struct {
 	Id          string  `yomo:"0x10"`
 	Temperature float32 `yomo:"0x11"`
 	Humidity    float32 `yomo:"0x12"`
@@ -12,7 +12,7 @@ type Thermometer struct {
 }
 
 func TestUnmarshalStructThermometerSlice(t *testing.T) {
-	input := []Thermometer{
+	input := []ThermometerTest{
 		{
 			Id:          "the0",
 			Temperature: float32(64.88),
@@ -27,14 +27,12 @@ func TestUnmarshalStructThermometerSlice(t *testing.T) {
 		},
 	}
 
-	codec1 := NewCodec("0x20")
-	inputBuf, _ := codec1.Marshal(input)
-	//fmt.Printf("#60 buf=%s\n", FormatBytes(inputBuf))
+	proto1 := NewProtoCodec("0x20")
+	inputBuf, _ := proto1.Marshal(input)
 
-	codec2 := NewCodec("0x20")
-	var mold []Thermometer
-	runUnmarshalStruct(t, codec2, inputBuf, &mold)
-	//fmt.Printf("#60 mold=%v\n", mold)
+	proto2 := NewProtoCodec("0x20")
+	var mold []ThermometerTest
+	runUnmarshalStruct(t, proto2, inputBuf, &mold)
 
 	if len(mold) != len(input) {
 		t.Errorf("len value should be: %v", len(input))
@@ -46,33 +44,38 @@ func TestUnmarshalStructThermometerSlice(t *testing.T) {
 }
 
 func TestUnmarshalStructThermometer(t *testing.T) {
-	input := Thermometer{
+	input := ThermometerTest{
 		Id:          "the0",
 		Temperature: float32(64.88),
 		Humidity:    float32(93.02),
 		Stored:      true,
 	}
 
-	codec1 := NewCodec("0x20")
-	inputBuf, _ := codec1.Marshal(input)
-	//fmt.Printf("#60 buf=%s\n", FormatBytes(inputBuf))
+	proto1 := NewProtoCodec("0x20")
+	inputBuf, _ := proto1.Marshal(input)
 
-	codec2 := NewCodec("0x20")
-	var mold = Thermometer{}
-	runUnmarshalStruct(t, codec2, inputBuf, &mold)
-	//fmt.Printf("#60 mold=%v\n", mold)
+	//debug:
+	//fmt.Printf("#60 buf=%s\n", packetutils.FormatBytes(inputBuf))
+	//fmt.Printf("#60 node=")
+	//res, _, _ := y3.DecodeNodePacket(inputBuf)
+	//packetutils.PrintNodePacket(res)
+	//fmt.Println()
+
+	proto2 := NewProtoCodec("0x20")
+	var mold = ThermometerTest{}
+	runUnmarshalStruct(t, proto2, inputBuf, &mold)
 	testThermometerStruct(t, mold, input)
 }
 
-func runUnmarshalStruct(t *testing.T, codec YomoCodec, inputBuf []byte, mold interface{}) {
-	err := codec.UnmarshalStruct(inputBuf, mold)
+func runUnmarshalStruct(t *testing.T, proto ProtoCodec, inputBuf []byte, mold interface{}) {
+	err := proto.UnmarshalStruct(inputBuf, mold)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
 	}
 }
 
-func testThermometerStruct(t *testing.T, result Thermometer, expected Thermometer) {
+func testThermometerStruct(t *testing.T, result ThermometerTest, expected ThermometerTest) {
 	if result.Id != expected.Id {
 		t.Errorf("Id value should be: %v", expected.Id)
 	}

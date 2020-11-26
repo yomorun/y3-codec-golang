@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+
 	y3 "github.com/yomorun/yomo-codec-golang"
 )
 
-func (codec *yomoCodec) UnmarshalBasic(data []byte, mold *interface{}) error {
-	decoder := newBasicDecoder(codec.Observe)
-	return decoder.Unmarshal(data, mold)
-}
-
+// BasicDecoder: for UnmarshalBasic
 type BasicDecoder struct {
 	Observe string
 }
@@ -21,14 +19,15 @@ func newBasicDecoder(observe string) *BasicDecoder {
 	return &BasicDecoder{Observe: observe}
 }
 
+// Unmarshal: Unmarshal []byte to interface
 func (d BasicDecoder) Unmarshal(data []byte, mold *interface{}) error {
-	key := keyOf(d.Observe)
+	key := packetutils.KeyOf(d.Observe)
 	pct, _, err := y3.DecodeNodePacket(data)
 	if err != nil {
 		return err
 	}
 
-	ok, isNode, packet := matchingKey(key, pct)
+	ok, isNode, packet := packetutils.MatchingKey(key, pct)
 	if !ok {
 		return errors.New(fmt.Sprintf("not found mold in result. key:%#x", key))
 	}
@@ -36,6 +35,7 @@ func (d BasicDecoder) Unmarshal(data []byte, mold *interface{}) error {
 	return d.unmarshalPrimitive(packet, isNode, mold)
 }
 
+// unmarshalPrimitive: Unmarshal packet to interface, for Primitive Node
 func (d BasicDecoder) unmarshalPrimitive(packet interface{}, isNode bool, mold *interface{}) error {
 	if isNode == false {
 		primitivePacket := packet.(y3.PrimitivePacket)
