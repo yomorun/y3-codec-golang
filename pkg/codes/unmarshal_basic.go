@@ -12,37 +12,58 @@ import (
 
 // BasicDecoder: for UnmarshalBasic
 type BasicDecoder struct {
-	Observe string
+	Observe byte
 }
 
-func newBasicDecoder(observe string) *BasicDecoder {
+func newBasicDecoder(observe byte) *BasicDecoder {
 	return &BasicDecoder{Observe: observe}
 }
 
-// Unmarshal: Unmarshal []byte to interface
 func (d BasicDecoder) Unmarshal(data []byte, mold *interface{}) error {
-	key := packetutils.KeyOf(d.Observe)
-	pct, _, err := y3.DecodeNodePacket(data)
+	nodePacket, _, err := y3.DecodeNodePacket(data)
 	if err != nil {
 		return err
 	}
 
-	ok, isNode, packet := packetutils.MatchingKey(key, pct)
+	return d.UnmarshalByNodePacket(nodePacket, mold)
+}
+
+func (d BasicDecoder) UnmarshalNative(data []byte, mold *interface{}) error {
+	switch reflect.TypeOf(*mold).Kind() {
+	case reflect.Array, reflect.Slice:
+		nodePacket, _, err := y3.DecodeNodePacket(data)
+		if err != nil {
+			return err
+		}
+		if nodePacket.IsArray() && len(nodePacket.PrimitivePackets) > 0 {
+			return d.unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
+		}
+		return fmt.Errorf("not be a packet that can be resolved. mold=%v", mold)
+	default:
+		primitivePacket, _, _, err := y3.DecodePrimitivePacket(data)
+		if err != nil {
+			return err
+		}
+		return d.unmarshalPrimitivePacket(*primitivePacket, mold)
+	}
+}
+
+func (d BasicDecoder) UnmarshalByNodePacket(node *y3.NodePacket, mold *interface{}) error {
+	key := d.Observe
+	ok, isNode, packet := packetutils.MatchingKey(key, node)
 	if !ok {
 		return errors.New(fmt.Sprintf("not found mold in result. key:%#x", key))
 	}
 
-	return d.unmarshalPrimitive(packet, isNode, mold)
+	return d.unmarshalPacket(packet, isNode, mold)
 }
 
-// unmarshalPrimitive: Unmarshal packet to interface, for Primitive Node
-func (d BasicDecoder) unmarshalPrimitive(packet interface{}, isNode bool, mold *interface{}) error {
+func (d BasicDecoder) unmarshalPacket(packet interface{}, isNode bool, mold *interface{}) error {
 	if isNode == false {
 		primitivePacket := packet.(y3.PrimitivePacket)
 		return d.unmarshalPrimitivePacket(primitivePacket, mold)
 	}
 
-	//fmt.Printf("#78 reflect.TypeOf(*output).Kind()=%v\n", reflect.TypeOf(*output).Kind())
 	nodePacket := packet.(y3.NodePacket)
 	if nodePacket.IsArray() && len(nodePacket.PrimitivePackets) > 0 {
 		return d.unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
@@ -51,7 +72,7 @@ func (d BasicDecoder) unmarshalPrimitive(packet interface{}, isNode bool, mold *
 	return nil
 }
 
-// convertPrimitivePacketToMold convert PrimitivePacket to Mold
+// unmarshalPrimitivePacket convert PrimitivePacket to Mold
 func (d BasicDecoder) unmarshalPrimitivePacket(primitivePacket y3.PrimitivePacket, mold *interface{}) error {
 	switch reflect.TypeOf(*mold).Kind() {
 	case reflect.String:
@@ -98,12 +119,10 @@ func (d BasicDecoder) unmarshalPrimitivePacket(primitivePacket y3.PrimitivePacke
 		*mold = v
 	}
 
-	// TODO: unfinished: conv to custom struct
-
 	return nil
 }
 
-// convertPrimitivePacketArrayToMold convert []PrimitivePacket to Mold
+// unmarshalPrimitivePacketArray convert []PrimitivePacket to Mold
 func (d BasicDecoder) unmarshalPrimitivePacketArray(primitivePackets []y3.PrimitivePacket, mold *interface{}) error {
 	result := make([]interface{}, 0)
 	switch reflect.TypeOf(*mold).Kind() {

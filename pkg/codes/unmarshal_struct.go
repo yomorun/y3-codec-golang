@@ -12,22 +12,37 @@ import (
 
 // StructDecoder: for UnmarshalStruct
 type StructDecoder struct {
-	Observe string
+	Observe byte
 }
 
-func newStructDecoder(observe string) *StructDecoder {
+func newStructDecoder(observe byte) *StructDecoder {
 	return &StructDecoder{Observe: observe}
 }
 
-// Unmarshal: Unmarshal []byte to interface
 func (d StructDecoder) Unmarshal(data []byte, mold interface{}) error {
-	key := packetutils.KeyOf(d.Observe)
-	pct, _, err := y3.DecodeNodePacket(data)
+	nodePacket, _, err := y3.DecodeNodePacket(data)
+	if err != nil {
+		return err
+	}
+	return d.UnmarshalByNodePacket(nodePacket, mold)
+}
+
+func (d StructDecoder) UnmarshalNative(data []byte, mold interface{}) error {
+	nodePacket, _, err := y3.DecodeNodePacket(data)
 	if err != nil {
 		return err
 	}
 
-	ok, isNode, packet := packetutils.MatchingKey(key, pct)
+	err = packetstructure.Decode(nodePacket, mold)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d StructDecoder) UnmarshalByNodePacket(node *y3.NodePacket, mold interface{}) error {
+	key := d.Observe
+	ok, isNode, packet := packetutils.MatchingKey(key, node)
 	if !ok {
 		return errors.New(fmt.Sprintf("not found mold in result. key:%#x", key))
 	}

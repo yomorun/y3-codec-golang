@@ -48,11 +48,11 @@ func defaultEncoder(input interface{}) (*Encoder, error) {
 
 // Encode: shortcut of Encoder, return NodePacket
 func Encode(input interface{}) (*y3.NodePacket, error) {
-	return EncodeWith("", input)
+	return EncodeWith(packetutils.KeyOf(""), input)
 }
 
 // EncodeWith: shortcut of Encoder, with observe, return NodePacket
-func EncodeWith(observe string, input interface{}) (*y3.NodePacket, error) {
+func EncodeWith(observe byte, input interface{}) (*y3.NodePacket, error) {
 	encoder, err := defaultEncoder(input)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func EncodeWith(observe string, input interface{}) (*y3.NodePacket, error) {
 }
 
 // EncodeToBytesWith: shortcut of Encoder, return []byte
-func EncodeToBytesWith(observe string, input interface{}) ([]byte, error) {
+func EncodeToBytesWith(observe byte, input interface{}) ([]byte, error) {
 	encoder, err := defaultEncoder(input)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func EncodeToBytesWith(observe string, input interface{}) ([]byte, error) {
 }
 
 // Encode: public func for encode, return NodePacket
-func (e *Encoder) Encode(observe string, input interface{}) (*y3.NodePacket, error) {
+func (e *Encoder) Encode(observe byte, input interface{}) (*y3.NodePacket, error) {
 	buf, err := e.EncodeToBytes(observe, input)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (e *Encoder) Encode(observe string, input interface{}) (*y3.NodePacket, err
 }
 
 // EncodeToBytes: encode to bytes
-func (e *Encoder) EncodeToBytes(observe string, input interface{}) ([]byte, error) {
+func (e *Encoder) EncodeToBytes(observe byte, input interface{}) ([]byte, error) {
 	packetEncoder, err := e.encode(observe, input)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (e *Encoder) EncodeToBytes(observe string, input interface{}) ([]byte, erro
 }
 
 // encode: encode interface to NodePacketEncoder
-func (e *Encoder) encode(observe string, input interface{}) (*y3.NodePacketEncoder, error) {
+func (e *Encoder) encode(observe byte, input interface{}) (*y3.NodePacketEncoder, error) {
 	var inputVal reflect.Value
 
 	if input != nil {
@@ -120,20 +120,20 @@ func (e *Encoder) encode(observe string, input interface{}) (*y3.NodePacketEncod
 	inputKind := inputVal.Kind()
 	switch inputKind {
 	case reflect.Struct:
-		if observe == "" {
+		if packetutils.IsEmptyKey(observe) {
 			packetEncode = e.encodeStruct(reflect.ValueOf(input), nil)
 		} else {
 			root := y3.NewNodePacketEncoder(int(startingToken))
-			packetEncode = e.encodeStruct(reflect.ValueOf(input), y3.NewNodePacketEncoder(int(packetutils.KeyOf(observe))))
+			packetEncode = e.encodeStruct(reflect.ValueOf(input), y3.NewNodePacketEncoder(int(observe)))
 			root.AddNodePacket(packetEncode)
 			packetEncode = root
 		}
 	case reflect.Slice:
-		if observe == "" {
+		if packetutils.IsEmptyKey(observe) {
 			packetEncode = e.encodeSlice(reflect.ValueOf(input), nil)
 		} else {
 			root := y3.NewNodeArrayPacketEncoder(int(startingToken))
-			packetEncode = e.encodeSlice(reflect.ValueOf(input), y3.NewNodePacketEncoder(int(packetutils.KeyOf(observe))))
+			packetEncode = e.encodeSlice(reflect.ValueOf(input), y3.NewNodePacketEncoder(int(observe)))
 			root.AddNodePacket(packetEncode)
 			packetEncode = root
 		}
