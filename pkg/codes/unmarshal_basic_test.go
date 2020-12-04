@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
@@ -45,7 +47,7 @@ func runUnmarshalBasic(t *testing.T, proto ProtoCodec, data []byte, mold *interf
 
 func testUnmarshalBasicString(t *testing.T, data []byte, observe string, expected string) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = ""
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(string), msg)
@@ -53,7 +55,7 @@ func testUnmarshalBasicString(t *testing.T, data []byte, observe string, expecte
 
 func testUnmarshalBasicInt32(t *testing.T, data []byte, observe string, expected int32) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = int32(0)
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(int32), msg)
@@ -61,7 +63,7 @@ func testUnmarshalBasicInt32(t *testing.T, data []byte, observe string, expected
 
 func testUnmarshalBasicUint32(t *testing.T, data []byte, observe string, expected uint32) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = uint32(0)
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(uint32), msg)
@@ -69,7 +71,7 @@ func testUnmarshalBasicUint32(t *testing.T, data []byte, observe string, expecte
 
 func testUnmarshalBasicInt64(t *testing.T, data []byte, observe string, expected int64) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = int64(0)
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(int64), msg)
@@ -77,7 +79,7 @@ func testUnmarshalBasicInt64(t *testing.T, data []byte, observe string, expected
 
 func testUnmarshalBasicUint64(t *testing.T, data []byte, observe string, expected uint64) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = uint64(0)
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(uint64), msg)
@@ -85,7 +87,7 @@ func testUnmarshalBasicUint64(t *testing.T, data []byte, observe string, expecte
 
 func testUnmarshalBasicFloat32(t *testing.T, data []byte, observe string, expected float32) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = float32(0)
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(float32), msg)
@@ -93,7 +95,7 @@ func testUnmarshalBasicFloat32(t *testing.T, data []byte, observe string, expect
 
 func testUnmarshalBasicFloat64(t *testing.T, data []byte, observe string, expected float64) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = float64(0)
 	runUnmarshalBasic(t, proto, data, &mold)
 	assert.Equal(t, expected, mold.(float64), msg)
@@ -101,7 +103,7 @@ func testUnmarshalBasicFloat64(t *testing.T, data []byte, observe string, expect
 
 func testUnmarshalBasicStringArray(t *testing.T, data []byte, observe string, expected []string) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]string{}
 	runUnmarshalBasic(t, proto, data, &mold)
 
@@ -115,7 +117,7 @@ func testUnmarshalBasicStringArray(t *testing.T, data []byte, observe string, ex
 
 func testUnmarshalBasicInt32Array(t *testing.T, data []byte, observe string, expected []int32) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]int32{}
 	runUnmarshalBasic(t, proto, data, &mold)
 
@@ -129,7 +131,7 @@ func testUnmarshalBasicInt32Array(t *testing.T, data []byte, observe string, exp
 
 func testUnmarshalBasicUint32Array(t *testing.T, data []byte, observe string, expected []uint32) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]uint32{}
 	runUnmarshalBasic(t, proto, data, &mold)
 
@@ -143,7 +145,7 @@ func testUnmarshalBasicUint32Array(t *testing.T, data []byte, observe string, ex
 
 func testUnmarshalBasicInt64Array(t *testing.T, data []byte, observe string, expected []int64) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]int64{}
 	runUnmarshalBasic(t, proto, data, &mold)
 
@@ -157,7 +159,7 @@ func testUnmarshalBasicInt64Array(t *testing.T, data []byte, observe string, exp
 
 func testUnmarshalBasicUint64Array(t *testing.T, data []byte, observe string, expected []uint64) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]uint64{}
 	runUnmarshalBasic(t, proto, data, &mold)
 
@@ -171,7 +173,7 @@ func testUnmarshalBasicUint64Array(t *testing.T, data []byte, observe string, ex
 
 func testUnmarshalBasicFloat32Array(t *testing.T, data []byte, observe string, expected []float32) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]float32{}
 	runUnmarshalBasic(t, proto, data, &mold)
 
@@ -185,7 +187,7 @@ func testUnmarshalBasicFloat32Array(t *testing.T, data []byte, observe string, e
 
 func testUnmarshalBasicFloat64Array(t *testing.T, data []byte, observe string, expected []float64) {
 	var msg = fmt.Sprintf("testing %s,  %v, (%X)", observe, expected, data)
-	proto := NewProtoCodec(observe)
+	proto := NewProtoCodec(packetutils.KeyOf(observe))
 	var mold interface{} = [0]float64{}
 	runUnmarshalBasic(t, proto, data, &mold)
 

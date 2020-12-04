@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,14 +30,14 @@ func TestMarshal(t *testing.T) {
 
 func testMarshalPrimitiveType(t *testing.T, expected []byte, T interface{}) {
 	var msg = fmt.Sprintf("testing %v, (%v)", expected, T)
-	proto := NewProtoCodec("")
+	proto := NewProtoCodec(packetutils.KeyOf(""))
 	buf, _ := proto.Marshal(T)
 	assert.True(t, bytes.Equal(expected, buf), msg)
 }
 
 func testMarshalPrimitiveTypeArray(t *testing.T, expected []byte, T ...interface{}) {
 	var msg = fmt.Sprintf("testing %v, (%v)", expected, T)
-	proto := NewProtoCodec("")
+	proto := NewProtoCodec(packetutils.KeyOf(""))
 	buf, _ := proto.Marshal(T)
 	assert.True(t, bytes.Equal(expected, buf), msg)
 }

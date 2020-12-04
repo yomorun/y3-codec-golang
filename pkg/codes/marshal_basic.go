@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
-
 	y3 "github.com/yomorun/yomo-codec-golang"
 	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
@@ -14,7 +12,7 @@ import (
 )
 
 // marshalPrimitive: marshal primitive to []byte
-func marshalPrimitive(observe string, input interface{}) (buf []byte, err error) {
+func marshalPrimitive(observe byte, input interface{}) (buf []byte, err error) {
 	switch reflect.ValueOf(input).Kind() {
 	case reflect.String:
 		buf, err = marshalString(input)
@@ -119,9 +117,8 @@ func marshalFloat64(input interface{}) (buf []byte, err error) {
 }
 
 // marshalStringSlice: marshal string slice to []byte
-func marshalStringSlice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalStringSlice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToStringSliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
@@ -133,9 +130,8 @@ func marshalStringSlice(observe string, input interface{}) []byte {
 }
 
 // marshalInt32Slice: marshal int32 slice to []byte
-func marshalInt32Slice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalInt32Slice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToInt64SliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
@@ -147,9 +143,8 @@ func marshalInt32Slice(observe string, input interface{}) []byte {
 }
 
 // marshalUint32Slice: marshal uint32 slice to []byte
-func marshalUint32Slice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalUint32Slice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUInt64SliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
@@ -161,9 +156,8 @@ func marshalUint32Slice(observe string, input interface{}) []byte {
 }
 
 // marshalInt64Slice: marshal int64 slice to []byte
-func marshalInt64Slice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalInt64Slice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToInt64SliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
@@ -175,9 +169,8 @@ func marshalInt64Slice(observe string, input interface{}) []byte {
 }
 
 // marshalUint64Slice: marshal uint64 slice to []byte
-func marshalUint64Slice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalUint64Slice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUInt64SliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
@@ -189,9 +182,8 @@ func marshalUint64Slice(observe string, input interface{}) []byte {
 }
 
 // marshalFloat32Slice: marshal float32 slice to []byte
-func marshalFloat32Slice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalFloat32Slice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUFloat64SliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
@@ -203,9 +195,8 @@ func marshalFloat32Slice(observe string, input interface{}) []byte {
 }
 
 // marshalFloat64Slice: marshal float64 slice to []byte
-func marshalFloat64Slice(observe string, input interface{}) []byte {
-	key := packetutils.KeyOf(observe)
-	var node = y3.NewNodeArrayPacketEncoder(int(key))
+func marshalFloat64Slice(observe byte, input interface{}) []byte {
+	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUFloat64SliceArray(input); ok {
 		for _, v := range out {
 			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)

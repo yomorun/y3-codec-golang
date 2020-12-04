@@ -2,6 +2,8 @@ package codes
 
 import (
 	"testing"
+
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 )
 
 type ThermometerTest struct {
@@ -27,10 +29,10 @@ func TestUnmarshalStructThermometerSlice(t *testing.T) {
 		},
 	}
 
-	proto1 := NewProtoCodec("0x20")
+	proto1 := NewProtoCodec(packetutils.KeyOf("0x20"))
 	inputBuf, _ := proto1.Marshal(input)
 
-	proto2 := NewProtoCodec("0x20")
+	proto2 := NewProtoCodec(packetutils.KeyOf("0x20"))
 	var mold []ThermometerTest
 	runUnmarshalStruct(t, proto2, inputBuf, &mold)
 
@@ -51,7 +53,7 @@ func TestUnmarshalStructThermometer(t *testing.T) {
 		Stored:      true,
 	}
 
-	proto1 := NewProtoCodec("0x20")
+	proto1 := NewProtoCodec(packetutils.KeyOf("0x20"))
 	inputBuf, _ := proto1.Marshal(input)
 
 	//debug:
@@ -61,7 +63,7 @@ func TestUnmarshalStructThermometer(t *testing.T) {
 	//packetutils.PrintNodePacket(res)
 	//fmt.Println()
 
-	proto2 := NewProtoCodec("0x20")
+	proto2 := NewProtoCodec(packetutils.KeyOf("0x20"))
 	var mold = ThermometerTest{}
 	runUnmarshalStruct(t, proto2, inputBuf, &mold)
 	testThermometerStruct(t, mold, input)

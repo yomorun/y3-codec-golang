@@ -3,6 +3,8 @@ package codes
 import (
 	"fmt"
 	"testing"
+
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 )
 
 func TestReadThermometer(t *testing.T) {
@@ -40,7 +42,7 @@ func buildThermometerInputData() []byte {
 		Stored:      true,
 	}
 
-	proto := NewProtoCodec("0x20")
+	proto := NewProtoCodec(packetutils.KeyOf("0x20"))
 	inputBuf, _ := proto.Marshal(input)
 
 	return inputBuf
@@ -118,7 +120,7 @@ func buildThermometerSliceInputData() []byte {
 		},
 	}
 
-	proto := NewProtoCodec("0x20")
+	proto := NewProtoCodec(packetutils.KeyOf("0x20"))
 	inputBuf, _ := proto.Marshal(input)
 
 	return inputBuf
