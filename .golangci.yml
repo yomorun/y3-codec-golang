@@ -39,7 +39,7 @@ run:
 
 # output configuration options
 output:
-  # colored-line-number|line-number|json|tab|checkstyle|code-climate, default is "colored-line-number"
+  # colored-line-number|line-number|complex_data|tab|checkstyle|code-climate, default is "colored-line-number"
   format: colored-line-number
 
   # print lines of code with issue, default is true

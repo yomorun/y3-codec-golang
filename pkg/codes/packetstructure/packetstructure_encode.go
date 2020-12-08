@@ -26,7 +26,6 @@ type EncoderConfig struct {
 // NewEncoder: create a Encoder
 func NewEncoder(config *EncoderConfig) (*Encoder, error) {
 	if config.TagName == "" {
-		config.ZeroFields = true
 		config.TagName = "yomo"
 	}
 
@@ -40,7 +39,8 @@ func NewEncoder(config *EncoderConfig) (*Encoder, error) {
 // defaultEncoder: create a default Encoder
 func defaultEncoder(input interface{}) (*Encoder, error) {
 	config := &EncoderConfig{
-		Mold: input,
+		ZeroFields: true,
+		Mold:       input,
 	}
 
 	return NewEncoder(config)
@@ -125,7 +125,9 @@ func (e *Encoder) encode(observe byte, input interface{}) (*y3.NodePacketEncoder
 		} else {
 			root := y3.NewNodePacketEncoder(int(startingToken))
 			packetEncode = e.encodeStruct(reflect.ValueOf(input), y3.NewNodePacketEncoder(int(observe)))
-			root.AddNodePacket(packetEncode)
+			if !packetEncode.IsEmpty() {
+				root.AddNodePacket(packetEncode)
+			}
 			packetEncode = root
 		}
 	case reflect.Slice:
@@ -134,7 +136,9 @@ func (e *Encoder) encode(observe byte, input interface{}) (*y3.NodePacketEncoder
 		} else {
 			root := y3.NewNodeArrayPacketEncoder(int(startingToken))
 			packetEncode = e.encodeSlice(reflect.ValueOf(input), y3.NewNodePacketEncoder(int(observe)))
-			root.AddNodePacket(packetEncode)
+			if !packetEncode.IsEmpty() {
+				root.AddNodePacket(packetEncode)
+			}
 			packetEncode = root
 		}
 
@@ -159,7 +163,9 @@ func (e *Encoder) encodeSlice(sliceVal reflect.Value, root *y3.NodePacketEncoder
 		case reflect.Struct:
 			currentValue := sliceVal.Index(i)
 			p := e.encodeStruct(currentValue, y3.NewNodePacketEncoder(utils.KeyOfArrayItem))
-			root.AddNodePacket(p)
+			if !p.IsEmpty() {
+				root.AddNodePacket(p)
+			}
 		default:
 			panic(fmt.Errorf("root slice unsupported type: %s", elemType.Kind()))
 		}
@@ -201,7 +207,9 @@ func (e *Encoder) encodeStructFromField(fieldType reflect.Type, fieldName string
 			thisFieldValue := fieldValue.Field(i)
 			e.encodeStructFromField(thisFieldValue.Type(), thisFieldName, thisFieldValue, leafNode)
 		}
-		en.AddNodePacket(leafNode)
+		if !leafNode.IsEmpty() {
+			en.AddNodePacket(leafNode)
+		}
 		return
 	}
 
