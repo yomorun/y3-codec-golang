@@ -91,7 +91,7 @@ func (d *streamingCodec) Decoder(buf []byte) {
 		curBuf                = make([]byte, 0)
 	)
 
-	//fmt.Printf("@110 buf=%v\n", packetutils.FormatBytes(buf))
+	//fmt.Printf("@110 key=%#x buf=%v\n", key, packetutils.FormatBytes(buf))
 	for _, c := range buf {
 		// tag
 		if tag == nil && (d.stick == stickyInit || d.stick == stickyTag || d.stick == stickyTagLength) {
@@ -262,6 +262,7 @@ func (d *streamingCodec) reset() {
 
 // Read: read and unmarshal data to mold
 func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
+	//fmt.Printf("#300 Read Matching-len=%v, Result-len=%v\n", len(d.Matching), len(d.Result))
 	if len(d.Result) == 0 || len(d.Matching) == 0 {
 		return nil, nil
 	}

@@ -2,7 +2,10 @@ package codes
 
 import (
 	"fmt"
+	"io"
 	"testing"
+
+	"github.com/yomorun/yomo-codec-golang/internal/utils"
 
 	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 )
@@ -124,4 +127,86 @@ func buildThermometerSliceInputData() []byte {
 	inputBuf, _ := proto.Marshal(input)
 
 	return inputBuf
+}
+
+func TestComplexData(t *testing.T) {
+	inputBuf := utils.DefaultTestedComplexData()
+
+	// Decoder
+	codec := NewCodec("0x12")
+	codec.Decoder(inputBuf)
+
+	// Read
+	var mold = &utils.TestedResponseData{}
+	val, err := codec.Read(mold)
+	if err != nil {
+		t.Errorf("Read error: %v", err)
+	}
+
+	if val == nil {
+		t.Errorf("Read val is nil")
+	}
+
+	responseData := val.(*utils.TestedResponseData)
+	if responseData.DateTime != "2017-09-11 10:52:27.811321" {
+		t.Errorf("DateTime is unequal. DateTime=%v\n", responseData.DateTime)
+	}
+
+	searchData := responseData.SearchData
+	if len(searchData) != 4 {
+		t.Errorf("SearchData len is unequal. len(searchData)=%v\n", len(searchData))
+	}
+
+	lastContent := searchData[len(searchData)-1].Content
+	lastUser := lastContent[len(lastContent)-1].User
+	if lastUser.Id != 2384288641 {
+		t.Errorf("lastUser Id is unequal. Id=%v\n", lastUser.Id)
+	}
+
+	experience := lastUser.Experience
+	if experience.LevelInfo.Value != 1 {
+		t.Errorf("experience LevelInfo Value is unequal. Value=%v\n", experience.LevelInfo.Value)
+	}
+
+	// process
+	result, _ := process(responseData)
+
+	// Write
+	_, err = codec.Write(&complexDataWriter{}, result, mold)
+	if err != nil {
+		t.Errorf("Write error:%v", err)
+	}
+}
+
+func process(value interface{}) (v interface{}, e error) {
+	data := value.(*utils.TestedResponseData)
+	content := data.SearchData[len(data.SearchData)-1].Content
+	content[len(content)-1].User.Experience.LevelInfo.Name = "info"
+	return *data, nil
+}
+
+type complexDataWriter struct{ io.Writer }
+
+func (w *complexDataWriter) Write(buf []byte) (int, error) {
+	// Decoder
+	codec := NewCodec("0x12")
+	codec.Decoder(buf)
+	// Read
+	var mold = &utils.TestedResponseData{}
+	val, err := codec.Read(mold)
+	if err != nil {
+		panic(fmt.Errorf("read error: %v", err))
+	}
+	if val == nil {
+		panic(fmt.Errorf("read val is nil"))
+	}
+
+	data := val.(*utils.TestedResponseData)
+	content := data.SearchData[len(data.SearchData)-1].Content
+	name := content[len(content)-1].User.Experience.LevelInfo.Name
+	if name != "info" {
+		panic(fmt.Errorf("User.Experience.LevelInfo.Name is unequal. name=%v\n", name))
+	}
+
+	return 0, nil
 }
