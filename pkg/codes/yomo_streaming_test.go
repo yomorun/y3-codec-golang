@@ -1,7 +1,6 @@
 package codes
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
@@ -40,7 +39,8 @@ func TestCodecReadBasic(t *testing.T) {
 	if err != nil {
 		t.Errorf("Read error: %v", err)
 	}
-	fmt.Printf("val=%v\n", val)
+	_ = val
+	//fmt.Printf("val=%v\n", val)
 
 }
 
@@ -71,7 +71,7 @@ func TestCodecReadThermometer(t *testing.T) {
 }
 
 func TestCodecReadThermometerMax(t *testing.T) {
-	inputBuf := buildPersonMaxData("")
+	inputBuf := NewCodecBenchmarkData().DefaultPersonMaxData()
 	codec := NewStreamingCodec(packetutils.KeyOf("0x23"))
 	codec.Decoder(inputBuf)
 
