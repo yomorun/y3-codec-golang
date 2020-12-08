@@ -85,6 +85,7 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
   }
   ```
   
+
 在YoMo中如何使用该YomoCodec接口？将会在例子一节中描述其伪代码。
 
 
@@ -350,6 +351,43 @@ func main() {
 
 More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 
+## 性能
+
+### 1. 测试说明
+
+#### 测试类型：
+
+分别对基础类型与结构体在少量KEY和大量KEY的场景进行Benchmark测试：
+
+* Basic：从2对KV中获取第一个Key的值
+* BasicMax：从48对KV中获取第20个KEY中的值
+* Person：从1对KV中获取结构体的值
+* PersonMax：从46对KV中获取第20个KEY中的结构体的值
+
+#### 被测试接口：
+
+* YomoCodec.Decoder
+* YomoCodec.Read
+
+#### 测试源代码：
+
+* Y3: [Y3 Benchmark](https://github.com/yomorun/yomo-codec-golang/blob/master/pkg/codes/yomo_benchmark_test.go)
+* JSON: [JSON Benchmark](https://github.com/10cella/yomo-json-codec/blob/master/codec_benchmark_test.go)
+
+### 2. 性能比较
+
+与[yomo-json-codec](https://github.com/10cella/yomo-json-codec)中的JSON实现进行性能对比。
+
+#### 速度比较：
+
+![report1.jpg](./docs/report1.jpg)
+
+#### 增长率比较：
+
+![report2.jpg](./docs/report2.jpg)
+
+
+
 ## 路线图
 
 - [x] v0.1.0 - [SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述的实现
@@ -368,7 +406,7 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 - [x] v0.4.0 - 支持[yomo-thermometer-plugin](https://github.com/10cella/yomo-thermometer-plugin)插件
   - [x] 支持[]Thermometer{}的Mold形式
   - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang)
-- [ ] v0.5.0 - 性能压测及优化重构
+- [x] v0.5.0 - 性能压测及优化重构
 - [ ] v0.6.0 - 支持UUID及Map类型
   - [ ] encoding
   - [ ] PrimitivePacket
