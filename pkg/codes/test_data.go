@@ -7,13 +7,13 @@ func NewCodecBenchmarkData() *CodecBenchmarkData {
 	return &CodecBenchmarkData{}
 }
 
-func (d *CodecBenchmarkData) DefaultPersonData() []byte {
+func (d *CodecBenchmarkData) BuildPersonData(observe byte) []byte {
 	input := Person{
 		Name: "zhang san",
 		Age:  25,
 	}
 
-	proto := NewProtoCodec(byte(0))
+	proto := NewProtoCodec(observe)
 	inputBuf, _ := proto.Marshal(input)
 
 	return inputBuf

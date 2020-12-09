@@ -3,6 +3,8 @@ package codes
 import (
 	"fmt"
 	"testing"
+
+	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
 )
 
 func BenchmarkBasicMax(b *testing.B) {
@@ -39,7 +41,7 @@ func BenchmarkBasic(b *testing.B) {
 
 func BenchmarkPerson(b *testing.B) {
 	observe := "0x20"
-	inputBuf := NewCodecBenchmarkData().DefaultPersonData()
+	inputBuf := NewCodecBenchmarkData().BuildPersonData(packetutils.KeyOf(observe))
 	codec := NewCodec(observe)
 	//codec.Decoder(inputBuf)
 	//v, e := codec.Read(&Person{})

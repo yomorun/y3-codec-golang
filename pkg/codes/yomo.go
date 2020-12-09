@@ -16,7 +16,7 @@ var (
 // YomoCodec: codec interface for yomo
 type YomoCodec interface {
 	Decoder(buf []byte)
-	Read(mold interface{}) (interface{}, error) // TODO: 考虑掉返回interface{}
+	Read(mold interface{}) (interface{}, error)
 	Write(w io.Writer, T interface{}, mold interface{}) (int, error)
 	Refresh(w io.Writer) (int, error)
 }
