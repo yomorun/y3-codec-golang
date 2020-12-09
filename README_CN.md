@@ -36,36 +36,44 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
 ### codes
 
-在spec的基础上提供面向应用的扩展能力，分为原始proto和YoMo两层扩展，以便更加弹性的支持不同类型的框架集成。
+在spec的基础上提供面向应用的扩展能力，分为原始Proto和YoMo两层扩展，以便更加弹性的支持不同类型的框架集成。
 
-* protoCodec：实现了序列化和反序列化的接口方法，支持基础数据类型及其数组、结构体类型；为以此为基础构建特定框架适配的编解码接口工具提供必要的封装和能力，不需重复开发。
+* ProtoCodec：实现了序列化和反序列化的接口方法，支持基础数据类型及其数组、结构体类型；为以此为基础构建特定框架适配的编解码接口工具提供必要的封装和能力，不需重复开发。
 
   ```go 
   type ProtoCodec interface {
   	// Marshal: Marshal interface to []byte
   	Marshal(input interface{}) ([]byte, error)
   	// MarshalNoWrapper: Marshal interface to []byte, but no Outside Nodes
-  	MarshalNoWrapper(input interface{}) ([]byte, error)
-	// UnmarshalStruct: Unmarshal struct to interface
+  	MarshalNative(input interface{}) ([]byte, error)
+		// UnmarshalStruct: Unmarshal struct to interface
   	UnmarshalStruct(data []byte, mold interface{}) error
-	// UnmarshalBasic: Unmarshal basic type to interface
+	  // UnmarshalStructNative: Unmarshal struct to interface by native data, No Outside Nodes
+    UnmarshalStructNative(data []byte, mold interface{}) error
+		// UnmarshalBasic: Unmarshal basic type to interface
   	UnmarshalBasic(data []byte, mold *interface{}) error
-	// IsStruct: mold is Struct?
+  // UnmarshalBasicNative: Unmarshal basic type to interface by native data, No Outside Nodes
+    UnmarshalBasicNative(data []byte, mold *interface{}) error
+  	// IsStruct: mold is Struct?
   	IsStruct(mold interface{}) bool
-}
+  }
   ```
   
   * Marshal：提供序列化能力
   
-  * Marshal：提供序列化能力，但不填充额外的包装节点
+  * MarshalNative：提供序列化能力，但不填充额外的包装节点
   
   * UnmarshalStruct：提供struct的反序化能力
   
+  * UnmarshalStructNative：提供struct的反序化能力，但没有包装节点
+  
   * UnmarshalBasic：提供基础类型的反序化能力
+  
+  * UnmarshalBasicNative：提供基础类型的反序化能力，但没有包装节点
   
   * IsStruct: 判断当前对象是否为可被解析的struct，可以调用UnmarshalStruct
   
-  * packetstructure：为ProtoCodec接口提供对结构体的编解码能力，并在定义struct时通过"yomo"标签描述其编解码的行为(key)：
+  * packetstructure包：为ProtoCodec接口提供对结构体的编解码能力，并在定义struct时通过"yomo"标签描述其编解码的行为(key)：
   
     ```go 
     type Example struct {
@@ -74,7 +82,7 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
     }
     ```
   
-* YomoCodec：在protoCodec的基础上封装了对[YoMo](https://github.com/yomorun/yomo)框架的支持接口，该接口特定于框架的特定需求(如合并模式: *解析--监听--存储--读取--处理--合并--写入*)，针对于其它框架或者[YoMo](https://github.com/yomorun/yomo)框架不同版本的需要，则可以自定义开发不同的支持接口，以满足实际应用的需求。
+* YomoCodec：在ProtoCodec的基础上封装了对[YoMo](https://github.com/yomorun/yomo)框架的支持接口，该接口特定于框架的特定需求(如合并模式: *解析--监听--存储--读取--处理--合并--写入*)，针对于其它框架或者[YoMo](https://github.com/yomorun/yomo)框架不同版本的需要，则可以自定义开发不同的支持接口，以满足实际应用的需求。
 
   ```go 
   type YomoCodec interface {
@@ -111,11 +119,11 @@ for {
 }
 ```
 
-随着[YoMo](https://github.com/yomorun/yomo)框架对消息处理的变更，例如不需要在处理被监听的数据后与原数据进行合并了，这时需要对YomoCodec接口进行升级来为新的需求进行适配，但此时使用的protoCodec接口一般来说是不需要变动，可以继续使用，从而提高了扩展开发的便利性。
+随着[YoMo](https://github.com/yomorun/yomo)框架对消息处理的变更，例如不需要在处理被监听的数据后与原数据进行合并了，这时需要对YomoCodec接口进行升级来为新的需求进行适配，但此时使用的ProtoCodec接口一般来说是不需要变动，可以继续使用，从而提高了扩展开发的便利性。
 
-### 2.protoCodec的例子
+### 2.ProtoCodec的例子
 
-protoCodec为面向应用提供了最基础的序列化和反序列化能力，是构建面向应用的更高级接口的基础，当我们需要构建满足自已需求的接口时可以使用protoCodec接口来做。
+ProtoCodec为面向应用提供了最基础的序列化和反序列化能力，是构建面向应用的更高级接口的基础，当我们需要构建满足自已需求的接口时可以使用protoCodec接口来做。
 
 #### Marshal examples 1: 基础类型
 
@@ -131,13 +139,13 @@ import (
 func main() {
 	// "y-new" serialize to `0x79, 0x2d, 0x6e, 0x65, 0x77`
 	str := "y-new"
-	proto := codes.NewProtoCodec("")
+	proto := codes.NewProtoCodec(byte(0))
 	buf, _ := proto.Marshal(str)
 	fmt.Printf("buf=%#x\n", buf)
 }
 ```
 
-More examples in `/pkg/codes/marshal_test.go`
+More examples in `/pkg/codes/marshal_basic_test.go`
 
 #### Marshal examples 2: 结构体
 
@@ -152,7 +160,7 @@ import (
 
 func main() {
 	example := Example{Id: 1, Name: "y"}
-	proto := codes.NewProtoCodec("")
+	proto := codes.NewProtoCodec(0x30)
 	buf, _ := proto.Marshal(example)
 	fmt.Printf("buf=%#x\n", buf)
 }
@@ -179,7 +187,7 @@ func main() {
 	// `0x01, 0x03, 0x23, 0x1, 0x79` deserialize to "y"
   // observe key 0x23
 	data := []byte{0x01, 0x03, 0x23, 0x1, 0x79}
-	proto := codes.NewProtoCodec("0x23")
+	proto := codes.NewProtoCodec(0x23)
 	var mold interface{} = ""
 	_ = proto.UnmarshalBasic(data, &mold)
 	fmt.Printf("mold is %v, value=%v\n", reflect.TypeOf(mold).Kind(), mold)
@@ -202,7 +210,7 @@ import (
 
 func main() {
 	data := []byte{0x81, 0x8, 0xb0, 0x6, 0x22, 0x1, 0x1, 0x23, 0x1, 0x79}
-	proto := codes.NewProtoCodec("0x30")
+	proto := codes.NewProtoCodec(0x30)
 	var mold = Example{}
 	_ = proto.UnmarshalStruct(data, &mold)
 	fmt.Printf("%v\n", mold)
@@ -364,7 +372,7 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 * Person：从1对KV中获取结构体的值
 * PersonMax：从46对KV中获取第20个KEY中的结构体的值
 
-#### 被测试接口：
+#### 被测试接口(联合)：
 
 * YomoCodec.Decoder
 * YomoCodec.Read
