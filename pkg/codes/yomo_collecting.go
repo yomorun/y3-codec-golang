@@ -11,7 +11,6 @@ import (
 
 // collectingCodec: Implementation of the YomoCodec Interface
 type collectingCodec struct {
-	//Value []byte
 	Value *y3.NodePacket
 
 	Tag *ycodec.Tag
@@ -20,42 +19,34 @@ type collectingCodec struct {
 	Length    int32
 	Size      int32
 
-	//Observe string
 	Observe byte
 	Sbuf    []byte
 
-	//Result       [][]byte
 	Result       []*y3.NodePacket
 	OriginResult [][]byte
 
-	//ProtoCodec
 	proto ProtoCodec
 }
 
 func NewCollectingCodec(observe string) YomoCodec {
 	ob := packetutils.KeyOf(observe)
 	codec := &collectingCodec{
-		//Value:     make([]byte, 0),
-		Value:     nil,
-		Tag:       nil,
-		LengthBuf: make([]byte, 0),
-		Length:    0,
-		Size:      0,
-		Sbuf:      make([]byte, 0),
-		Observe:   ob,
-		//Result:       make([][]byte, 0),
+		Value:        nil,
+		Tag:          nil,
+		LengthBuf:    make([]byte, 0),
+		Length:       0,
+		Size:         0,
+		Sbuf:         make([]byte, 0),
+		Observe:      ob,
 		Result:       make([]*y3.NodePacket, 0),
 		OriginResult: make([][]byte, 0),
-		//ProtoCodec
-		proto: NewProtoCodec(ob),
+		proto:        NewProtoCodec(ob),
 	}
 
 	return codec
 }
 
-// #2 [优化] 跳key优化
 func (codec *collectingCodec) Decoder(buf []byte) {
-	//key := packetutils.KeyOf(codec.Observe)
 	key := codec.Observe
 	for _, c := range buf {
 		// tag
@@ -80,9 +71,7 @@ func (codec *collectingCodec) Decoder(buf []byte) {
 
 		codec.Sbuf = append(codec.Sbuf, c)
 
-		// buf end, then handle Sbuf
 		if int32(len(codec.Sbuf)) == 1+codec.Size+codec.Length {
-			// Decode Packet from Sbuf
 			packet, _, err := y3.DecodeNodePacket(codec.Sbuf)
 			if err != nil {
 				logger.Errorf("::Decoder DecodeNodePacket error:%v", err)
@@ -90,8 +79,6 @@ func (codec *collectingCodec) Decoder(buf []byte) {
 				continue
 			}
 
-			// temp save Sbuf and reset
-			//result := make([]byte, 0)
 			var result *y3.NodePacket
 			originResult := codec.Sbuf
 			codec.reset()
@@ -99,14 +86,11 @@ func (codec *collectingCodec) Decoder(buf []byte) {
 			//matching
 			var matching = false
 			flag, _, _ := packetutils.MatchingKey(key, packet)
-			//if flag || []byte("*")[0] == key {
 			if flag {
 				matching = true
-				//result = originResult
 				result = packet
 			}
 
-			// save to result
 			if matching {
 				codec.Result = append(codec.Result, result)
 				codec.OriginResult = append(codec.OriginResult, placeholder)
@@ -144,16 +128,13 @@ func (codec *collectingCodec) Read(mold interface{}) (interface{}, error) {
 	result := codec.Result[0]
 	codec.Result = codec.Result[1:]
 
-	//proto := NewProtoCodec(codec.Observe)
 	proto := codec.proto
 	if proto.IsStruct(mold) {
-		//err := proto.UnmarshalStruct(result, mold)
 		err := proto.UnmarshalStructByNodePacket(result, mold)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		//err := proto.UnmarshalBasic(result, &mold)
 		err := proto.UnmarshalBasicByNodePacket(result, &mold)
 		if err != nil {
 			return nil, err
@@ -168,11 +149,6 @@ func (codec *collectingCodec) Read(mold interface{}) (interface{}, error) {
 
 // Write: write interface to stream
 func (codec *collectingCodec) Write(w io.Writer, T interface{}, mold interface{}) (int, error) {
-	// #1. mold --> NodePacket
-	// #2. merge NodePacket --> codec.Value NodePacket
-	// #3. NodePacket --> []byte
-	// #4. Write []byte
-	//proto := NewProtoCodec(codec.Observe)
 	proto := codec.proto
 	buf, err := proto.MarshalNative(T)
 	if err != nil {
@@ -195,17 +171,14 @@ func (codec *collectingCodec) Encoder(buf []byte, mold interface{}) ([]byte, err
 	for _, data := range codec.OriginResult {
 		index = index + 1
 		if codec.isDecoder(data) {
-			//source, _, _ := y3.DecodeNodePacket(codec.Value)
 			source := codec.Value
 
-			//key := packetutils.KeyOf(codec.Observe)
 			key := codec.Observe
 			_buf, err := codec.mergePacket(source, key, buf, mold)
 			if err != nil {
 				return nil, err
 			}
 
-			//codec.Value = make([]byte, 0)
 			codec.Value = nil
 			result = append(result, _buf...)
 			break

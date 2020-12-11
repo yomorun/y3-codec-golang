@@ -36,3 +36,7 @@ func NewTag(b byte) *Tag {
 func (t *Tag) IsArray() bool {
 	return t.raw&utils.ArrayFlag == utils.ArrayFlag
 }
+
+func (t *Tag) Raw() byte {
+	return t.raw
+}

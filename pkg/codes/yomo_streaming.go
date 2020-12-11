@@ -10,48 +10,48 @@ import (
 )
 
 type streamingCodec struct {
-	//Packet *y3.NodePacket
 	Value []byte
 
 	Length int32
 	Size   int32
 
-	Observe byte
-	Sbuf    []byte
-	Status  decoderStatus
+	Observe   byte
+	SourceBuf []byte
+	Status    decoderStatus
 
 	Matching     [][]byte
 	Result       [][]byte
 	OriginResult [][]byte
 
-	stick           stickyStatus
-	stickyTag       *ycodec.Tag
-	stickySize      int32
-	stickyLength    int32
-	stickyLengthBuf []byte
-	stickyTabByte   byte
+	CollectedStatus    collectedStatus
+	CollectedTag       *ycodec.Tag
+	CollectedSize      int32
+	CollectedLength    int32
+	CollectedLengthBuf []byte
+	CollectedBuffer    []byte
+	CollectedResult    [][]byte
 
 	proto ProtoCodec
 }
 
 func NewStreamingCodec(observe byte) YomoCodec {
 	codec := &streamingCodec{
-		//Packet: nil,
 		Value: make([]byte, 0),
 
 		Observe:      observe,
-		Sbuf:         make([]byte, 0),
+		SourceBuf:    make([]byte, 0),
 		Status:       decoderInit,
 		Matching:     make([][]byte, 0),
 		Result:       make([][]byte, 0),
 		OriginResult: make([][]byte, 0),
 
-		stick:           stickyInit,
-		stickyTag:       nil,
-		stickySize:      0,
-		stickyLength:    0,
-		stickyLengthBuf: make([]byte, 0),
-		stickyTabByte:   byte(0),
+		CollectedStatus:    collectedInit,
+		CollectedTag:       nil,
+		CollectedSize:      0,
+		CollectedLength:    0,
+		CollectedLengthBuf: make([]byte, 0),
+		CollectedBuffer:    make([]byte, 0),
+		CollectedResult:    make([][]byte, 0),
 
 		proto: NewProtoCodec(observe),
 	}
@@ -69,18 +69,84 @@ const (
 	decoderFinished decoderStatus = 5
 )
 
-type stickyStatus uint8
+type collectedStatus uint8
 
 const (
-	stickyInit      stickyStatus = 0
-	stickyTag       stickyStatus = 1
-	stickyLength    stickyStatus = 2
-	stickyTagLength stickyStatus = 3
-	stickyValue     stickyStatus = 4
+	collectedInit     collectedStatus = 0
+	collectedTag      collectedStatus = 1
+	collectedLength   collectedStatus = 2
+	collectedBody     collectedStatus = 3
+	collectedCaching  collectedStatus = 4
+	collectedFinished collectedStatus = 5
 )
 
 // Decoder: Collects bytes from buf and decodes them
 func (d *streamingCodec) Decoder(buf []byte) {
+
+	for _, c := range buf {
+		// tag
+		if d.CollectedStatus == collectedInit && d.CollectedTag == nil {
+			d.CollectedTag = ycodec.NewTag(c)
+			d.CollectedStatus = collectedTag
+			continue
+		}
+
+		// length
+		if d.CollectedStatus == collectedTag || d.CollectedStatus == collectedLength {
+			d.CollectedLengthBuf = append(d.CollectedLengthBuf, c)
+			l, s, err := d.decodeLength(d.CollectedLengthBuf)
+			if err != nil {
+				d.CollectedStatus = collectedLength
+				continue
+			}
+			d.CollectedSize = s
+			d.CollectedLength = l
+			d.CollectedStatus = collectedBody
+			continue
+		}
+
+		if d.CollectedStatus == collectedBody {
+			d.CollectedBuffer = append(d.CollectedBuffer, d.CollectedTag.Raw())
+			d.CollectedBuffer = append(d.CollectedBuffer, d.CollectedLengthBuf...)
+			d.CollectedStatus = collectedCaching
+		}
+
+		if d.CollectedStatus == collectedCaching {
+			if !d.isCollectCompleted() {
+				d.CollectedBuffer = append(d.CollectedBuffer, c)
+			}
+			if d.isCollectCompleted() {
+				d.CollectedResult = append(d.CollectedResult, d.CollectedBuffer)
+				d.CollectedStatus = collectedFinished
+				d.resetCollector()
+			}
+		}
+
+	}
+
+	if len(d.CollectedResult) > 0 {
+		for i := 0; i < len(d.CollectedResult)+1; i++ {
+			result := d.CollectedResult[0]
+			d.CollectedResult = d.CollectedResult[1:]
+			d.decode(result)
+		}
+	}
+}
+
+func (d *streamingCodec) isCollectCompleted() bool {
+	return (1+d.CollectedSize+d.CollectedLength)-int32(len(d.CollectedBuffer)) == 0
+}
+
+func (d *streamingCodec) resetCollector() {
+	d.CollectedStatus = collectedInit
+	d.CollectedTag = nil
+	d.CollectedSize = 0
+	d.CollectedLength = 0
+	d.CollectedLengthBuf = make([]byte, 0)
+	d.CollectedBuffer = make([]byte, 0)
+}
+
+func (d *streamingCodec) decode(buf []byte) {
 	key := d.Observe
 
 	var (
@@ -91,32 +157,22 @@ func (d *streamingCodec) Decoder(buf []byte) {
 		curBuf                = make([]byte, 0)
 	)
 
-	//fmt.Printf("@110 key=%#x buf=%v\n", key, packetutils.FormatBytes(buf))
 	for _, c := range buf {
 		// tag
-		if tag == nil && (d.stick == stickyInit || d.stick == stickyTag || d.stick == stickyTagLength) {
+		if tag == nil {
 			tag = ycodec.NewTag(c)
-			d.Sbuf = append(d.Sbuf, c)
+			d.SourceBuf = append(d.SourceBuf, c)
 			curBuf = append(curBuf, c)
 			if d.Status == decoderInit {
 				d.Status = decoderTag
-			}
-			// sticky handle
-			//fmt.Printf("@110 tag.SeqID=%#x\n", tag.SeqID())
-			if d.stick == stickyTag || d.stick == stickyTagLength {
-				d.stickyTabByte = c
-				d.stickyTag = tag
-			}
-			if d.stick == stickyTagLength {
-				d.stick = stickyLength
 			}
 			continue
 		}
 
 		// length
-		if size == 0 && (d.stick == stickyInit || d.stick == stickyLength) {
+		if size == 0 {
 			lengthBuf = append(lengthBuf, c)
-			d.Sbuf = append(d.Sbuf, c)
+			d.SourceBuf = append(d.SourceBuf, c)
 			curBuf = append(curBuf, c)
 			l, s, err := d.decodeLength(lengthBuf)
 			if err != nil {
@@ -129,110 +185,42 @@ func (d *streamingCodec) Decoder(buf []byte) {
 				d.Length = l
 				d.Status = decoderLength
 			}
-			// sticky handle
-			//fmt.Printf("@110 size=%v, length=%v\n", size, length)
-			if d.stick == stickyLength {
-				d.stickyLengthBuf = lengthBuf
-				d.stickySize = s
-				d.stickyLength = l
-				if int32(len(buf))-(1+size) >= 0 {
-					d.stick = stickyValue
-				}
-			}
 			continue
+		}
+
+		if tag != nil && key != tag.SeqID() {
+			var newBuf []byte
+			if len(buf) > int(1+size+length) {
+				newBuf = buf[1+size+length:]
+				d.SourceBuf = append(d.SourceBuf, buf[(1+size):(1+size+length)]...)
+			} else {
+				newBuf = buf[1+size:]
+			}
+
+			d.decode(newBuf)
+			return
 		}
 
 		if d.Status == decoderLength {
 			d.Status = decoderValue
 		}
 
-		//fmt.Printf("@111 stick=%v, buf=%v\n", d.stick, packetutils.FormatBytes(buf))
-		//if tag != nil {
-		//	fmt.Printf("@111 stick=%v, tag.SeqID=%#x, buf=%v\n", d.stick, tag.SeqID(), packetutils.FormatBytes(buf))
-		//}
-
-		if tag != nil && key != tag.SeqID() {
-			var newBuf []byte //B:构建新的buf跳到下一个TLV
-			if len(buf) > int(1+size+length) {
-				//fmt.Printf("#104 tag.SeqID()=%#x, 1+size+length=%v, len(buf)=%v, buf=%v\n",
-				//	tag.SeqID(), 1+size+length, len(buf), packetutils.FormatBytes(buf))
-
-				newBuf = buf[1+size+length:]
-				d.Sbuf = append(d.Sbuf, buf[(1+size):(1+size+length)]...) //B:把跳过的字节写入Sbuf，不要漏掉
-			} else {
-				//fmt.Printf("#111 1+size=%v\n", 1+size)
-				newBuf = buf[1+size:]
-			}
-
-			//fmt.Printf("#101 Tag.SeqID()=%#x, newBuf=%v, Sbuf=%v, curBuf=%v\n",
-			//	tag.SeqID(), packetutils.FormatBytes(newBuf), packetutils.FormatBytes(d.Sbuf), packetutils.FormatBytes(curBuf))
-
-			// TODO: 如果产生了粘包情况才需要修改stick值
-			// sticky handle
-			//fmt.Printf("@333 %v\n", int32(len(newBuf))+int32(len(d.Sbuf)) < (1+d.Size+d.Length))
-			if int32(len(newBuf))+int32(len(d.Sbuf)) < (1 + d.Size + d.Length) {
-				if len(newBuf) >= 2 {
-					d.stick = stickyTagLength //TL,V
-				} else if len(newBuf) == 1 {
-					//TODO: 未处理切包在T,L与T,LV
-					d.stick = stickyTag //T,L
-				}
-				d.stickyTabByte = byte(0)
-				d.stickyLengthBuf = make([]byte, 0)
-				d.stickyTag = nil
-				d.stickySize = 0
-				d.stickyLength = 0
-			}
-
-			d.Decoder(newBuf)
-			return
-		}
-
-		d.Sbuf = append(d.Sbuf, c)
+		d.SourceBuf = append(d.SourceBuf, c)
 		curBuf = append(curBuf, c)
 
-		//fmt.Printf("#102 Tag.SeqID()=%#x, curBuf=%v, Sbuf=%v, 1+size+length=%v\n",
-		//	tag.SeqID(), packetutils.FormatBytes(curBuf), packetutils.FormatBytes(d.Sbuf), 1+size+length)
-
-		// 处理匹配key的值
 		if tag != nil && key == tag.SeqID() && int32(len(curBuf)) == 1+size+length {
-			//fmt.Printf("#103 Tag.SeqID()=%#x, curBuf=%v, Sbuf=%v\n",
-			//	tag.SeqID(), packetutils.FormatBytes(curBuf), packetutils.FormatBytes(d.Sbuf))
-			// 当前为匹配上的key，当前的curBuf即为Packet的待解[]byte
 			d.Matching = append(d.Matching, curBuf)
 			d.Status = decoderMatching
-			//debug:临时测试
-			//d.reset()
-			//return
-			//<--
-		} else if d.stick == stickyValue && d.stickyTag != nil && key == d.stickyTag.SeqID() && int32(len(curBuf)) == d.stickyLength {
-			// `int32(len(curBuf)) == d.stickyLength`只处理了TL,V场景
-			// 这里可能有粘包问题
-			// 因为是粘包，需要把添加上之前的stickyLengthBuf
-			stickyBuf := append(append([]byte{d.stickyTabByte}, d.stickyLengthBuf...), curBuf...)
-			d.Matching = append(d.Matching, stickyBuf)
-			d.Status = decoderMatching
-			//debug:临时测试
-			//d.reset()
-			//return
-			//<--
 		}
-		//fmt.Printf("@444 stick=%v, stickyTag=%v, curBuf-len=%v, len=%v\n",
-		//	d.stick, d.stickyTag, len(curBuf), 1+d.stickySize+d.stickyLength)
 
-		// 收集完根TLV的所有数据后进行分配处理
-		if int32(len(d.Sbuf)) == 1+d.Size+d.Length {
-			//fmt.Printf("@222 stick=%v, d.Status=%v\n", d.stick, d.Status) //2:decoderLength
+		if int32(len(d.SourceBuf)) == 1+d.Size+d.Length {
 			if d.Status == decoderMatching {
-				// 如果有matching到被observe的key，Result保存当前根TLV，Matching保存匹配上的TLV，如果匹配上则同时有值
-				// Result用于合并数据时使用；Matching用于Read时使用
-				d.Result = append(d.Result, d.Sbuf)
+				d.Result = append(d.Result, d.SourceBuf)
 				d.OriginResult = append(d.OriginResult, placeholder)
 			} else {
-				d.OriginResult = append(d.OriginResult, d.Sbuf)
+				d.OriginResult = append(d.OriginResult, d.SourceBuf)
 			}
 
-			//重置参数
 			d.Status = decoderFinished
 			d.reset()
 		}
@@ -251,18 +239,13 @@ func (d *streamingCodec) decodeLength(buf []byte) (length int32, size int32, err
 func (d *streamingCodec) reset() {
 	d.Length = 0
 	d.Size = 0
-	d.Sbuf = make([]byte, 0)
+	d.SourceBuf = make([]byte, 0)
 	d.Status = decoderInit
 
-	d.stick = stickyInit
-	d.stickyTag = nil
-	d.stickySize = 0
-	d.stickyLength = 0
 }
 
 // Read: read and unmarshal data to mold
 func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
-	//fmt.Printf("#300 Read Matching-len=%v, Result-len=%v\n", len(d.Matching), len(d.Result))
 	if len(d.Result) == 0 || len(d.Matching) == 0 {
 		return nil, nil
 	}
@@ -273,34 +256,14 @@ func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
 	result := d.Result[0]
 	d.Result = d.Result[1:]
 
-	//fmt.Printf("#555 %v\n", packetutils.FormatBytes(matching))
-
 	proto := NewProtoCodec(d.Observe)
 	if proto.IsStruct(mold) {
-		//err := proto.UnmarshalStruct(result, mold)
-		//if err != nil {
-		//	return nil, err
-		//}
-		// #2
-		//packet, _, err := y3.DecodeNodePacket(matching)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//err = packetstructure.Decode(packet, mold)
-		//if err != nil {
-		//	return nil, err
-		//}
-
 		err := proto.UnmarshalStructNative(matching, mold)
 		if err != nil {
 			return nil, err
 		}
 
 	} else {
-		//err := proto.UnmarshalBasic(matching, &mold)
-		//if err != nil {
-		//	return nil, err
-		//}
 		err := proto.UnmarshalBasicNative(matching, &mold)
 		if err != nil {
 			return nil, err
@@ -309,7 +272,6 @@ func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
 
 	// for Encoder::merge
 	d.Value = result
-	//d.Packet = matching
 
 	return mold, nil
 }
