@@ -414,16 +414,19 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 - [x] v0.4.0 - 支持[yomo-thermometer-plugin](https://github.com/10cella/yomo-thermometer-plugin)插件
   - [x] 支持[]Thermometer{}的Mold形式
   - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang)
-- [x] v0.5.0 - 性能压测及优化重构
-- [ ] v0.6.0 - 支持UUID及Map类型
+- [x] v1.0.0 - 性能压测及优化重构
+  - [x] YomoCodec的性能测试，与JSON实现版本的对比
+  - [x] 通过跳KEY解码字节流优化性能
+  - [x] 粘包处理
+- [ ] v1.1.0 - 支持UUID及Map类型
   - [ ] encoding
   - [ ] PrimitivePacket
   - [ ] ProtoCode
-- [ ] v0.7.0 - 支持[YoMo](https://github.com/yomorun/yomo)框架的新的解析需求
-  - [ ] 满足处理流程：解析--监听--读取--处理--写入
-  - [ ] 支持两种出理流程的切换
-- [ ] v0.9.0 - 支持简单的控制指令和错误码
-- [ ] v1.0.0 - 支持与QUIC-for-YoMo框架的集成
+- [ ] v1.2.0 - 支持[YoMo](https://github.com/yomorun/yomo)框架的新的解析需求
+  - [ ] 满足处理流程
+  - [ ] 支持两种处理流程的切换
+- [ ] v1.3.0 - 支持简单的控制指令和错误码
+- [ ] v2.0.0 - 支持与Quicy框架的集成
 
 ## YoMo Codec
 
