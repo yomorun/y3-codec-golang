@@ -54,7 +54,8 @@ func (c *protoCodec) Marshal(input interface{}) ([]byte, error) {
 	if c.IsStruct(input) {
 		return packetstructure.EncodeToBytesWith(c.Observe, input)
 	}
-	return marshalPrimitive(c.Observe, input)
+	//return marshalBasicNative(c.Observe, input)
+	return encodeBasic(c.Observe, input)
 }
 
 func (c *protoCodec) MarshalNative(input interface{}) ([]byte, error) {
@@ -65,7 +66,7 @@ func (c *protoCodec) MarshalNative(input interface{}) ([]byte, error) {
 		}
 		return np.GetValbuf(), nil
 	}
-	return marshalPrimitive(c.Observe, input)
+	return marshalBasicNative(c.Observe, input)
 }
 
 func (c *protoCodec) UnmarshalStruct(data []byte, mold interface{}) error {

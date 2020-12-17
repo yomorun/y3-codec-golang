@@ -3,6 +3,7 @@ package codes
 import (
 	"fmt"
 	"io"
+	"reflect"
 	"testing"
 
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
@@ -209,4 +210,73 @@ func (w *complexDataWriter) Write(buf []byte) (int, error) {
 	}
 
 	return 0, nil
+}
+
+func TestReadBasic(t *testing.T) {
+	input := float32(0.375)
+	proto := NewProtoCodec(0x20)
+	inputBuf, _ := proto.Marshal(input)
+	//fmt.Printf("inputBuf=%v\n", packetutils.FormatBytes(inputBuf))
+
+	codec := NewCodec("0x20")
+	codec.Decoder(inputBuf)
+
+	var mold float32
+	val, err := codec.Read(mold)
+	if err != nil {
+		t.Errorf("Read error: %v", err)
+	}
+
+	if val == nil {
+		t.Errorf("Read val is nil")
+	}
+
+	if val.(float32) != 0.375 {
+		t.Errorf("value should be: 0.375")
+	}
+}
+
+func TestReadBasicSlice(t *testing.T) {
+	var input = []int32{int32(1), int32(2)}
+	proto := NewProtoCodec(0x20)
+	inputBuf, _ := proto.Marshal(input)
+	//fmt.Printf("inputBuf=%v\n", packetutils.FormatBytes(inputBuf))
+
+	codec := NewCodec("0x20")
+	codec.Decoder(inputBuf)
+
+	var mold []int32
+	val, err := codec.Read(mold)
+	if err != nil {
+		t.Errorf("Read error: %v", err)
+	}
+
+	if val == nil {
+		t.Errorf("Read val is nil")
+	}
+
+	if reflect.ValueOf(val).Kind() != reflect.Slice {
+		t.Errorf("value kind must be Slice")
+	}
+
+	if reflect.ValueOf(val).Index(0).Elem().Kind() != reflect.Int32 {
+		t.Errorf("value elem must be Int32")
+	}
+
+	arr, ok := utils.ToInt64SliceArray(val)
+	if !ok {
+		t.Errorf("ToInt64SliceArray failed")
+	}
+
+	if len(arr) != 2 {
+		t.Errorf("arr length must be: 2")
+	}
+
+	if arr[0].(int64) != 1 {
+		t.Errorf("arr[0] must be: 1")
+	}
+
+	if arr[1].(int64) != 2 {
+		t.Errorf("arr[0] must be: 2")
+	}
 }
