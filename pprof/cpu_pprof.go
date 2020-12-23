@@ -29,7 +29,7 @@ func main() {
 	//	//time.Sleep(200 * time.Microsecond)
 	//}
 	// #V2
-	codec := codes.NewStreamingCodec(packetutils.KeyOf(observe))
+	codec := codes.NewMergingCodec(packetutils.KeyOf(observe))
 	for {
 		codec.Decoder(inputBuf)
 		if _, err := codec.Read(&Person{}); err != nil {

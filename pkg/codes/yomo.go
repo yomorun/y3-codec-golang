@@ -23,5 +23,9 @@ type YomoCodec interface {
 
 func NewCodec(observe string) YomoCodec {
 	//return NewCollectingCodec(observe)
+	return NewMergingCodec(packetutils.KeyOf(observe))
+}
+
+func NewCodecWithInform(observe string) (YomoCodec, <-chan bool) {
 	return NewStreamingCodec(packetutils.KeyOf(observe))
 }
