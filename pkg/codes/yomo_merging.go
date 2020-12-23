@@ -2,15 +2,15 @@ package codes
 
 import (
 	"io"
-	"sync"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	y3 "github.com/yomorun/yomo-codec-golang"
 
 	ycodec "github.com/yomorun/yomo-codec-golang/internal/codec"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 )
 
-type streamingCodec struct {
-	inform chan bool
+type mergingCodec struct {
+	Value []byte
 
 	Length int32
 	Size   int32
@@ -19,9 +19,9 @@ type streamingCodec struct {
 	SourceBuf []byte
 	Status    decoderStatus
 
-	Matching      [][]byte
-	matchingMutex sync.Mutex
-	OriginResult  [][]byte
+	Matching     [][]byte
+	Result       [][]byte
+	OriginResult [][]byte
 
 	CollectedStatus    collectedStatus
 	CollectedTag       *ycodec.Tag
@@ -34,14 +34,15 @@ type streamingCodec struct {
 	proto ProtoCodec
 }
 
-func NewStreamingCodec(observe byte) (YomoCodec, <-chan bool) {
-	codec := &streamingCodec{
-		inform: make(chan bool, 10),
+func NewMergingCodec(observe byte) YomoCodec {
+	codec := &mergingCodec{
+		Value: make([]byte, 0),
 
 		Observe:      observe,
 		SourceBuf:    make([]byte, 0),
 		Status:       decoderInit,
 		Matching:     make([][]byte, 0),
+		Result:       make([][]byte, 0),
 		OriginResult: make([][]byte, 0),
 
 		CollectedStatus:    collectedInit,
@@ -54,11 +55,34 @@ func NewStreamingCodec(observe byte) (YomoCodec, <-chan bool) {
 
 		proto: NewProtoCodec(observe),
 	}
-	return codec, codec.inform
+	return codec
 }
 
+type decoderStatus uint8
+
+const (
+	decoderInit     decoderStatus = 0
+	decoderTag      decoderStatus = 1
+	decoderLength   decoderStatus = 2
+	decoderValue    decoderStatus = 3
+	decoderMatching decoderStatus = 4
+	decoderFinished decoderStatus = 5
+)
+
+type collectedStatus uint8
+
+const (
+	collectedInit     collectedStatus = 0
+	collectedTag      collectedStatus = 1
+	collectedLength   collectedStatus = 2
+	collectedBody     collectedStatus = 3
+	collectedCaching  collectedStatus = 4
+	collectedFinished collectedStatus = 5
+)
+
 // Decoder: Collects bytes from buf and decodes them
-func (d *streamingCodec) Decoder(buf []byte) {
+func (d *mergingCodec) Decoder(buf []byte) {
+
 	for _, c := range buf {
 		// tag
 		if d.CollectedStatus == collectedInit && d.CollectedTag == nil {
@@ -97,6 +121,7 @@ func (d *streamingCodec) Decoder(buf []byte) {
 				d.resetCollector()
 			}
 		}
+
 	}
 
 	if len(d.CollectedResult) > 0 {
@@ -108,11 +133,11 @@ func (d *streamingCodec) Decoder(buf []byte) {
 	}
 }
 
-func (d *streamingCodec) isCollectCompleted() bool {
+func (d *mergingCodec) isCollectCompleted() bool {
 	return (1+d.CollectedSize+d.CollectedLength)-int32(len(d.CollectedBuffer)) == 0
 }
 
-func (d *streamingCodec) resetCollector() {
+func (d *mergingCodec) resetCollector() {
 	d.CollectedStatus = collectedInit
 	d.CollectedTag = nil
 	d.CollectedSize = 0
@@ -121,7 +146,7 @@ func (d *streamingCodec) resetCollector() {
 	d.CollectedBuffer = make([]byte, 0)
 }
 
-func (d *streamingCodec) decode(buf []byte) {
+func (d *mergingCodec) decode(buf []byte) {
 	key := d.Observe
 
 	var (
@@ -184,16 +209,13 @@ func (d *streamingCodec) decode(buf []byte) {
 		curBuf = append(curBuf, c)
 
 		if tag != nil && key == tag.SeqID() && int32(len(curBuf)) == 1+size+length {
-			d.matchingMutex.Lock()
 			d.Matching = append(d.Matching, curBuf)
-			d.inform <- true
-			d.matchingMutex.Unlock()
 			d.Status = decoderMatching
 		}
 
 		if int32(len(d.SourceBuf)) == 1+d.Size+d.Length {
 			if d.Status == decoderMatching {
-				//d.Result = append(d.Result, d.SourceBuf)
+				d.Result = append(d.Result, d.SourceBuf)
 				d.OriginResult = append(d.OriginResult, placeholder)
 			} else {
 				d.OriginResult = append(d.OriginResult, d.SourceBuf)
@@ -205,27 +227,34 @@ func (d *streamingCodec) decode(buf []byte) {
 	}
 }
 
-func (d *streamingCodec) decodeLength(buf []byte) (length int32, size int32, err error) {
+// decodeLength: decode length of `V`
+func (d *mergingCodec) decodeLength(buf []byte) (length int32, size int32, err error) {
 	varCodec := encoding.VarCodec{}
 	err = varCodec.DecodePVarInt32(buf, &length)
 	size = int32(varCodec.Size)
 	return
 }
 
-func (d *streamingCodec) reset() {
+// reset: reset status of the codec
+func (d *mergingCodec) reset() {
 	d.Length = 0
 	d.Size = 0
 	d.SourceBuf = make([]byte, 0)
 	d.Status = decoderInit
+
 }
 
 // Read: read and unmarshal data to mold
-func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
-	if len(d.Matching) == 0 {
+func (d *mergingCodec) Read(mold interface{}) (interface{}, error) {
+	if len(d.Result) == 0 || len(d.Matching) == 0 {
 		return nil, nil
 	}
+
 	matching := d.Matching[0]
 	d.Matching = d.Matching[1:]
+
+	result := d.Result[0]
+	d.Result = d.Result[1:]
 
 	proto := NewProtoCodec(d.Observe)
 	if proto.IsStruct(mold) {
@@ -241,17 +270,58 @@ func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
 		}
 	}
 
+	// for Encoder::merge
+	d.Value = result
+
 	return mold, nil
 }
 
 // Write: write interface to stream
-func (d *streamingCodec) Write(w io.Writer, T interface{}, mold interface{}) (int, error) {
-	proto := NewProtoCodec(d.Observe)
-	result, _ := proto.Marshal(T)
-	return w.Write(result)
+func (d *mergingCodec) Write(w io.Writer, T interface{}, mold interface{}) (int, error) {
+	buf, err := d.proto.MarshalNative(T)
+	if err != nil {
+		logger.Errorf("Write::MarshalNative error:%v", err)
+		return 0, err
+	}
+
+	data, err := d.Encoder(buf, mold)
+	if err != nil {
+		return 0, err
+	}
+
+	return w.Write(data)
 }
 
-func (d *streamingCodec) isDecoder(buf []byte) bool {
+// Encoder: encode []byte of T, and merge them to the original result
+func (d *mergingCodec) Encoder(buf []byte, mold interface{}) ([]byte, error) {
+	result := make([]byte, 0)
+	index := 0
+	for _, data := range d.OriginResult {
+		index = index + 1
+		if d.isDecoder(data) {
+			source, _, _ := y3.DecodeNodePacket(d.Value)
+
+			key := d.Observe
+			_buf, err := d.mergePacket(source, key, buf, mold)
+			if err != nil {
+				return nil, err
+			}
+
+			d.Value = make([]byte, 0)
+			result = append(result, _buf...)
+			break
+		} else {
+			result = append(result, data...)
+		}
+	}
+
+	d.OriginResult = d.OriginResult[index:]
+
+	return result, nil
+}
+
+// isDecoder: is placeholder?
+func (d *mergingCodec) isDecoder(buf []byte) bool {
 	if len(buf) != len(placeholder) {
 		return false
 	}
@@ -263,8 +333,57 @@ func (d *streamingCodec) isDecoder(buf []byte) bool {
 	return true
 }
 
+// mergePacket: merge packet
+func (d *mergingCodec) mergePacket(source *y3.NodePacket, key byte, value []byte, mold interface{}) ([]byte, error) {
+	np := d.copyPacket(nil, source, key, value)
+	buf := np.Encode()
+	return buf, nil
+}
+
+// copyPacket: copy packet
+func (d *mergingCodec) copyPacket(root *y3.NodePacketEncoder, source *y3.NodePacket, key byte, value []byte) *y3.NodePacketEncoder {
+	if root == nil {
+		root = y3.NewNodePacketEncoder(int(source.SeqID()))
+	}
+
+	if len(source.PrimitivePackets) > 0 {
+		for _, p := range source.PrimitivePackets {
+			temp := y3.NewPrimitivePacketEncoder(int(p.SeqID()))
+			if p.SeqID() == key {
+				temp.SetBytes(value)
+			} else {
+				temp.SetBytes(p.ToBytes())
+			}
+
+			root.AddPrimitivePacket(temp)
+		}
+	}
+
+	if len(source.NodePackets) > 0 {
+		for _, n := range source.NodePackets {
+			var temp *y3.NodePacketEncoder
+			if n.IsArray() {
+				temp = y3.NewNodeArrayPacketEncoder(int(n.SeqID()))
+			} else {
+				temp = y3.NewNodePacketEncoder(int(n.SeqID()))
+			}
+
+			if n.SeqID() == key {
+				// replace node
+				temp.AddBytes(value)
+				root.AddNodePacket(temp)
+				continue
+			}
+			np := d.copyPacket(temp, &n, key, value)
+			root.AddNodePacket(np)
+		}
+	}
+
+	return root
+}
+
 // Refresh: refresh the OriginResult to stream
-func (d *streamingCodec) Refresh(w io.Writer) (int, error) {
+func (d *mergingCodec) Refresh(w io.Writer) (int, error) {
 	if len(d.OriginResult) == 0 {
 		return 0, nil
 	}
