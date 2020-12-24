@@ -129,7 +129,6 @@ func testInformBy(t *testing.T, mold interface{}, input []byte, handle func(v in
 		l := testLoopTimes
 		for i := 0; i < l; i++ {
 			codec.Decoder(input)
-			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 
