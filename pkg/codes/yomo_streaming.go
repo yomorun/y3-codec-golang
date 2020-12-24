@@ -19,9 +19,10 @@ type streamingCodec struct {
 	SourceBuf []byte
 	Status    decoderStatus
 
-	Matching      [][]byte
-	matchingMutex sync.Mutex
-	OriginResult  [][]byte
+	Matching          [][]byte
+	matchingMutex     sync.Mutex
+	OriginResult      [][]byte
+	OriginResultMutex sync.Mutex
 
 	CollectedStatus    collectedStatus
 	CollectedTag       *ycodec.Tag
@@ -186,17 +187,21 @@ func (d *streamingCodec) decode(buf []byte) {
 		if tag != nil && key == tag.SeqID() && int32(len(curBuf)) == 1+size+length {
 			d.matchingMutex.Lock()
 			d.Matching = append(d.Matching, curBuf)
-			d.inform <- true
 			d.matchingMutex.Unlock()
+			d.inform <- true
 			d.Status = decoderMatching
 		}
 
 		if int32(len(d.SourceBuf)) == 1+d.Size+d.Length {
 			if d.Status == decoderMatching {
 				//d.Result = append(d.Result, d.SourceBuf)
+				d.OriginResultMutex.Lock()
 				d.OriginResult = append(d.OriginResult, placeholder)
+				d.OriginResultMutex.Unlock()
 			} else {
+				d.OriginResultMutex.Lock()
 				d.OriginResult = append(d.OriginResult, d.SourceBuf)
+				d.OriginResultMutex.Unlock()
 			}
 
 			d.Status = decoderFinished
@@ -224,8 +229,10 @@ func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
 	if len(d.Matching) == 0 {
 		return nil, nil
 	}
+	d.matchingMutex.Lock()
 	matching := d.Matching[0]
 	d.Matching = d.Matching[1:]
+	d.matchingMutex.Unlock()
 
 	proto := NewProtoCodec(d.Observe)
 	if proto.IsStruct(mold) {
@@ -251,7 +258,7 @@ func (d *streamingCodec) Write(w io.Writer, T interface{}, mold interface{}) (in
 	return w.Write(result)
 }
 
-func (d *streamingCodec) isDecoder(buf []byte) bool {
+func (d *streamingCodec) isPlaceholder(buf []byte) bool {
 	if len(buf) != len(placeholder) {
 		return false
 	}
@@ -268,9 +275,13 @@ func (d *streamingCodec) Refresh(w io.Writer) (int, error) {
 	if len(d.OriginResult) == 0 {
 		return 0, nil
 	}
+
+	d.OriginResultMutex.Lock()
 	originResult := d.OriginResult[0]
-	if !d.isDecoder(originResult) {
-		d.OriginResult = d.OriginResult[1:]
+	d.OriginResult = d.OriginResult[1:]
+	d.OriginResultMutex.Unlock()
+
+	if !d.isPlaceholder(originResult) {
 		return w.Write(originResult)
 	}
 	return 0, nil
