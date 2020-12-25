@@ -58,28 +58,6 @@ func NewMergingCodec(observe byte) YomoCodec {
 	return codec
 }
 
-type decoderStatus uint8
-
-const (
-	decoderInit     decoderStatus = 0
-	decoderTag      decoderStatus = 1
-	decoderLength   decoderStatus = 2
-	decoderValue    decoderStatus = 3
-	decoderMatching decoderStatus = 4
-	decoderFinished decoderStatus = 5
-)
-
-type collectedStatus uint8
-
-const (
-	collectedInit     collectedStatus = 0
-	collectedTag      collectedStatus = 1
-	collectedLength   collectedStatus = 2
-	collectedBody     collectedStatus = 3
-	collectedCaching  collectedStatus = 4
-	collectedFinished collectedStatus = 5
-)
-
 // Decoder: Collects bytes from buf and decodes them
 func (d *mergingCodec) Decoder(buf []byte) {
 
@@ -256,19 +234,12 @@ func (d *mergingCodec) Read(mold interface{}) (interface{}, error) {
 	result := d.Result[0]
 	d.Result = d.Result[1:]
 
-	proto := NewProtoCodec(d.Observe)
-	if proto.IsStruct(mold) {
-		err := proto.UnmarshalStructNative(matching, mold)
-		if err != nil {
-			return nil, err
-		}
-
-	} else {
-		err := proto.UnmarshalBasicNative(matching, &mold)
-		if err != nil {
-			return nil, err
-		}
+	info := &MoldInfo{Mold: mold}
+	err := d.proto.Unmarshal(matching, info)
+	if err != nil {
+		return nil, err
 	}
+	mold = info.Mold
 
 	// for Encoder::merge
 	d.Value = result

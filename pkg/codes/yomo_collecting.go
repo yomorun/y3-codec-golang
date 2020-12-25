@@ -128,18 +128,12 @@ func (codec *collectingCodec) Read(mold interface{}) (interface{}, error) {
 	result := codec.Result[0]
 	codec.Result = codec.Result[1:]
 
-	proto := codec.proto
-	if proto.IsStruct(mold) {
-		err := proto.UnmarshalStructByNodePacket(result, mold)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		err := proto.UnmarshalBasicByNodePacket(result, &mold)
-		if err != nil {
-			return nil, err
-		}
+	info := &MoldInfo{Mold: mold}
+	err := codec.proto.UnmarshalByNodePacket(result, info)
+	if err != nil {
+		return nil, err
 	}
+	mold = info.Mold
 
 	// for Encoder::merge
 	codec.Value = result

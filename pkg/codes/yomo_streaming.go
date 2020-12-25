@@ -10,7 +10,8 @@ import (
 )
 
 type streamingCodec struct {
-	inform chan bool
+	inform       chan bool
+	enableInform bool
 
 	Length int32
 	Size   int32
@@ -37,7 +38,8 @@ type streamingCodec struct {
 
 func NewStreamingCodec(observe byte) (YomoCodec, <-chan bool) {
 	codec := &streamingCodec{
-		inform: make(chan bool, 10),
+		inform:       make(chan bool, 10),
+		enableInform: true,
 
 		Observe:      observe,
 		SourceBuf:    make([]byte, 0),
@@ -57,6 +59,52 @@ func NewStreamingCodec(observe byte) (YomoCodec, <-chan bool) {
 	}
 	return codec, codec.inform
 }
+
+func NewStreamingCodecNoInform(observe byte) YomoCodec {
+	codec := &streamingCodec{
+		inform:       make(chan bool, 10),
+		enableInform: false,
+
+		Observe:      observe,
+		SourceBuf:    make([]byte, 0),
+		Status:       decoderInit,
+		Matching:     make([][]byte, 0),
+		OriginResult: make([][]byte, 0),
+
+		CollectedStatus:    collectedInit,
+		CollectedTag:       nil,
+		CollectedSize:      0,
+		CollectedLength:    0,
+		CollectedLengthBuf: make([]byte, 0),
+		CollectedBuffer:    make([]byte, 0),
+		CollectedResult:    make([][]byte, 0),
+
+		proto: NewProtoCodec(observe),
+	}
+	return codec
+}
+
+type decoderStatus uint8
+
+const (
+	decoderInit     decoderStatus = 0
+	decoderTag      decoderStatus = 1
+	decoderLength   decoderStatus = 2
+	decoderValue    decoderStatus = 3
+	decoderMatching decoderStatus = 4
+	decoderFinished decoderStatus = 5
+)
+
+type collectedStatus uint8
+
+const (
+	collectedInit     collectedStatus = 0
+	collectedTag      collectedStatus = 1
+	collectedLength   collectedStatus = 2
+	collectedBody     collectedStatus = 3
+	collectedCaching  collectedStatus = 4
+	collectedFinished collectedStatus = 5
+)
 
 // Decoder: Collects bytes from buf and decodes them
 func (d *streamingCodec) Decoder(buf []byte) {
@@ -188,7 +236,9 @@ func (d *streamingCodec) decode(buf []byte) {
 			d.matchingMutex.Lock()
 			d.Matching = append(d.Matching, curBuf)
 			d.matchingMutex.Unlock()
-			d.inform <- true
+			if d.enableInform {
+				d.inform <- true
+			}
 			d.Status = decoderMatching
 		}
 
@@ -234,19 +284,12 @@ func (d *streamingCodec) Read(mold interface{}) (interface{}, error) {
 	d.Matching = d.Matching[1:]
 	d.matchingMutex.Unlock()
 
-	proto := NewProtoCodec(d.Observe)
-	if proto.IsStruct(mold) {
-		err := proto.UnmarshalStructNative(matching, mold)
-		if err != nil {
-			return nil, err
-		}
-
-	} else {
-		err := proto.UnmarshalBasicNative(matching, &mold)
-		if err != nil {
-			return nil, err
-		}
+	info := &MoldInfo{Mold: mold}
+	err := d.proto.Unmarshal(matching, info)
+	if err != nil {
+		return nil, err
 	}
+	mold = info.Mold
 
 	return mold, nil
 }

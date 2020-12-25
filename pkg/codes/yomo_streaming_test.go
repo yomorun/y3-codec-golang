@@ -81,7 +81,7 @@ func TestInformByString(t *testing.T) {
 		var mold interface{} = ""
 		NewProtoCodec(0x10).UnmarshalBasic(buf, &mold)
 		if mold != "y-new!" {
-			t.Errorf("TestInformByString, The value should be %v", target)
+			t.Errorf("TestInformByString, The value should be %v, but mold=%v", target, mold)
 		}
 	}
 
@@ -114,7 +114,7 @@ func TestInformByStringSlice(t *testing.T) {
 		arr, _ := utils.ToStringSliceArray(mold)
 		for i, v := range arr {
 			if v != target[i] {
-				t.Errorf("TestInformByStringSlice, The value should be %v=%v", i, target[i])
+				t.Errorf("TestInformByStringSlice, The value should be %v=%v, but v=%v", i, target[i], v)
 			}
 		}
 
@@ -137,7 +137,9 @@ func testInformBy(t *testing.T, mold interface{}, input []byte, handle func(v in
 		case flag := <-inform:
 			if flag {
 				v, _ := codec.Read(mold)
+				//fmt.Printf("#4 v=%v\n", v)
 				vv := handle(v)
+				//fmt.Printf("#4 vv=%v\n", vv)
 				codec.Write(&verifier{Verify: verify}, vv, mold)
 			}
 			codec.Refresh(&verifier{Verify: verify})
