@@ -21,11 +21,14 @@ type YomoCodec interface {
 	Refresh(w io.Writer) (int, error)
 }
 
+// NewCodec: create new `YomoCodec`
 func NewCodec(observe string) YomoCodec {
 	//return NewCollectingCodec(observe)
-	return NewMergingCodec(packetutils.KeyOf(observe))
+	//return NewMergingCodec(packetutils.KeyOf(observe))
+	return NewStreamingCodecNoInform(packetutils.KeyOf(observe))
 }
 
+// NewCodec: create new `YomoCodec` with channel inform
 func NewCodecWithInform(observe string) (YomoCodec, <-chan bool) {
 	return NewStreamingCodec(packetutils.KeyOf(observe))
 }
