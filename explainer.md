@@ -2,34 +2,35 @@
 
 ## Problem and Motivation
 
-- 市面上在长连接下缺乏正确的 codec，Protobuf 也是针对离线数据的场景，而用户面对的是未来实时的数据处理，而这类数据的特点就是高频产生，数据结构的变化频次小。
-- 在解码阶段，其他的 codec 都是 Fully Decode，即一定要拿到一个完整的数据包，才能开始反序列化过程，这在实时数据处理环节是大忌。
+- There isn't an efficient codec under persistent connection in the market, for example Protobuf is aimed at the scene of offline data, while users are facing the real-time data processing, and this kind of data is generated at high-frequency and the changing of data structure is low-frequency.
+- In the decoding stage, other codecs are full decode, we have to get a full data packet before we can start the decoding process, which is low efficiency in real-time data processing.
 
 ## Goals
 
-- 针对长连接下的实时数据流处理，提供高效的`解码`。用户无需等待拿到完整的数据包之后，才能开始`解码`。
-- 用户只需 `observe key` 即可拿到想要的数据。
+- Provide efficient `decoding` for real-time data stream processing under persistent connection. Users don't have to wait to get the full packet before they can start `decoding`.
+- Users only need to 'observe key' to get the data they want.
 
 ## Key use-cases
 
-- 对延迟敏感的应用程序。
-- 长连接下的实时数据流处理。
+- Low-latency sensitive applications.
+- Real-time data stream processing under persistent connection.
 
 ## Proposed solutions
 
-`Y3` 的场景是应对长连接下的实时数据流处理，所以用户把 raw stream 交给 `Y3`，然后告诉 `Y3` 要 observe 的key，`Y3` 在接管 raw stream 后开始 parsing的 操作，发现了key后，开始将其对应的 value 以用户指定的数据类型做反序列化，再将其作为参数，调用用户指定的回调函数（event-driven method）。
+`Y3`'s scenario is to deal with real-time data stream processing under persistent connection, so the user gives the raw stream to `Y3`, and then tells `Y3` to observe the key. `Y3` starts the parsing operation after taking over the raw stream. When the key is observed, `Y3` begins to decode the value in the type which the user specified, then calls the callback function (event driven method).
 
-主要接口包括：
+Core interfaces include:
 
-- **Marshal** 按照 `Y3` 的编码规则序列化用户的数据。
-- **Subscribe** 监听用户想 observe 的 `key`。
-- **OnObserve** `Y3` 发现了key后，调用用户指定的回调函数。
+- **Marshal** serializes the user's data according to the `Y3`'s encoding rules.
+- **Subscribe** observes the `key` which the user specified.
+- **OnObserve** triggers the callback function while the is observed by `Y3`.
+- **OnUnobserved** triggers the callback function while the key is unobserved.
 
 ## Examples
 
-### 数据源为一批类拟 JSON 的层级数据(其中包含了关心和不关心的数据)，需要把这些数据转换成 `Y3` 编码通过流式传输给接收方，比如 `yomo-flow`。接收方监听关心的数据并进行业务处理。
+### The data source is a batch of JSON (including concerned and unconcerned data). These data need to be encoded by 'Y3' and transported to the receiver by streaming, such as `YoMo flow`. The receiver observes the concerned data and processes it
 
-#### 编码数据
+#### Encode data
 
 ```go
 type SourceData struct {
@@ -55,7 +56,7 @@ func main() {
 }
 ```
 
-#### 解码并监听一个值
+#### Observe the specified key and decode
 
 ```go
 func main() {
@@ -66,7 +67,7 @@ func main() {
    var onUnobserved = func(v []byte) {
       fmt.Printf("unobserved v=%v\n", v)
    }
-   codec = y3.fromStream(xx)
+   codec = y3.FromStream(xx)
    codec.Subscribe(0x10).OnObserve(onObserve).OnUnobserved(onUnobserved)
 }
 ```
