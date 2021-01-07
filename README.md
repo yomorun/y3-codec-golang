@@ -9,6 +9,8 @@
 
 Y3 is the golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec), which describe a fast and low CPU binding data encoder/decoder focus on edge computing and streaming processing.
 
+See the [explainer](explainer.md) for more info.
+
 ## YoMo Codec
 
 See [YoMo Codec SPEC](https://github.com/yomorun/yomo-codec)
