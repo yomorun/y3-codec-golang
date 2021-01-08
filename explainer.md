@@ -7,28 +7,28 @@
 
 ## Goals
 
-- Provide efficient `decoding` for real-time data stream processing under persistent connection. Users don't have to wait to get the full packet before they can start `decoding`.
-- Users only need to 'observe key' to get the data they want.
+- Faster than real-time.
+- Provide efficient `decoding` for real-time stream processing under persistent connection. Users don't have to wait to get the full packet before they can start `decoding`.
+- Users only need to 'observe key' to get the data they concern.
 
 ## Key use-cases
 
 - Low-latency sensitive applications.
-- Real-time data stream processing under persistent connection.
+- Real-time stream processing under persistent connection.
 
 ## Proposed solutions
 
-`Y3`'s scenario is to deal with real-time data stream processing under persistent connection, so the user gives the raw stream to `Y3`, and then tells `Y3` to observe the key. `Y3` starts the parsing operation after taking over the raw stream. When the key is observed, `Y3` begins to decode the value in the type which the user specified, then calls the callback function (event driven method).
+`Y3`'s scenario is to deal with real-time stream processing under persistent connection, so the user gives the raw stream to `Y3`, and then tells `Y3` to observe the key. `Y3` starts the parsing operation after taking over the raw stream. When the key is observed, `Y3` will decode the value in specified type and trigger callback function.
 
 Core interfaces include:
 
 - **Marshal** serializes the user's data according to the `Y3`'s encoding rules.
 - **Subscribe** observes the `key` which the user specified.
 - **OnObserve** triggers the callback function while the is observed by `Y3`.
-- **OnUnobserved** triggers the callback function while the key is unobserved.
 
 ## Examples
 
-### The data source is a batch of JSON (including concerned and unconcerned data). These data need to be encoded by 'Y3' and transported to the receiver by streaming, such as `YoMo flow`. The receiver observes the concerned data and processes it
+### 1. The data source is a batch of JSON (including concerned and unconcerned data). These data need to be encoded by 'Y3' and transported to the receiver by streaming, such as `YoMo flow`. The receiver observes the concerned data and processes it
 
 #### Encode data
 
@@ -50,8 +50,8 @@ func main() {
       Noise: float32(456),
       Therm: Thermometer{Temperature: float32(30), Humidity: float32(40)},
    }
-   y3Codec := y3.NewY3Codec(0x20)
-   inputBuf, err := y3Codec.Marshal(input)
+   codec := y3.NewCodec(0x20)
+   inputBuf, err := codec.Marshal(input)
    fmt.Printf("inputBuf=%v, err=%v\n", packetutils.FormatBytes(inputBuf), err)
 }
 ```
@@ -64,10 +64,7 @@ func main() {
       f, err := y3.ToFloat64(v)
       fmt.Printf("observed v=%v\n", f)
    }
-   var onUnobserved = func(v []byte) {
-      fmt.Printf("unobserved v=%v\n", v)
-   }
    codec = y3.FromStream(xx)
-   codec.Subscribe(0x10).OnObserve(onObserve).OnUnobserved(onUnobserved)
+   codec.Subscribe(0x10).OnObserve(onObserve)
 }
 ```
