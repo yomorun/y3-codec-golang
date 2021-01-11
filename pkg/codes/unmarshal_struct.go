@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
-	"github.com/yomorun/yomo-codec-golang/pkg/codes/packetstructure"
+	y3 "github.com/yomorun/y3-codec-golang"
+	"github.com/yomorun/y3-codec-golang/pkg/codes/packetstructure"
 )
 
 // StructDecoder: for UnmarshalStruct

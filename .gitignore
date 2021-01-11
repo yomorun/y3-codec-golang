@@ -12,11 +12,6 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
-go.sum
-
-# local using
-*.code
+vendor/
 *.temp
-*.docker
-*.deploy
+y3-codec-golang

@@ -3,9 +3,9 @@ package y3
 import (
 	"errors"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
 
-	"github.com/yomorun/yomo-codec-golang/internal/mark"
+	"github.com/yomorun/y3-codec-golang/internal/mark"
 )
 
 func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {

@@ -3,7 +3,7 @@ package y3
 import (
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
 )
 
 // 描述最小的Packet大小为4个字节

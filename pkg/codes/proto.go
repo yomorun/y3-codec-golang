@@ -3,9 +3,9 @@ package codes
 import (
 	"reflect"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes/packetstructure"
+	"github.com/yomorun/y3-codec-golang/pkg/codes/packetstructure"
 )
 
 // ProtoCodec: proto codec interface, using for YomoCodec

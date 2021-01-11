@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
 
 	"github.com/stretchr/testify/assert"
 )

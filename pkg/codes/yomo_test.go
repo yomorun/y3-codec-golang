@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
 )
 
 func TestReadThermometer(t *testing.T) {

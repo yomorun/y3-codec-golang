@@ -3,10 +3,10 @@ package y3
 import (
 	"errors"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
 
-	"github.com/yomorun/yomo-codec-golang/internal/mark"
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/mark"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 // DecodePrimitivePacket 将一个完整的Packet的buffer全部读入，返回BasePacket对象

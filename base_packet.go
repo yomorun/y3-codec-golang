@@ -1,8 +1,8 @@
 package y3
 
 import (
-	"github.com/yomorun/yomo-codec-golang/internal/mark"
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/mark"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 type basePacket struct {
