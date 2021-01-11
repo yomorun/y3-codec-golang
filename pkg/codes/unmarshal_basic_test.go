@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 func TestUnmarshalBasic(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func PrintNodePacket(node *y3.NodePacket) {

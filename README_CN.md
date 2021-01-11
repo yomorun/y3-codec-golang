@@ -2,20 +2,20 @@
 >
 > ⛳️ STATE: WIP
 >
-> 🇨🇳 [简体中文](README_CN.md)  🇬🇧 [English](https://github.com/yomorun/yomo-codec-golang/blob/master/README.md)
+> 🇨🇳 [简体中文](README_CN.md)  🇬🇧 [English](https://github.com/yomorun/y3-codec-golang/blob/master/README.md)
 
 # Y3
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_shield)
 
 
 Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
 ## 目标
 
-[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang) 是通过golang语言实现[YoMo Codec](https://github.com/yomorun/yomo-codec)的[SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述 ；提供对`TLV结构`及基础数据类型进行编解码的能力，并且为[YoMo](https://github.com/yomorun/yomo)提供支持其消息处理的编解码工具。你可以为其扩展出更多数据类型的处理，甚至可以扩展并应用到其它需要编解码的框架中。
+[y3-codec-golang](https://github.com/yomorun/y3-codec-golang) 是通过golang语言实现[YoMo Codec](https://github.com/yomorun/yomo-codec)的[SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述 ；提供对`TLV结构`及基础数据类型进行编解码的能力，并且为[YoMo](https://github.com/yomorun/yomo)提供支持其消息处理的编解码工具。你可以为其扩展出更多数据类型的处理，甚至可以扩展并应用到其它需要编解码的框架中。
 
 ## 结构
-![yomo-codec-golang-v1.0.png](./docs/yomo-codec-golang-v1.0.png)
+![y3-codec-golang-v1.0.png](./docs/y3-codec-golang-v1.0.png)
 
 逻辑结构上主要分为两部分：实现[SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述的基础编解码能力；在spec功能基础上为[YoMo](https://github.com/yomorun/yomo)等外部框架提供的扩展能力。
 
@@ -133,7 +133,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -155,7 +155,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -180,7 +180,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -205,7 +205,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -233,7 +233,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -271,7 +271,7 @@ package main
 import (
 	"fmt"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -294,7 +294,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -335,7 +335,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
 )
 
 func main() {
@@ -379,7 +379,7 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 
 #### 测试源代码：
 
-* Y3: [Y3 Benchmark](https://github.com/yomorun/yomo-codec-golang/blob/master/pkg/codes/yomo_benchmark_test.go)
+* Y3: [Y3 Benchmark](https://github.com/yomorun/y3-codec-golang/blob/master/pkg/codes/yomo_benchmark_test.go)
 * JSON: [JSON Benchmark](https://github.com/10cella/yomo-json-codec/blob/master/codec_benchmark_test.go)
 
 ### 2. 性能比较
@@ -413,7 +413,7 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
   - [x] 支持Bool类型
 - [x] v0.4.0 - 支持[yomo-thermometer-plugin](https://github.com/10cella/yomo-thermometer-plugin)插件
   - [x] 支持[]Thermometer{}的Mold形式
-  - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang)
+  - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[y3-codec-golang](https://github.com/yomorun/y3-codec-golang)
 - [x] v1.0.0 - 性能压测及优化重构
   - [x] YomoCodec的性能测试，与JSON实现版本的对比
   - [x] 通过跳KEY解码字节流优化性能
@@ -441,4 +441,4 @@ See [SPEC](https://github.com/yomorun/yomo-codec)
 [//]: contributor-faces
 
 ## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_large)

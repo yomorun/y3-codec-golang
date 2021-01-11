@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 type Basic struct {

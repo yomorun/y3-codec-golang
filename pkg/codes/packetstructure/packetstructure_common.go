@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 var (

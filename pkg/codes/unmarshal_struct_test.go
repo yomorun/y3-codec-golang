@@ -3,7 +3,7 @@ package codes
 import (
 	"testing"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
 )
 
 type ThermometerTest struct {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 var (

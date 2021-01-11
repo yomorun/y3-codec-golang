@@ -3,7 +3,7 @@ package mark
 import (
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 // Tag represents the Tag of TLV
