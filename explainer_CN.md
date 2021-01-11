@@ -6,7 +6,7 @@
 - 在解码阶段，其他的 codec 都是 Fully Decode，即一定要拿到一个完整的数据包，才能开始反序列化过程，这在实时数据处理环节是大忌。
 
 ## Goals
- 
+
 - Faster than Real-time
 - 针对长连接下的实时数据流处理，提供高效的`解码`。用户无需等待拿到完整的数据包之后，才能开始`解码`。
 - 用户只需 `observe key` 即可拿到想要的数据。
@@ -61,10 +61,10 @@ func main() {
 ```go
 func main() {
    var onObserve = func(v []byte) {
-      f, err := y3.ToFloat64(v)
+      f, err := y3.ToFloat32(v)
       fmt.Printf("observed v=%v\n", f)
    }
    codec = y3.FromStream(xx)
-   codec.Subscribe(0x10).OnObserve(onObserve)
+   codec.Subscribe(0x11).OnObserve(onObserve)
 }
 ```
