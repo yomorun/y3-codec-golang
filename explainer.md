@@ -61,10 +61,10 @@ func main() {
 ```go
 func main() {
    var onObserve = func(v []byte) {
-      f, err := y3.ToFloat64(v)
+      f, err := y3.ToFloat32(v)
       fmt.Printf("observed v=%v\n", f)
    }
    codec = y3.FromStream(xx)
-   codec.Subscribe(0x10).OnObserve(onObserve)
+   codec.Subscribe(0x11).OnObserve(onObserve)
 }
 ```
