@@ -5,7 +5,7 @@ import (
 
 	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
-	"github.com/yomorun/yomo-codec-golang/internal/codec"
+	"github.com/yomorun/yomo-codec-golang/internal/mark"
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
@@ -26,7 +26,7 @@ func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, siz
 
 	var pos = 0
 	// first byte is `Tag`
-	p.tag = codec.NewTag(buf[pos])
+	p.tag = mark.NewTag(buf[pos])
 	pos++
 
 	// read `Varint` from buf for `Length of value`

@@ -5,7 +5,7 @@ import (
 
 	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 
-	"github.com/yomorun/yomo-codec-golang/internal/codec"
+	"github.com/yomorun/yomo-codec-golang/internal/mark"
 )
 
 func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {
@@ -41,7 +41,7 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	pos := 0
 
 	// `Tag`
-	tag := codec.NewTag(b[pos])
+	tag := mark.NewTag(b[pos])
 	pct.basePacket.tag = tag
 	// fmt.Printf("pos=%d, n.Tag=%v\n", pos, pct.tag.String())
 	pos++

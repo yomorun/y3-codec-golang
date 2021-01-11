@@ -4,9 +4,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/yomo-codec-golang/internal/mark"
 
-	ycodec "github.com/yomorun/yomo-codec-golang/internal/codec"
+	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
 )
 
 type streamingCodec struct {
@@ -26,7 +26,7 @@ type streamingCodec struct {
 	OriginResultMutex sync.Mutex
 
 	CollectedStatus    collectedStatus
-	CollectedTag       *ycodec.Tag
+	CollectedTag       *mark.Tag
 	CollectedSize      int32
 	CollectedLength    int32
 	CollectedLengthBuf []byte
@@ -111,7 +111,7 @@ func (d *streamingCodec) Decoder(buf []byte) {
 	for _, c := range buf {
 		// tag
 		if d.CollectedStatus == collectedInit && d.CollectedTag == nil {
-			d.CollectedTag = ycodec.NewTag(c)
+			d.CollectedTag = mark.NewTag(c)
 			d.CollectedStatus = collectedTag
 			continue
 		}
@@ -174,17 +174,17 @@ func (d *streamingCodec) decode(buf []byte) {
 	key := d.Observe
 
 	var (
-		tag       *ycodec.Tag = nil
-		size      int32       = 0
-		length    int32       = 0
-		lengthBuf             = make([]byte, 0)
-		curBuf                = make([]byte, 0)
+		tag       *mark.Tag = nil
+		size      int32     = 0
+		length    int32     = 0
+		lengthBuf           = make([]byte, 0)
+		curBuf              = make([]byte, 0)
 	)
 
 	for _, c := range buf {
 		// tag
 		if tag == nil {
-			tag = ycodec.NewTag(c)
+			tag = mark.NewTag(c)
 			d.SourceBuf = append(d.SourceBuf, c)
 			curBuf = append(curBuf, c)
 			if d.Status == decoderInit {

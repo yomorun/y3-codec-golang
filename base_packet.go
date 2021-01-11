@@ -1,12 +1,12 @@
 package y3
 
 import (
-	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
+	"github.com/yomorun/yomo-codec-golang/internal/mark"
 	"github.com/yomorun/yomo-codec-golang/internal/utils"
 )
 
 type basePacket struct {
-	tag    *codec.Tag
+	tag    *mark.Tag
 	length uint32
 	valbuf []byte
 }
@@ -14,10 +14,6 @@ type basePacket struct {
 func (bp *basePacket) Length() uint32 {
 	return bp.length
 }
-
-// func (bp *basePacket) Buffer() []byte {
-// 	return bp.valbuf
-// }
 
 func (bp *basePacket) SeqID() byte {
 	return bp.tag.SeqID()
