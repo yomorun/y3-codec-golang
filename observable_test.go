@@ -11,6 +11,7 @@ func TestObservable(t *testing.T) {
 	sourceChannel := make(chan interface{})
 
 	go func() {
+		defer close(sourceChannel)
 		for _, b := range buf {
 			sourceChannel <- []byte{b}
 		}
