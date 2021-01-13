@@ -67,9 +67,10 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 
 		resultBuffer := make([]byte, 0)
 		var (
-			flow   int32 = 0 //0 未监听到，1 判断长度，2 判断v
-			length int32 = 1
-			value  int32 = 0
+			flow    int32 = 0 //0 未监听到，1 判断长度，2 判断v
+			length  int32 = 1
+			value   int32 = 0
+			current int32 = 0
 		)
 
 		observe := o.Observe()
@@ -82,7 +83,7 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 				}
 
 				buf := item.([]byte)
-				for _, b := range buf { //T
+				for i, b := range buf { //T
 					if flow == 0 && b == key {
 						flow = 1
 						resultBuffer = append(resultBuffer, b)
@@ -97,24 +98,42 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 							length++
 						} else {
 							value = l
-							flow = 2
+							nextIndex := int32(i + 1)
+
+							if value <= int32(len(buf[nextIndex:])) {
+								resultBuffer = append(resultBuffer, buf[nextIndex:nextIndex+value+1]...)
+								next <- resultBuffer
+								flow = 0
+								length = 1
+								value = 0
+								current = 0
+								resultBuffer = make([]byte, 0)
+								continue
+							} else {
+								resultBuffer = append(resultBuffer, buf[nextIndex:]...)
+								current = current + int32(len(buf[nextIndex:]))
+								flow = 2
+								break
+							}
 						}
-						continue
 					}
 
 					if flow == 2 && b != key {
-						l := len(resultBuffer)
-						if int32(l) == (length + value) {
-							resultBuffer = append(resultBuffer, b)
+						if (value - current) <= int32(len(buf)) {
+							resultBuffer = append(resultBuffer, buf[:(value-current)]...)
 							next <- resultBuffer
 							flow = 0
 							length = 1
 							value = 0
+							current = 0
 							resultBuffer = make([]byte, 0)
-						} else if int32(l) < (length + value) {
-							resultBuffer = append(resultBuffer, b)
+							continue
+						} else {
+							resultBuffer = append(resultBuffer, buf...)
+							current = current + int32(len(buf))
+							flow = 2
+							break
 						}
-						continue
 					}
 				}
 			}
