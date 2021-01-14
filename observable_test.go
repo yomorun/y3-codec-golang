@@ -12,9 +12,10 @@ func TestObservable(t *testing.T) {
 
 	go func() {
 		defer close(sourceChannel)
-		for _, b := range buf {
-			sourceChannel <- []byte{b}
-		}
+		// for _, b := range buf {
+		// 	sourceChannel <- []byte{b}
+		// }
+		sourceChannel <- buf
 
 	}()
 

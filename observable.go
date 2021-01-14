@@ -67,6 +67,7 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 
 		resultBuffer := make([]byte, 0)
 		rootBuffer := make([]byte, 0)
+
 		var (
 			flow       int32 = 0 //0 未监听到，1 判断长度，2 判断v
 			length     int32 = 1
@@ -88,10 +89,18 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 					return
 				}
 				buf := item.([]byte)
+				i := 0
 
-				if reject == false {
-					for i, b := range buf { //T
-						index++
+				for {
+					if i >= len(buf) {
+						break
+					}
+
+					b := buf[i]
+					i++
+					index++
+
+					if reject == false {
 
 						if rootflow == 0 && b == rootkey {
 							rootflow = 1
@@ -99,7 +108,7 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 							continue
 						}
 
-						if rootflow == 1 && b != rootkey { // L
+						if rootflow == 1 { // L
 							rootBuffer = append(rootBuffer, b)
 							l, e := decodeLength(rootBuffer[1 : rootlength+1]) //l 是value占字节，s是l占字节
 
@@ -118,7 +127,7 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 							continue
 						}
 
-						if rootflow == 2 && flow == 1 && b != key { // L
+						if rootflow == 2 && flow == 1 { // L
 							resultBuffer = append(resultBuffer, b)
 							l, e := decodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
 
@@ -131,7 +140,7 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 							continue
 						}
 
-						if rootflow == 2 && flow == 2 && b != key {
+						if rootflow == 2 && flow == 2 {
 							l := len(resultBuffer)
 							if int32(l) == (length + value) {
 								resultBuffer = append(resultBuffer, b)
@@ -141,29 +150,31 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 								value = 0
 								resultBuffer = make([]byte, 0)
 								reject = true
-								buf = buf[i+1:]
-								break
+								buf = buf[i:]
 							} else if int32(l) < (length + value) {
 								resultBuffer = append(resultBuffer, b)
+								continue
 							}
-							continue
 						}
 					}
-				}
 
-				if reject == true {
-					buflength := int32(len(buf))
-					if (1 + rootlength + rootvalue - index) <= buflength {
-						buf = buf[(1 + rootlength + rootvalue - index):]
-						reject = false
-						rootflow = 0
-						rootlength = 1
-						rootvalue = 0
-						index = 0
-						rootBuffer = make([]byte, 0)
-					} else {
-						index = index + buflength
+					if reject == true {
+						buflength := int32(len(buf))
+						if (1 + rootlength + rootvalue - index) <= buflength {
+							buf = buf[(1 + rootlength + rootvalue - index):]
+							reject = false
+							rootflow = 0
+							rootlength = 1
+							rootvalue = 0
+							index = 0
+							i = 0
+							rootBuffer = make([]byte, 0)
+						} else {
+							index = index + buflength
+							break
+						}
 					}
+
 				}
 			}
 		}
@@ -183,56 +194,4 @@ func createObservable(f func(next chan interface{})) Observable {
 	next := make(chan interface{})
 	go f(next)
 	return &ObservableImpl{iterable: &IterableImpl{channel: next}}
-}
-
-func checkData(key byte, save bool) func(buf []byte) (int32, int32, int32, []byte) {
-	resultBuffer := make([]byte, 0)
-	tempResultBuffer := make([]byte, 0)
-	var (
-		flow   int32 = 0 //0 未监听到，1 判断长度，2 判断v
-		length int32 = 1
-		value  int32 = 0
-	)
-
-	f := func(buf []byte) (int32, int32, int32, []byte) {
-
-		for _, b := range buf { //T
-			if flow == 0 && b == key {
-				flow = 1
-				tempResultBuffer = append(tempResultBuffer, b)
-				continue
-			}
-
-			if flow == 1 && b != key { // L
-				tempResultBuffer = append(tempResultBuffer, b)
-				l, e := decodeLength(tempResultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
-
-				if e != nil {
-					length++
-				} else {
-					value = l
-					flow = 2
-				}
-				continue
-			}
-
-			if flow == 2 && b != key {
-				l := len(tempResultBuffer)
-				if int32(l) == (length + value) {
-					tempResultBuffer = append(tempResultBuffer, b)
-					resultBuffer = append(resultBuffer, tempResultBuffer...)
-					flow = 0
-					length = 1
-					value = 0
-					tempResultBuffer = make([]byte, 0)
-				} else if int32(l) < (length + value) {
-					tempResultBuffer = append(tempResultBuffer, b)
-				}
-				continue
-			}
-		}
-
-		return flow, length, value, resultBuffer
-	}
-	return f
 }
