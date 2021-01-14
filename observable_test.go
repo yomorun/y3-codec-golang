@@ -34,4 +34,5 @@ func TestObservable(t *testing.T) {
 	for c := range consumer {
 		fmt.Println(c)
 	}
+
 }

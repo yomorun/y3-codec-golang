@@ -66,11 +66,17 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 		defer close(next)
 
 		resultBuffer := make([]byte, 0)
+		rootBuffer := make([]byte, 0)
 		var (
-			flow    int32 = 0 //0 未监听到，1 判断长度，2 判断v
-			length  int32 = 1
-			value   int32 = 0
-			current int32 = 0
+			flow       int32 = 0 //0 未监听到，1 判断长度，2 判断v
+			length     int32 = 1
+			value      int32 = 0
+			index      int32 = 0
+			rootflow   int32 = 0 //0 未监听到，1 判断长度，2 判断v
+			rootlength int32 = 1
+			rootvalue  int32 = 0
+			rootkey    byte  = 0x81
+			reject     bool  = false
 		)
 
 		observe := o.Observe()
@@ -81,59 +87,82 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 				if !ok {
 					return
 				}
-
 				buf := item.([]byte)
-				for i, b := range buf { //T
-					if flow == 0 && b == key {
-						flow = 1
-						resultBuffer = append(resultBuffer, b)
-						continue
-					}
 
-					if flow == 1 && b != key { // L
-						resultBuffer = append(resultBuffer, b)
-						l, e := decodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
+				if reject == false {
+					for i, b := range buf { //T
+						index++
 
-						if e != nil {
-							length++
-						} else {
-							value = l
-							nextIndex := int32(i + 1)
+						if rootflow == 0 && b == rootkey {
+							rootflow = 1
+							rootBuffer = append(rootBuffer, b)
+							continue
+						}
 
-							if value <= int32(len(buf[nextIndex:])) {
-								resultBuffer = append(resultBuffer, buf[nextIndex:nextIndex+value+1]...)
+						if rootflow == 1 && b != rootkey { // L
+							rootBuffer = append(rootBuffer, b)
+							l, e := decodeLength(rootBuffer[1 : rootlength+1]) //l 是value占字节，s是l占字节
+
+							if e != nil {
+								rootlength++
+							} else {
+								rootvalue = l
+								rootflow = 2
+							}
+							continue
+						}
+
+						if rootflow == 2 && flow == 0 && b == key {
+							flow = 1
+							resultBuffer = append(resultBuffer, b)
+							continue
+						}
+
+						if rootflow == 2 && flow == 1 && b != key { // L
+							resultBuffer = append(resultBuffer, b)
+							l, e := decodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
+
+							if e != nil {
+								length++
+							} else {
+								value = l
+								flow = 2
+							}
+							continue
+						}
+
+						if rootflow == 2 && flow == 2 && b != key {
+							l := len(resultBuffer)
+							if int32(l) == (length + value) {
+								resultBuffer = append(resultBuffer, b)
 								next <- resultBuffer
 								flow = 0
 								length = 1
 								value = 0
-								current = 0
 								resultBuffer = make([]byte, 0)
-								continue
-							} else {
-								resultBuffer = append(resultBuffer, buf[nextIndex:]...)
-								current = current + int32(len(buf[nextIndex:]))
-								flow = 2
+								reject = true
+								buf = buf[i+1:]
 								break
+							} else if int32(l) < (length + value) {
+								resultBuffer = append(resultBuffer, b)
 							}
+							continue
 						}
 					}
+				}
 
-					if flow == 2 && b != key {
-						if (value - current) <= int32(len(buf)) {
-							resultBuffer = append(resultBuffer, buf[:(value-current)]...)
-							next <- resultBuffer
-							flow = 0
-							length = 1
-							value = 0
-							current = 0
-							resultBuffer = make([]byte, 0)
-							continue
-						} else {
-							resultBuffer = append(resultBuffer, buf...)
-							current = current + int32(len(buf))
-							flow = 2
-							break
-						}
+				if reject == true {
+					buflength := int32(len(buf))
+					if (1 + rootlength + rootvalue - index) <= buflength {
+						buf = buf[(1 + rootlength + rootvalue - index):]
+						reject = false
+						rootflow = 0
+						rootlength = 1
+						rootvalue = 0
+						index = 0
+						rootBuffer = make([]byte, 0)
+					} else {
+						index = index + buflength
 					}
 				}
 			}
@@ -154,4 +183,56 @@ func createObservable(f func(next chan interface{})) Observable {
 	next := make(chan interface{})
 	go f(next)
 	return &ObservableImpl{iterable: &IterableImpl{channel: next}}
+}
+
+func checkData(key byte, save bool) func(buf []byte) (int32, int32, int32, []byte) {
+	resultBuffer := make([]byte, 0)
+	tempResultBuffer := make([]byte, 0)
+	var (
+		flow   int32 = 0 //0 未监听到，1 判断长度，2 判断v
+		length int32 = 1
+		value  int32 = 0
+	)
+
+	f := func(buf []byte) (int32, int32, int32, []byte) {
+
+		for _, b := range buf { //T
+			if flow == 0 && b == key {
+				flow = 1
+				tempResultBuffer = append(tempResultBuffer, b)
+				continue
+			}
+
+			if flow == 1 && b != key { // L
+				tempResultBuffer = append(tempResultBuffer, b)
+				l, e := decodeLength(tempResultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
+
+				if e != nil {
+					length++
+				} else {
+					value = l
+					flow = 2
+				}
+				continue
+			}
+
+			if flow == 2 && b != key {
+				l := len(tempResultBuffer)
+				if int32(l) == (length + value) {
+					tempResultBuffer = append(tempResultBuffer, b)
+					resultBuffer = append(resultBuffer, tempResultBuffer...)
+					flow = 0
+					length = 1
+					value = 0
+					tempResultBuffer = make([]byte, 0)
+				} else if int32(l) < (length + value) {
+					tempResultBuffer = append(tempResultBuffer, b)
+				}
+				continue
+			}
+		}
+
+		return flow, length, value, resultBuffer
+	}
+	return f
 }
