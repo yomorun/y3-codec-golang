@@ -54,3 +54,10 @@ func ToUFloat64SliceArray(arg interface{}) (out []interface{}, ok bool) {
 		return f64
 	})
 }
+
+func ToBoolSliceArray(arg interface{}) (out []interface{}, ok bool) {
+	return ToSliceArrayWith(arg, func(value reflect.Value) interface{} {
+		bl, _ := strconv.ParseBool(fmt.Sprintf("%v", value))
+		return bl
+	})
+}
