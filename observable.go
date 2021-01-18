@@ -1,6 +1,8 @@
 package y3
 
 import (
+	"io"
+
 	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
 )
 
@@ -28,6 +30,25 @@ func (i *IterableImpl) Observe() <-chan interface{} {
 
 func (o *ObservableImpl) Observe() <-chan interface{} {
 	return o.iterable.Observe()
+}
+
+func FromStream(reader io.Reader) Observable {
+
+	f := func(next chan interface{}) {
+		for {
+			buf := make([]byte, 3*1024)
+			n, err := reader.Read(buf)
+
+			if err != nil {
+				break
+			} else {
+				value := buf[:n]
+				next <- value
+			}
+		}
+	}
+
+	return createObservable(f)
 }
 
 func (o *ObservableImpl) OnObserve(function func(v []byte) (interface{}, error)) chan interface{} {
