@@ -15,7 +15,7 @@ func TestObservable(t *testing.T) {
 		for _, b := range buf {
 			sourceChannel <- []byte{b}
 		}
-		//	sourceChannel <- buf
+		//sourceChannel <- buf
 
 	}()
 

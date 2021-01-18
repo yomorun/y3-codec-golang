@@ -82,52 +82,55 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 				if !ok {
 					return
 				}
+				reject = false
+
 				for item := range nextitem.(chan interface{}) {
 
-					if !reject {
+					buf := item.([]byte)
 
-						buf := item.([]byte)
+					for _, b := range buf {
+						if reject {
+							break
+						}
 
-						for _, b := range buf {
-							if flow == 0 && (b<<2)>>2 == key { //T
-								flow = 1
+						if flow == 0 && (b<<2)>>2 == key { //T
+							flow = 1
+							resultBuffer = append(resultBuffer, b)
+							continue
+						}
+
+						if flow == 1 { // L
+							resultBuffer = append(resultBuffer, b)
+							l, e := decodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
+
+							if e != nil {
+								length++
+							} else {
+								value = l
+								flow = 2
+							}
+							continue
+						}
+
+						if flow == 2 {
+							l := len(resultBuffer)
+							if int32(l) == (length + value) {
+								resultBuffer = append(resultBuffer, b)
+								next <- resultBuffer
+								flow = 0
+								length = 1
+								value = 0
+								resultBuffer = make([]byte, 0)
+								reject = true
+								break
+							} else if int32(l) < (length + value) {
 								resultBuffer = append(resultBuffer, b)
 								continue
-							}
-
-							if flow == 1 { // L
-								resultBuffer = append(resultBuffer, b)
-								l, e := decodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
-
-								if e != nil {
-									length++
-								} else {
-									value = l
-									flow = 2
-								}
-								continue
-							}
-
-							if flow == 2 {
-								l := len(resultBuffer)
-								if int32(l) == (length + value) {
-									resultBuffer = append(resultBuffer, b)
-									next <- resultBuffer
-									flow = 0
-									length = 1
-									value = 0
-									resultBuffer = make([]byte, 0)
-									reject = true
-									break
-								} else if int32(l) < (length + value) {
-									resultBuffer = append(resultBuffer, b)
-									continue
-								}
 							}
 						}
 					}
+
 				}
-				reject = false
 			}
 
 		}
@@ -174,11 +177,19 @@ func filterRoot(observe <-chan interface{}) <-chan interface{} {
 				}
 
 				buf := item.([]byte)
+				i := 0
 
-				for _, b := range buf {
+				for {
+					if i == len(buf) {
+						break
+					}
+
+					b := buf[i]
+
 					if rootflow == 0 && ((b<<2)>>2 == rootkey) {
 						rootflow = 1
 						rootBuffer = append(rootBuffer, b)
+						i++
 						continue
 					}
 
@@ -191,30 +202,44 @@ func filterRoot(observe <-chan interface{}) <-chan interface{} {
 						} else {
 							rootvalue = l
 							rootflow = 2
+							send = make(chan interface{})
+							next <- send
 						}
+						i++
 						continue
 					}
 
 					if rootflow == 2 {
-						index++
-
-						if index == 1 {
-							send = make(chan interface{})
-							next <- send
-						}
-						if index < rootvalue {
-							send <- []byte{b}
-						} else if index == rootvalue {
-							send <- []byte{b}
+						if (rootvalue - index) > int32(len(buf[i:])) {
+							send <- buf[i:]
+							index = index + int32(len(buf[i:]))
+							i = len(buf)
+							continue
+						} else if (rootvalue - index) == int32(len(buf[i:])) {
+							send <- buf[i:]
 							rootflow = 0
 							rootlength = 1
 							rootvalue = 0
 							index = 0
 							rootBuffer = make([]byte, 0)
 							close(send)
+							i = len(buf)
+							continue
+						} else if (rootvalue - index) < int32(len(buf[i:])) {
+							send <- buf[i:(int32(i) + (rootvalue - index))]
+							i = i + int(rootvalue-index)
+
+							rootflow = 0
+							rootlength = 1
+							rootvalue = 0
+							index = 0
+							rootBuffer = make([]byte, 0)
+							close(send)
+							continue
 						}
 					}
 				}
+
 			}
 		}
 	}
