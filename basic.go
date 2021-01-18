@@ -1,144 +1,215 @@
 package y3
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
+// BasicEncoder is a Encoder for BasicTestData data types
 type BasicEncoder interface {
+	// Encode: encode interface to bytes
 	Encode(input interface{}) (buf []byte, err error)
+	// EncodeWithSignals: encode interface to bytes, and add signalling sets
+	EncodeWithSignals(input interface{}, signalsBuilder func() []*PrimitivePacketEncoder) (buf []byte, err error)
 }
 
-func NewBasicEncoder(observe byte) BasicEncoder {
-	return &basicEncoder{observe: observe}
-}
-
+// basicEncoder is implementation of the BasicEncoder interface
 type basicEncoder struct {
 	observe byte
+	root    byte
 }
 
-func (e basicEncoder) Encode(input interface{}) (buf []byte, err error) {
-	encoder, err := e.marshalBasic(input, nil)
-	if err != nil {
-		return []byte{}, err
+// NewBasicEncoder create a BasicEncoder interface, and without root node
+func NewBasicEncoder(observe byte) BasicEncoder {
+	if utils.ProhibitCustomizedKey(observe) {
+		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
 	}
-	return encoder.Encode(), nil
+	return &basicEncoder{observe: observe, root: 0}
 }
 
-func (e basicEncoder) marshalBasic(input interface{}, root *NodePacketEncoder) (encoder *NodePacketEncoder, err error) {
+// NewBasicEncoderWithRoot create a BasicEncoder interface, and specifying the root node
+func NewBasicEncoderWithRoot(observe byte, root byte) BasicEncoder {
+	if utils.ProhibitCustomizedKey(observe) {
+		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
+	}
+	return &basicEncoder{observe: observe, root: root}
+}
+
+// Encode encode interface{} to bytes
+func (e *basicEncoder) Encode(input interface{}) (buf []byte, err error) {
+	return e.encodeBasic(input, make([]*PrimitivePacketEncoder, 0))
+}
+
+// EncodeWithSignals encode interface{} to bytes, and add signalling sets
+func (e *basicEncoder) EncodeWithSignals(input interface{}, signalsBuilder func() []*PrimitivePacketEncoder) (buf []byte, err error) {
+	return e.encodeBasic(input, signalsBuilder())
+}
+
+// encodeBasic encode interface{} to bytes, and inserting signals
+func (e *basicEncoder) encodeBasic(input interface{}, signals []*PrimitivePacketEncoder) ([]byte, error) {
 	if e.observe == 0 {
 		panic(fmt.Errorf("observe cannot be 0"))
 	}
 
-	if root == nil {
-		root = NewNodePacketEncoder(int(startingToken))
-	}
+	var primitiveEncoder *PrimitivePacketEncoder
 
 	value := reflect.ValueOf(input)
 	switch value.Kind() {
 	case reflect.String:
-		e.marshalBasicString(input, root)
+		primitiveEncoder = e.encodeBasicString(input)
 	case reflect.Int32:
-		e.marshalBasicInt32(input, root)
+		primitiveEncoder = e.encodeBasicInt32(input)
 	case reflect.Uint32:
-		e.marshalBasicUint32(input, root)
+		primitiveEncoder = e.encodeBasicUint32(input)
 	case reflect.Int64:
-		e.marshalBasicInt64(input, root)
+		primitiveEncoder = e.encodeBasicInt64(input)
 	case reflect.Uint64:
-		e.marshalBasicUint64(input, root)
+		primitiveEncoder = e.encodeBasicUint64(input)
 	case reflect.Float32:
-		e.marshalBasicFloat32(input, root)
+		primitiveEncoder = e.encodeBasicFloat32(input)
 	case reflect.Float64:
-		e.marshalBasicFloat64(input, root)
+		primitiveEncoder = e.encodeBasicFloat64(input)
 	case reflect.Bool:
-		e.marshalBasicBool(input, root)
+		primitiveEncoder = e.encodeBasicBool(input)
 	case reflect.Array, reflect.Slice:
-		e.marshalBasicSlice(value, root)
+		//e.marshalBasicSlice(value, e.root)
+		return e.encodeBasicSlice(value, signals)
 	default:
 		panic(fmt.Errorf("marshal error, no matching type: %v", value.Kind()))
 	}
 
-	return root, nil
+	if primitiveEncoder == nil {
+		panic("PrimitivePacketEncoder is nil")
+	}
+
+	if !utils.IsEmptyKey(e.root) {
+		root := NewNodePacketEncoder(int(e.root))
+		for _, signal := range signals {
+			root.AddPrimitivePacket(signal)
+		}
+		root.AddPrimitivePacket(primitiveEncoder)
+		return root.Encode(), nil
+	} else {
+		buf := make([][]byte, 0)
+		for _, signal := range signals {
+			buf = append(buf, signal.Encode())
+		}
+		buf = append(buf, primitiveEncoder.Encode())
+		return bytes.Join(buf, []byte{}), nil
+	}
 }
 
-func (e basicEncoder) marshalBasicSlice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicSlice encode reflect.Value of slice, and inserting signals
+func (e *basicEncoder) encodeBasicSlice(value reflect.Value, signals []*PrimitivePacketEncoder) ([]byte, error) {
 	if value.Len() == 0 {
-		return
+		return nil, fmt.Errorf("no item is slice")
 	}
+
+	var nodeEncoder *NodePacketEncoder
 
 	switch value.Index(0).Kind() {
 	case reflect.String:
-		e.marshalBasicStringSlice(value, encoder)
+		nodeEncoder = e.encodeBasicStringSlice(value)
 	case reflect.Int32:
-		e.marshalBasicInt32Slice(value, encoder)
+		nodeEncoder = e.encodeBasicInt32Slice(value)
 	case reflect.Uint32:
-		e.marshalBasicUint32Slice(value, encoder)
+		nodeEncoder = e.encodeBasicUint32Slice(value)
 	case reflect.Int64:
-		e.marshalBasicInt64Slice(value, encoder)
+		nodeEncoder = e.encodeBasicInt64Slice(value)
 	case reflect.Uint64:
-		e.marshalBasicUint64Slice(value, encoder)
+		nodeEncoder = e.encodeBasicUint64Slice(value)
 	case reflect.Float32:
-		e.marshalBasicFloat32Slice(value, encoder)
+		nodeEncoder = e.encodeBasicFloat32Slice(value)
 	case reflect.Float64:
-		e.marshalBasicFloat64Slice(value, encoder)
+		nodeEncoder = e.encodeBasicFloat64Slice(value)
 	case reflect.Bool:
-		e.marshalBasicBoolSlice(value, encoder)
+		nodeEncoder = e.encodeBasicBoolSlice(value)
 	default:
-		panic(fmt.Errorf("marshal error, no matching type in Slice: %v", value.Index(0).Kind()))
+		panic(fmt.Errorf("marshal error, no matching type in SliceTestData: %v", value.Index(0).Kind()))
+	}
+
+	if nodeEncoder == nil {
+		panic("NodePacketEncoder is nil")
+	}
+
+	if !utils.IsEmptyKey(e.root) {
+		root := NewNodePacketEncoder(int(e.root))
+		for _, signal := range signals {
+			root.AddPrimitivePacket(signal)
+		}
+		root.AddNodePacket(nodeEncoder)
+		return root.Encode(), nil
+	} else {
+		buf := make([][]byte, 0)
+		for _, signal := range signals {
+			buf = append(buf, signal.Encode())
+		}
+		buf = append(buf, nodeEncoder.Encode())
+		return bytes.Join(buf, []byte{}), nil
 	}
 }
 
-func (e basicEncoder) marshalBasicString(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetStringValue(fmt.Sprintf("%v", input))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicString encode string to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicString(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetStringValue(fmt.Sprintf("%v", input))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicInt32(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetInt32Value(input.(int32))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicInt32 encode int32 to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicInt32(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetInt32Value(input.(int32))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicUint32(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetUInt32Value(input.(uint32))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicUint32 encode uint32 to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicUint32(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetUInt32Value(input.(uint32))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicInt64(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetInt64Value(input.(int64))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicInt64 encode int64 to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicInt64(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetInt64Value(input.(int64))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicUint64(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetUInt64Value(input.(uint64))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicUint64 encode uint64 to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicUint64(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetUInt64Value(input.(uint64))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicFloat32(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetFloat32Value(input.(float32))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicFloat32 encode float32 to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicFloat32(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetFloat32Value(input.(float32))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicFloat64(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetFloat64Value(input.(float64))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicFloat64 encode float64 to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicFloat64(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetFloat64Value(input.(float64))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicBool(input interface{}, encoder *NodePacketEncoder) {
-	var item = NewPrimitivePacketEncoder(int(e.observe))
-	item.SetBoolValue(input.(bool))
-	encoder.AddPrimitivePacket(item)
+// encodeBasicBool encode bool to PrimitivePacketEncoder
+func (e *basicEncoder) encodeBasicBool(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetBoolValue(input.(bool))
+	return encoder
 }
 
-func (e basicEncoder) marshalBasicStringSlice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicStringSlice encode reflect.Value of []string to NodePacketEncoder
+func (e *basicEncoder) encodeBasicStringSlice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToStringSliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -147,10 +218,11 @@ func (e basicEncoder) marshalBasicStringSlice(value reflect.Value, encoder *Node
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicInt32Slice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicInt32Slice encode reflect.Value of []int32 to NodePacketEncoder
+func (e *basicEncoder) encodeBasicInt32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -159,10 +231,11 @@ func (e basicEncoder) marshalBasicInt32Slice(value reflect.Value, encoder *NodeP
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicUint32Slice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicUint32Slice encode reflect.Value of []uint32 to NodePacketEncoder
+func (e *basicEncoder) encodeBasicUint32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -171,10 +244,11 @@ func (e basicEncoder) marshalBasicUint32Slice(value reflect.Value, encoder *Node
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicInt64Slice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicInt64Slice encode reflect.Value of []int64 to NodePacketEncoder
+func (e *basicEncoder) encodeBasicInt64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -183,10 +257,11 @@ func (e basicEncoder) marshalBasicInt64Slice(value reflect.Value, encoder *NodeP
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicUint64Slice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicUint64Slice encode reflect.Value of []uint64 to NodePacketEncoder
+func (e *basicEncoder) encodeBasicUint64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -195,10 +270,11 @@ func (e basicEncoder) marshalBasicUint64Slice(value reflect.Value, encoder *Node
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicFloat32Slice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicFloat32Slice encode reflect.Value of []float32 to NodePacketEncoder
+func (e *basicEncoder) encodeBasicFloat32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -207,10 +283,11 @@ func (e basicEncoder) marshalBasicFloat32Slice(value reflect.Value, encoder *Nod
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicFloat64Slice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicFloat64Slice encode reflect.Value of []float64 to NodePacketEncoder
+func (e *basicEncoder) encodeBasicFloat64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -219,10 +296,11 @@ func (e basicEncoder) marshalBasicFloat64Slice(value reflect.Value, encoder *Nod
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }
 
-func (e basicEncoder) marshalBasicBoolSlice(value reflect.Value, encoder *NodePacketEncoder) {
+// encodeBasicBoolSlice encode reflect.Value of []bool to NodePacketEncoder
+func (e *basicEncoder) encodeBasicBoolSlice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToBoolSliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -231,5 +309,5 @@ func (e basicEncoder) marshalBasicBoolSlice(value reflect.Value, encoder *NodePa
 			node.AddPrimitivePacket(item)
 		}
 	}
-	encoder.AddNodePacket(node)
+	return node
 }

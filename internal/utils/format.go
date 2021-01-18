@@ -2,6 +2,7 @@ package utils
 
 import "fmt"
 
+// FormatBytes format bytes to string for print
 func FormatBytes(buf []byte) string {
 	var str = ""
 	for i, c := range buf {

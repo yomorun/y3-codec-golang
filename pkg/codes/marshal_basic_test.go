@@ -27,7 +27,7 @@ func TestMarshalBasic(t *testing.T) {
 }
 
 func testMarshalBasic(t *testing.T, expected []byte, T interface{}) {
-	var msg = fmt.Sprintf("testing %v, (%v)", expected, T)
+	var msg = fmt.Sprintf("tester %v, (%v)", expected, T)
 	proto := NewProtoCodec(0x10)
 	buf, _ := proto.Marshal(T)
 	//fmt.Printf("#000 testMarshalBasic Kind=%v, buf=%v\n", reflect.ValueOf(T).Kind(), packetutils.FormatBytes(buf))
@@ -35,7 +35,7 @@ func testMarshalBasic(t *testing.T, expected []byte, T interface{}) {
 }
 
 func testMarshalBasicArray(t *testing.T, expected []byte, T interface{}) {
-	var msg = fmt.Sprintf("testing %v, (%v)", expected, T)
+	var msg = fmt.Sprintf("tester %v, (%v)", expected, T)
 	proto := NewProtoCodec(0x10)
 	buf, _ := proto.Marshal(T)
 	//fmt.Printf("#000 testMarshalBasicArray Kind=%v, Elem=%v, buf=%v\n", reflect.ValueOf(T).Kind(), reflect.ValueOf(T).Index(0).Kind(), packetutils.FormatBytes(buf))

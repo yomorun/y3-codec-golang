@@ -29,7 +29,7 @@ func TestFloat64(t *testing.T) {
 }
 
 func testVarFloat32(t *testing.T, value float32, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%X): %X", value, math.Float32bits(value), bytes)
+	var msg = fmt.Sprintf("tester %v (%X): %X", value, math.Float32bits(value), bytes)
 	var size = SizeOfVarFloat32(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -45,7 +45,7 @@ func testVarFloat32(t *testing.T, value float32, bytes []byte) {
 }
 
 func testVarFloat64(t *testing.T, value float64, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%X): %X", value, math.Float64bits(value), bytes)
+	var msg = fmt.Sprintf("tester %v (%X): %X", value, math.Float64bits(value), bytes)
 	var size = SizeOfVarFloat64(value)
 	assert.Equal(t, len(bytes), size, msg)
 

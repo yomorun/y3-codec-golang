@@ -94,6 +94,12 @@ func TestMarshalFloat64Slice(t *testing.T) {
 	})
 }
 
+func TestMarshalBoolSlice(t *testing.T) {
+	testMarshalBasicSlice(t, []bool{true, false}, func(v []byte) (interface{}, error) {
+		return ToBoolSlice(v)
+	})
+}
+
 func TestMarshalUTF8StringSlice(t *testing.T) {
 	testMarshalBasicSlice(t, []string{"a", "b"}, func(v []byte) (interface{}, error) {
 		return ToUTF8StringSlice(v)
