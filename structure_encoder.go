@@ -11,73 +11,65 @@ import (
 // StructEncoder is a Encoder for Struct type
 type StructEncoder interface {
 	// Encode encode interface to bytes
-	Encode(input interface{}) ([]byte, error)
-	// EncodeWithSignals encode interface to bytes, and adding signalling sets
-	EncodeWithSignals(input interface{}, signalsBuilder func() []*PrimitivePacketEncoder) (buf []byte, err error)
+	Encode(input interface{}, signals ...*Signal) ([]byte, error)
 }
 
 // structEncoder is implementation of the StructEncoder interface
 type structEncoder struct {
 	config  *StructEncoderConfig
 	observe byte
+	root    byte
 }
 
 // StructEncoderConfig is configuration for structEncoder
 type StructEncoderConfig struct {
 	ZeroFields bool
-	Mold       interface{}
-	TagName    string // Default value: yomo
-	root       byte
+	TagName    string
 }
 
-// NewStructEncoder create a StructEncoder interface, and without root node
-func NewStructEncoder(observe byte, mold interface{}) StructEncoder {
-	config := &StructEncoderConfig{
-		ZeroFields: true,
-		Mold:       mold,
-		root:       utils.EmptyKey,
+// StructEncoderOption create structEncoder with option
+type StructEncoderOption func(*structEncoder)
+
+// StructEncoderOptionRoot set root value for creating structEncoder
+func StructEncoderOptionRoot(root byte) StructEncoderOption {
+	return func(e *structEncoder) {
+		e.root = root
 	}
-
-	return NewStructEncoderWithConfig(observe, config)
 }
 
-// NewStructEncoderWithRoot create a StructEncoder interface, and specifying the root node
-func NewStructEncoderWithRoot(observe byte, mold interface{}, root byte) StructEncoder {
-	config := &StructEncoderConfig{
-		ZeroFields: true,
-		Mold:       mold,
-		root:       root,
+// StructEncoderOptionConfig set StructEncoderConfig value for creating structEncoder
+func StructEncoderOptionConfig(config *StructEncoderConfig) StructEncoderOption {
+	return func(e *structEncoder) {
+		e.config = config
 	}
-
-	return NewStructEncoderWithConfig(observe, config)
 }
 
-// NewStructEncoderWithConfig create a StructEncoder interface, and with StructEncoderConfig
-func NewStructEncoderWithConfig(observe byte, config *StructEncoderConfig) StructEncoder {
-	if utils.ProhibitCustomizedKey(observe) {
+// NewStructEncoder create a StructEncoder interface
+func NewStructEncoder(observe byte, options ...func(*structEncoder)) StructEncoder {
+	if utils.ForbiddenCustomizedKey(observe) {
 		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
 	}
-
-	if config.TagName == "" {
-		config.TagName = "yomo"
-	}
-
-	result := &structEncoder{
-		config:  config,
+	encoder := &structEncoder{
+		config: &StructEncoderConfig{
+			ZeroFields: true,
+			TagName:    "yomo",
+		},
 		observe: observe,
+		root:    utils.EmptyKey,
 	}
-
-	return result
+	for _, option := range options {
+		option(encoder)
+	}
+	return encoder
 }
 
 // Encode encode interface{} to bytes
-func (e structEncoder) Encode(input interface{}) ([]byte, error) {
-	return e.encode(input, make([]*PrimitivePacketEncoder, 0))
-}
-
-// EncodeWithSignals encode interface{} to buf, and adding signalling sets
-func (e structEncoder) EncodeWithSignals(input interface{}, signalsBuilder func() []*PrimitivePacketEncoder) ([]byte, error) {
-	return e.encode(input, signalsBuilder())
+func (e structEncoder) Encode(input interface{}, signals ...*Signal) ([]byte, error) {
+	encoders := make([]*PrimitivePacketEncoder, 0)
+	for _, signal := range signals {
+		encoders = append(encoders, signal.ToEncoder())
+	}
+	return e.encode(input, encoders)
 }
 
 // encode encode interface to bytes
@@ -111,8 +103,8 @@ func (e *structEncoder) encode(input interface{}, signals []*PrimitivePacketEnco
 		return nil, fmt.Errorf("unsupported type: %s", inputKind)
 	}
 
-	if !utils.IsEmptyKey(e.config.root) {
-		root := NewNodePacketEncoder(int(e.config.root))
+	if !utils.IsEmptyKey(e.root) {
+		root := NewNodePacketEncoder(int(e.root))
 		for _, signal := range signals {
 			root.AddPrimitivePacket(signal)
 		}
@@ -170,7 +162,7 @@ func (e *structEncoder) encodeStruct(structVal reflect.Value, wrapper *NodePacke
 
 // encodeStructFromField encode struct from field
 func (e *structEncoder) encodeStructFromField(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, en *NodePacketEncoder) {
-	if utils.ProhibitCustomizedKey(utils.KeyOf(fieldName)) {
+	if utils.ForbiddenCustomizedKey(utils.KeyOf(fieldName)) {
 		panic(fmt.Errorf("prohibit the use of this key: %v", fieldName))
 	}
 

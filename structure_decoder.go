@@ -18,51 +18,50 @@ type StructDecoder interface {
 // structDecoder is implementation of the StructDecoder interface
 type structDecoder struct {
 	config *StructDecoderConfig
+	result interface{}
 }
 
 // StructDecoderConfig is configuration for structDecoder
 type StructDecoderConfig struct {
-	ZeroFields bool // 在解码值前进行清零或清空操作
-	Result     interface{}
+	ZeroFields bool   // 在解码值前进行清零或清空操作
 	TagName    string // 默认值: yomo
 }
 
+// StructDecoderOption create structDecoder with option
+type StructDecoderOption func(*structDecoder)
+
+// StructDecoderOptionConfig set StructDecoderConfig value for creating structDecoder
+func StructDecoderOptionConfig(config *StructDecoderConfig) StructDecoderOption {
+	return func(e *structDecoder) {
+		e.config = config
+	}
+}
+
 // NewStructDecoder create a StructDecoder interface
-func NewStructDecoder(mold interface{}) StructDecoder {
-	config := &StructDecoderConfig{
-		ZeroFields: true,
-		Result:     mold,
+func NewStructDecoder(mold interface{}, options ...func(*structDecoder)) StructDecoder {
+	// check mold
+	val := reflect.ValueOf(mold)
+	if val.Kind() != reflect.Ptr {
+		panic(errors.New("mold must be a pointer"))
+	}
+	val = val.Elem()
+	if !val.CanAddr() {
+		panic(errors.New("mold must be addressable (a pointer)"))
 	}
 
-	decoder, err := NewStructDecoderWithConfig(config)
-	if err != nil {
-		panic(fmt.Errorf("NewStructDecoderWithConfig error: %v", err))
+	decoder := &structDecoder{
+		config: &StructDecoderConfig{
+			ZeroFields: true,
+			TagName:    "yomo",
+		},
+		result: mold,
+	}
+
+	for _, option := range options {
+		option(decoder)
 	}
 
 	return decoder
-}
-
-// NewStructDecoderWithConfig create a StructDecoder interface with StructDecoderConfig
-func NewStructDecoderWithConfig(config *StructDecoderConfig) (StructDecoder, error) {
-	val := reflect.ValueOf(config.Result)
-	if val.Kind() != reflect.Ptr {
-		return nil, errors.New("result must be a pointer")
-	}
-
-	val = val.Elem()
-	if !val.CanAddr() {
-		return nil, errors.New("result must be addressable (a pointer)")
-	}
-
-	if config.TagName == "" {
-		config.TagName = "yomo"
-	}
-
-	result := &structDecoder{
-		config: config,
-	}
-
-	return result, nil
 }
 
 // Decode decode bytes to interface
@@ -71,7 +70,7 @@ func (d *structDecoder) Decode(input []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return d.config.Result, nil
+	return d.result, nil
 }
 
 // Decode decode interface to d.config.Result
@@ -81,7 +80,7 @@ func (d *structDecoder) decode(input []byte) error {
 		return err
 	}
 
-	return d.decodeNode(node, reflect.ValueOf(d.config.Result).Elem())
+	return d.decodeNode(node, reflect.ValueOf(d.result).Elem())
 }
 
 // decodeNode is entry function for decoding NodePacket

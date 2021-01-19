@@ -13,14 +13,10 @@ func TestStructEncoderWithSignals(t *testing.T) {
 		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
 	}
 
-	encoder := NewStructEncoderWithRoot(0x30, input, rootToken)
-	inputBuf, _ := encoder.EncodeWithSignals(input, func() []*PrimitivePacketEncoder {
-		from := NewPrimitivePacketEncoder(0x02)
-		from.SetStringValue("a")
-		to := NewPrimitivePacketEncoder(0x03)
-		to.SetStringValue("b")
-		return []*PrimitivePacketEncoder{from, to}
-	})
+	encoder := NewStructEncoder(0x30, StructEncoderOptionRoot(rootToken))
+	inputBuf, _ := encoder.Encode(input,
+		CreateSignal(0x02).SetString("a"),
+		CreateSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 }
 
@@ -31,14 +27,10 @@ func TestStructEncoderWithSignalsNoRoot(t *testing.T) {
 		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
 	}
 
-	encoder := NewStructEncoder(0x30, input)
-	inputBuf, _ := encoder.EncodeWithSignals(input, func() []*PrimitivePacketEncoder {
-		from := NewPrimitivePacketEncoder(0x02)
-		from.SetStringValue("a")
-		to := NewPrimitivePacketEncoder(0x03)
-		to.SetStringValue("b")
-		return []*PrimitivePacketEncoder{from, to}
-	})
+	encoder := NewStructEncoder(0x30)
+	inputBuf, _ := encoder.Encode(input,
+		CreateSignal(0x02).SetString("a"),
+		CreateSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 }
@@ -51,14 +43,10 @@ func TestStructSliceEncoderWithSignals(t *testing.T) {
 		},
 	}
 
-	encoder := NewStructEncoderWithRoot(0x30, input, 0x01)
-	inputBuf, _ := encoder.EncodeWithSignals(input, func() []*PrimitivePacketEncoder {
-		from := NewPrimitivePacketEncoder(0x02)
-		from.SetStringValue("a")
-		to := NewPrimitivePacketEncoder(0x03)
-		to.SetStringValue("b")
-		return []*PrimitivePacketEncoder{from, to}
-	})
+	encoder := NewStructEncoder(0x30, StructEncoderOptionRoot(rootToken))
+	inputBuf, _ := encoder.Encode(input,
+		CreateSignal(0x02).SetString("a"),
+		CreateSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 }
@@ -71,14 +59,10 @@ func TestStructSliceEncoderWithSignalsNoRoot(t *testing.T) {
 		},
 	}
 
-	encoder := NewStructEncoder(0x30, input)
-	inputBuf, _ := encoder.EncodeWithSignals(input, func() []*PrimitivePacketEncoder {
-		from := NewPrimitivePacketEncoder(0x02)
-		from.SetStringValue("a")
-		to := NewPrimitivePacketEncoder(0x03)
-		to.SetStringValue("b")
-		return []*PrimitivePacketEncoder{from, to}
-	})
+	encoder := NewStructEncoder(0x30)
+	inputBuf, _ := encoder.Encode(input,
+		CreateSignal(0x02).SetString("a"),
+		CreateSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 }

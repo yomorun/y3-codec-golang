@@ -37,7 +37,7 @@ type PrimitivePacketEncoder struct {
 	encoder
 }
 
-// NewPrimitivePacketEncoder return an encoder for primitive packet
+// NewPrimitivePacketEncoder return an Encoder for primitive packet
 func NewPrimitivePacketEncoder(sid int) *PrimitivePacketEncoder {
 	primEnc := &PrimitivePacketEncoder{
 		encoder: encoder{
@@ -144,7 +144,7 @@ type NodePacketEncoder struct {
 	encoder
 }
 
-// NewNodePacketEncoder returns an encoder for node packet
+// NewNodePacketEncoder returns an Encoder for node packet
 func NewNodePacketEncoder(sid int) *NodePacketEncoder {
 	nodeEnc := &NodePacketEncoder{
 		encoder: encoder{

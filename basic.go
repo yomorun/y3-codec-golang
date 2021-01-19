@@ -11,9 +11,7 @@ import (
 // BasicEncoder is a Encoder for BasicTestData data types
 type BasicEncoder interface {
 	// Encode: encode interface to bytes
-	Encode(input interface{}) (buf []byte, err error)
-	// EncodeWithSignals: encode interface to bytes, and add signalling sets
-	EncodeWithSignals(input interface{}, signalsBuilder func() []*PrimitivePacketEncoder) (buf []byte, err error)
+	Encode(input interface{}, signals ...*Signal) (buf []byte, err error)
 }
 
 // basicEncoder is implementation of the BasicEncoder interface
@@ -22,30 +20,38 @@ type basicEncoder struct {
 	root    byte
 }
 
-// NewBasicEncoder create a BasicEncoder interface, and without root node
-func NewBasicEncoder(observe byte) BasicEncoder {
-	if utils.ProhibitCustomizedKey(observe) {
-		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
+// BasicEncoderOption create basicEncoder with option
+type BasicEncoderOption func(*basicEncoder)
+
+// BasicEncoderOptionRoot set root value for creating basicEncoder
+func BasicEncoderOptionRoot(root byte) BasicEncoderOption {
+	return func(b *basicEncoder) {
+		b.root = root
 	}
-	return &basicEncoder{observe: observe, root: 0}
 }
 
-// NewBasicEncoderWithRoot create a BasicEncoder interface, and specifying the root node
-func NewBasicEncoderWithRoot(observe byte, root byte) BasicEncoder {
-	if utils.ProhibitCustomizedKey(observe) {
+// NewBasicEncoder create a BasicEncoder interface
+func NewBasicEncoder(observe byte, options ...func(*basicEncoder)) BasicEncoder {
+	if utils.ForbiddenCustomizedKey(observe) {
 		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
 	}
-	return &basicEncoder{observe: observe, root: root}
+
+	encoder := &basicEncoder{observe: observe, root: utils.EmptyKey}
+
+	for _, option := range options {
+		option(encoder)
+	}
+
+	return encoder
 }
 
 // Encode encode interface{} to bytes
-func (e *basicEncoder) Encode(input interface{}) (buf []byte, err error) {
-	return e.encodeBasic(input, make([]*PrimitivePacketEncoder, 0))
-}
-
-// EncodeWithSignals encode interface{} to bytes, and add signalling sets
-func (e *basicEncoder) EncodeWithSignals(input interface{}, signalsBuilder func() []*PrimitivePacketEncoder) (buf []byte, err error) {
-	return e.encodeBasic(input, signalsBuilder())
+func (e *basicEncoder) Encode(input interface{}, signals ...*Signal) (buf []byte, err error) {
+	encoders := make([]*PrimitivePacketEncoder, 0)
+	for _, signal := range signals {
+		encoders = append(encoders, signal.ToEncoder())
+	}
+	return e.encodeBasic(input, encoders)
 }
 
 // encodeBasic encode interface{} to bytes, and inserting signals
