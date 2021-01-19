@@ -3,7 +3,7 @@ package y3
 import (
 	"errors"
 
-	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 
 	"github.com/yomorun/y3-codec-golang/internal/mark"
 )

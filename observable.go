@@ -3,7 +3,7 @@ package y3
 import (
 	"io"
 
-	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 )
 
 type Iterable interface {
