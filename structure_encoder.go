@@ -8,49 +8,49 @@ import (
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
-// StructEncoder is a Encoder for Struct type
-type StructEncoder interface {
+// structEncoder is a Encoder for Struct type
+type structEncoder interface {
 	// Encode encode interface to bytes
-	Encode(input interface{}, signals ...*Signal) ([]byte, error)
+	Encode(input interface{}, signals ...*signal) ([]byte, error)
 }
 
-// structEncoder is implementation of the StructEncoder interface
-type structEncoder struct {
-	config  *StructEncoderConfig
+// structEncoderImpl is implementation of the structEncoder interface
+type structEncoderImpl struct {
+	config  *structEncoderConfig
 	observe byte
 	root    byte
 }
 
-// StructEncoderConfig is configuration for structEncoder
-type StructEncoderConfig struct {
+// structEncoderConfig is configuration for structEncoderImpl
+type structEncoderConfig struct {
 	ZeroFields bool
 	TagName    string
 }
 
-// StructEncoderOption create structEncoder with option
-type StructEncoderOption func(*structEncoder)
+// structEncoderOption create structEncoderImpl with option
+type structEncoderOption func(*structEncoderImpl)
 
-// StructEncoderOptionRoot set root value for creating structEncoder
-func StructEncoderOptionRoot(root byte) StructEncoderOption {
-	return func(e *structEncoder) {
+// structEncoderOptionRoot set root value for creating structEncoderImpl
+func structEncoderOptionRoot(root byte) structEncoderOption {
+	return func(e *structEncoderImpl) {
 		e.root = root
 	}
 }
 
-// StructEncoderOptionConfig set StructEncoderConfig value for creating structEncoder
-func StructEncoderOptionConfig(config *StructEncoderConfig) StructEncoderOption {
-	return func(e *structEncoder) {
+// structEncoderOptionConfig set structEncoderConfig value for creating structEncoderImpl
+func structEncoderOptionConfig(config *structEncoderConfig) structEncoderOption {
+	return func(e *structEncoderImpl) {
 		e.config = config
 	}
 }
 
-// NewStructEncoder create a StructEncoder interface
-func NewStructEncoder(observe byte, options ...func(*structEncoder)) StructEncoder {
+// newStructEncoder create a structEncoder interface
+func newStructEncoder(observe byte, options ...func(*structEncoderImpl)) structEncoder {
 	if utils.ForbiddenCustomizedKey(observe) {
 		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
 	}
-	encoder := &structEncoder{
-		config: &StructEncoderConfig{
+	encoder := &structEncoderImpl{
+		config: &structEncoderConfig{
 			ZeroFields: true,
 			TagName:    "yomo",
 		},
@@ -64,7 +64,7 @@ func NewStructEncoder(observe byte, options ...func(*structEncoder)) StructEncod
 }
 
 // Encode encode interface{} to bytes
-func (e structEncoder) Encode(input interface{}, signals ...*Signal) ([]byte, error) {
+func (e structEncoderImpl) Encode(input interface{}, signals ...*signal) ([]byte, error) {
 	encoders := make([]*PrimitivePacketEncoder, 0)
 	for _, signal := range signals {
 		encoders = append(encoders, signal.ToEncoder())
@@ -73,7 +73,7 @@ func (e structEncoder) Encode(input interface{}, signals ...*Signal) ([]byte, er
 }
 
 // encode encode interface to bytes
-func (e *structEncoder) encode(input interface{}, signals []*PrimitivePacketEncoder) ([]byte, error) {
+func (e *structEncoderImpl) encode(input interface{}, signals []*PrimitivePacketEncoder) ([]byte, error) {
 	var inputVal reflect.Value
 
 	if input != nil {
@@ -121,7 +121,7 @@ func (e *structEncoder) encode(input interface{}, signals []*PrimitivePacketEnco
 }
 
 // encodeSlice encode slice to NodePacketEncoder
-func (e *structEncoder) encodeSlice(sliceVal reflect.Value, wrapper *NodePacketEncoder) *NodePacketEncoder {
+func (e *structEncoderImpl) encodeSlice(sliceVal reflect.Value, wrapper *NodePacketEncoder) *NodePacketEncoder {
 	structType := sliceVal.Type()
 
 	for i := 0; i < sliceVal.Len(); i++ {
@@ -142,7 +142,7 @@ func (e *structEncoder) encodeSlice(sliceVal reflect.Value, wrapper *NodePacketE
 }
 
 // encodeStruct encode struct to NodePacketEncoder
-func (e *structEncoder) encodeStruct(structVal reflect.Value, wrapper *NodePacketEncoder) *NodePacketEncoder {
+func (e *structEncoderImpl) encodeStruct(structVal reflect.Value, wrapper *NodePacketEncoder) *NodePacketEncoder {
 	var fields []field
 
 	structType := structVal.Type()
@@ -161,7 +161,7 @@ func (e *structEncoder) encodeStruct(structVal reflect.Value, wrapper *NodePacke
 }
 
 // encodeStructFromField encode struct from field
-func (e *structEncoder) encodeStructFromField(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, en *NodePacketEncoder) {
+func (e *structEncoderImpl) encodeStructFromField(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, en *NodePacketEncoder) {
 	if utils.ForbiddenCustomizedKey(utils.KeyOf(fieldName)) {
 		panic(fmt.Errorf("prohibit the use of this key: %v", fieldName))
 	}
@@ -218,7 +218,7 @@ func (e *structEncoder) encodeStructFromField(fieldType reflect.Type, fieldName 
 }
 
 // encodeArrayFromField encode array from field
-func (e *structEncoder) encodeArrayFromField(fieldValue reflect.Value, en *NodePacketEncoder) {
+func (e *structEncoderImpl) encodeArrayFromField(fieldValue reflect.Value, en *NodePacketEncoder) {
 	for i := 0; i < fieldValue.Len(); i++ {
 		currentData := fieldValue.Index(i)
 		currentType := fieldValue.Index(i).Type()
@@ -227,7 +227,7 @@ func (e *structEncoder) encodeArrayFromField(fieldValue reflect.Value, en *NodeP
 }
 
 // encodeSliceFromField encode slice from field
-func (e *structEncoder) encodeSliceFromField(fieldValue reflect.Value, en *NodePacketEncoder) {
+func (e *structEncoderImpl) encodeSliceFromField(fieldValue reflect.Value, en *NodePacketEncoder) {
 	for i := 0; i < fieldValue.Len(); i++ {
 		currentData := fieldValue.Index(i)
 		currentType := fieldValue.Index(i).Type()
@@ -236,7 +236,7 @@ func (e *structEncoder) encodeSliceFromField(fieldValue reflect.Value, en *NodeP
 }
 
 // fieldValueToString get string value from fieldValue
-func (e *structEncoder) fieldValueToString(fieldType reflect.Type, fieldValue reflect.Value) string {
+func (e *structEncoderImpl) fieldValueToString(fieldType reflect.Type, fieldValue reflect.Value) string {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).String()
 	}
@@ -244,7 +244,7 @@ func (e *structEncoder) fieldValueToString(fieldType reflect.Type, fieldValue re
 }
 
 // fieldValueToInt32 get int32 value from fieldValue
-func (e *structEncoder) fieldValueToInt32(fieldType reflect.Type, fieldValue reflect.Value) int32 {
+func (e *structEncoderImpl) fieldValueToInt32(fieldType reflect.Type, fieldValue reflect.Value) int32 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return int32(reflect.Zero(fieldType).Int())
 	}
@@ -252,7 +252,7 @@ func (e *structEncoder) fieldValueToInt32(fieldType reflect.Type, fieldValue ref
 }
 
 // fieldValueToUint32 get uint32 value from fieldValue
-func (e *structEncoder) fieldValueToUint32(fieldType reflect.Type, fieldValue reflect.Value) uint32 {
+func (e *structEncoderImpl) fieldValueToUint32(fieldType reflect.Type, fieldValue reflect.Value) uint32 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return uint32(reflect.Zero(fieldType).Uint())
 	}
@@ -260,7 +260,7 @@ func (e *structEncoder) fieldValueToUint32(fieldType reflect.Type, fieldValue re
 }
 
 // fieldValueToInt64 get int64 value from fieldValue
-func (e *structEncoder) fieldValueToInt64(fieldType reflect.Type, fieldValue reflect.Value) int64 {
+func (e *structEncoderImpl) fieldValueToInt64(fieldType reflect.Type, fieldValue reflect.Value) int64 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Int()
 	}
@@ -268,7 +268,7 @@ func (e *structEncoder) fieldValueToInt64(fieldType reflect.Type, fieldValue ref
 }
 
 // fieldValueToUInt64 get uint64 value from fieldValue
-func (e *structEncoder) fieldValueToUInt64(fieldType reflect.Type, fieldValue reflect.Value) uint64 {
+func (e *structEncoderImpl) fieldValueToUInt64(fieldType reflect.Type, fieldValue reflect.Value) uint64 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Uint()
 	}
@@ -276,7 +276,7 @@ func (e *structEncoder) fieldValueToUInt64(fieldType reflect.Type, fieldValue re
 }
 
 // fieldValueToFloat32 get float32 value from fieldValue
-func (e *structEncoder) fieldValueToFloat32(fieldType reflect.Type, fieldValue reflect.Value) float32 {
+func (e *structEncoderImpl) fieldValueToFloat32(fieldType reflect.Type, fieldValue reflect.Value) float32 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return float32(reflect.Zero(fieldType).Float())
 	}
@@ -284,7 +284,7 @@ func (e *structEncoder) fieldValueToFloat32(fieldType reflect.Type, fieldValue r
 }
 
 // fieldValueToFloat64 get float64 value from fieldValue
-func (e *structEncoder) fieldValueToFloat64(fieldType reflect.Type, fieldValue reflect.Value) float64 {
+func (e *structEncoderImpl) fieldValueToFloat64(fieldType reflect.Type, fieldValue reflect.Value) float64 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Float()
 	}
@@ -292,7 +292,7 @@ func (e *structEncoder) fieldValueToFloat64(fieldType reflect.Type, fieldValue r
 }
 
 // fieldValueToBool get bool value from fieldValue
-func (e *structEncoder) fieldValueToBool(fieldType reflect.Type, fieldValue reflect.Value) bool {
+func (e *structEncoderImpl) fieldValueToBool(fieldType reflect.Type, fieldValue reflect.Value) bool {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Bool()
 	}

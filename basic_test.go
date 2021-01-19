@@ -13,10 +13,10 @@ import (
 func TestBasicEncoderWithSignals(t *testing.T) {
 	input := int32(456)
 
-	encoder := NewBasicEncoder(0x10, BasicEncoderOptionRoot(rootToken))
+	encoder := newBasicEncoder(0x10, basicEncoderOptionRoot(rootToken))
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	value, err := ToInt32(inputBuf[2+3+3:])
@@ -27,10 +27,10 @@ func TestBasicEncoderWithSignals(t *testing.T) {
 func TestBasicEncoderWithSignalsNoRoot(t *testing.T) {
 	input := int32(456)
 
-	encoder := NewBasicEncoder(0x10)
+	encoder := newBasicEncoder(0x10)
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	value, err := ToInt32(inputBuf[3+3:])
@@ -41,10 +41,10 @@ func TestBasicEncoderWithSignalsNoRoot(t *testing.T) {
 func TestBasicSliceEncoderWithSignals(t *testing.T) {
 	input := []int32{123, 456}
 
-	encoder := NewBasicEncoder(0x10, BasicEncoderOptionRoot(rootToken))
+	encoder := newBasicEncoder(0x10, basicEncoderOptionRoot(rootToken))
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	value, err := ToInt32Slice(inputBuf[2+3+3:])
@@ -62,10 +62,10 @@ func TestBasicSliceEncoderWithSignals(t *testing.T) {
 func TestBasicSliceEncoderWithSignalsNoRoot(t *testing.T) {
 	input := []int32{123, 456}
 
-	encoder := NewBasicEncoder(0x10)
+	encoder := newBasicEncoder(0x10)
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	value, err := ToInt32Slice(inputBuf[3+3:])

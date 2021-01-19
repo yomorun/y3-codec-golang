@@ -25,9 +25,9 @@ type y3Codec struct {
 // Marshal encode interface to []byte
 func (c y3Codec) Marshal(input interface{}) ([]byte, error) {
 	if c.isStruct(input) {
-		return NewStructEncoder(c.observe, StructEncoderOptionRoot(rootToken)).Encode(input)
+		return newStructEncoder(c.observe, structEncoderOptionRoot(rootToken)).Encode(input)
 	}
-	return NewBasicEncoder(c.observe, BasicEncoderOptionRoot(rootToken)).Encode(input)
+	return newBasicEncoder(c.observe, basicEncoderOptionRoot(rootToken)).Encode(input)
 }
 
 // isStruct determine whether an interface is a structure

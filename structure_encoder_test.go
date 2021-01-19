@@ -16,10 +16,10 @@ func TestStructEncoderWithSignals(t *testing.T) {
 		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
 	}
 
-	encoder := NewStructEncoder(0x30, StructEncoderOptionRoot(rootToken))
+	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken))
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	var mold exampleData
@@ -38,10 +38,10 @@ func TestStructEncoderWithSignalsNoRoot(t *testing.T) {
 		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
 	}
 
-	encoder := NewStructEncoder(0x30)
+	encoder := newStructEncoder(0x30)
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	var mold exampleData
@@ -61,10 +61,10 @@ func TestStructSliceEncoderWithSignals(t *testing.T) {
 		},
 	}
 
-	encoder := NewStructEncoder(0x30, StructEncoderOptionRoot(rootToken))
+	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken))
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	var mold exampleSlice
@@ -85,10 +85,10 @@ func TestStructSliceEncoderWithSignalsNoRoot(t *testing.T) {
 		},
 	}
 
-	encoder := NewStructEncoder(0x30)
+	encoder := newStructEncoder(0x30)
 	inputBuf, _ := encoder.Encode(input,
-		CreateSignal(0x02).SetString("a"),
-		CreateSignal(0x03).SetString("b"))
+		createSignal(0x02).SetString("a"),
+		createSignal(0x03).SetString("b"))
 	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
 
 	var mold exampleSlice

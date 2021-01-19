@@ -8,7 +8,7 @@ import (
 
 // ToObject decode bytes to interface
 func ToObject(v []byte, output interface{}) error {
-	output, err := NewStructDecoder(output).Decode(v)
+	output, err := newStructDecoder(output).Decode(v)
 	return err
 }
 

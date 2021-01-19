@@ -8,35 +8,35 @@ import (
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
-// BasicEncoder is a Encoder for BasicTestData data types
-type BasicEncoder interface {
+// basicEncoder is a Encoder for BasicTestData data types
+type basicEncoder interface {
 	// Encode: encode interface to bytes
-	Encode(input interface{}, signals ...*Signal) (buf []byte, err error)
+	Encode(input interface{}, signals ...*signal) (buf []byte, err error)
 }
 
-// basicEncoder is implementation of the BasicEncoder interface
-type basicEncoder struct {
+// basicEncoderImpl is implementation of the basicEncoder interface
+type basicEncoderImpl struct {
 	observe byte
 	root    byte
 }
 
-// BasicEncoderOption create basicEncoder with option
-type BasicEncoderOption func(*basicEncoder)
+// basicEncoderOption create basicEncoderImpl with option
+type basicEncoderOption func(*basicEncoderImpl)
 
-// BasicEncoderOptionRoot set root value for creating basicEncoder
-func BasicEncoderOptionRoot(root byte) BasicEncoderOption {
-	return func(b *basicEncoder) {
+// basicEncoderOptionRoot set root value for creating basicEncoderImpl
+func basicEncoderOptionRoot(root byte) basicEncoderOption {
+	return func(b *basicEncoderImpl) {
 		b.root = root
 	}
 }
 
-// NewBasicEncoder create a BasicEncoder interface
-func NewBasicEncoder(observe byte, options ...func(*basicEncoder)) BasicEncoder {
+// newBasicEncoder create a basicEncoder interface
+func newBasicEncoder(observe byte, options ...func(*basicEncoderImpl)) basicEncoder {
 	if utils.ForbiddenCustomizedKey(observe) {
 		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
 	}
 
-	encoder := &basicEncoder{observe: observe, root: utils.EmptyKey}
+	encoder := &basicEncoderImpl{observe: observe, root: utils.EmptyKey}
 
 	for _, option := range options {
 		option(encoder)
@@ -46,7 +46,7 @@ func NewBasicEncoder(observe byte, options ...func(*basicEncoder)) BasicEncoder 
 }
 
 // Encode encode interface{} to bytes
-func (e *basicEncoder) Encode(input interface{}, signals ...*Signal) (buf []byte, err error) {
+func (e *basicEncoderImpl) Encode(input interface{}, signals ...*signal) (buf []byte, err error) {
 	encoders := make([]*PrimitivePacketEncoder, 0)
 	for _, signal := range signals {
 		encoders = append(encoders, signal.ToEncoder())
@@ -55,7 +55,7 @@ func (e *basicEncoder) Encode(input interface{}, signals ...*Signal) (buf []byte
 }
 
 // encodeBasic encode interface{} to bytes, and inserting signals
-func (e *basicEncoder) encodeBasic(input interface{}, signals []*PrimitivePacketEncoder) ([]byte, error) {
+func (e *basicEncoderImpl) encodeBasic(input interface{}, signals []*PrimitivePacketEncoder) ([]byte, error) {
 	if e.observe == 0 {
 		panic(fmt.Errorf("observe cannot be 0"))
 	}
@@ -109,7 +109,7 @@ func (e *basicEncoder) encodeBasic(input interface{}, signals []*PrimitivePacket
 }
 
 // encodeBasicSlice encode reflect.Value of slice, and inserting signals
-func (e *basicEncoder) encodeBasicSlice(value reflect.Value, signals []*PrimitivePacketEncoder) ([]byte, error) {
+func (e *basicEncoderImpl) encodeBasicSlice(value reflect.Value, signals []*PrimitivePacketEncoder) ([]byte, error) {
 	if value.Len() == 0 {
 		return nil, fmt.Errorf("no item is slice")
 	}
@@ -159,63 +159,63 @@ func (e *basicEncoder) encodeBasicSlice(value reflect.Value, signals []*Primitiv
 }
 
 // encodeBasicString encode string to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicString(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicString(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetStringValue(fmt.Sprintf("%v", input))
 	return encoder
 }
 
 // encodeBasicInt32 encode int32 to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicInt32(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicInt32(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetInt32Value(input.(int32))
 	return encoder
 }
 
 // encodeBasicUint32 encode uint32 to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicUint32(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicUint32(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetUInt32Value(input.(uint32))
 	return encoder
 }
 
 // encodeBasicInt64 encode int64 to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicInt64(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicInt64(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetInt64Value(input.(int64))
 	return encoder
 }
 
 // encodeBasicUint64 encode uint64 to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicUint64(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicUint64(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetUInt64Value(input.(uint64))
 	return encoder
 }
 
 // encodeBasicFloat32 encode float32 to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicFloat32(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicFloat32(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetFloat32Value(input.(float32))
 	return encoder
 }
 
 // encodeBasicFloat64 encode float64 to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicFloat64(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicFloat64(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetFloat64Value(input.(float64))
 	return encoder
 }
 
 // encodeBasicBool encode bool to PrimitivePacketEncoder
-func (e *basicEncoder) encodeBasicBool(input interface{}) *PrimitivePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicBool(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetBoolValue(input.(bool))
 	return encoder
 }
 
 // encodeBasicStringSlice encode reflect.Value of []string to NodePacketEncoder
-func (e *basicEncoder) encodeBasicStringSlice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicStringSlice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToStringSliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -228,7 +228,7 @@ func (e *basicEncoder) encodeBasicStringSlice(value reflect.Value) *NodePacketEn
 }
 
 // encodeBasicInt32Slice encode reflect.Value of []int32 to NodePacketEncoder
-func (e *basicEncoder) encodeBasicInt32Slice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicInt32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -241,7 +241,7 @@ func (e *basicEncoder) encodeBasicInt32Slice(value reflect.Value) *NodePacketEnc
 }
 
 // encodeBasicUint32Slice encode reflect.Value of []uint32 to NodePacketEncoder
-func (e *basicEncoder) encodeBasicUint32Slice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicUint32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -254,7 +254,7 @@ func (e *basicEncoder) encodeBasicUint32Slice(value reflect.Value) *NodePacketEn
 }
 
 // encodeBasicInt64Slice encode reflect.Value of []int64 to NodePacketEncoder
-func (e *basicEncoder) encodeBasicInt64Slice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicInt64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -267,7 +267,7 @@ func (e *basicEncoder) encodeBasicInt64Slice(value reflect.Value) *NodePacketEnc
 }
 
 // encodeBasicUint64Slice encode reflect.Value of []uint64 to NodePacketEncoder
-func (e *basicEncoder) encodeBasicUint64Slice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicUint64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -280,7 +280,7 @@ func (e *basicEncoder) encodeBasicUint64Slice(value reflect.Value) *NodePacketEn
 }
 
 // encodeBasicFloat32Slice encode reflect.Value of []float32 to NodePacketEncoder
-func (e *basicEncoder) encodeBasicFloat32Slice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicFloat32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -293,7 +293,7 @@ func (e *basicEncoder) encodeBasicFloat32Slice(value reflect.Value) *NodePacketE
 }
 
 // encodeBasicFloat64Slice encode reflect.Value of []float64 to NodePacketEncoder
-func (e *basicEncoder) encodeBasicFloat64Slice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicFloat64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
 		for _, v := range out {
@@ -306,7 +306,7 @@ func (e *basicEncoder) encodeBasicFloat64Slice(value reflect.Value) *NodePacketE
 }
 
 // encodeBasicBoolSlice encode reflect.Value of []bool to NodePacketEncoder
-func (e *basicEncoder) encodeBasicBoolSlice(value reflect.Value) *NodePacketEncoder {
+func (e *basicEncoderImpl) encodeBasicBoolSlice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToBoolSliceArray(value.Interface()); ok {
 		for _, v := range out {
