@@ -16,19 +16,19 @@ type Observable interface {
 	OnObserve(function func(v []byte) (interface{}, error)) chan interface{}
 }
 
-type ObservableImpl struct {
+type observableImpl struct {
 	iterable Iterable
 }
 
-type IterableImpl struct {
+type iterableImpl struct {
 	channel chan interface{}
 }
 
-func (i *IterableImpl) Observe() <-chan interface{} {
+func (i *iterableImpl) Observe() <-chan interface{} {
 	return i.channel
 }
 
-func (o *ObservableImpl) Observe() <-chan interface{} {
+func (o *observableImpl) Observe() <-chan interface{} {
 	return o.iterable.Observe()
 }
 
@@ -53,7 +53,7 @@ func FromStream(reader io.Reader) Observable {
 }
 
 //Processing callback function when there is data
-func (o *ObservableImpl) OnObserve(function func(v []byte) (interface{}, error)) chan interface{} {
+func (o *observableImpl) OnObserve(function func(v []byte) (interface{}, error)) chan interface{} {
 	_next := make(chan interface{})
 
 	f := func(next chan interface{}) {
@@ -84,7 +84,7 @@ func (o *ObservableImpl) OnObserve(function func(v []byte) (interface{}, error))
 }
 
 //Get the value of the subscribe key from the stream
-func (o *ObservableImpl) Subscribe(key byte) Observable {
+func (o *observableImpl) Subscribe(key byte) Observable {
 
 	f := func(next chan interface{}) {
 		defer close(next)
@@ -174,7 +174,7 @@ func decodeLength(buf []byte) (length int32, err error) {
 func createObservable(f func(next chan interface{})) Observable {
 	next := make(chan interface{})
 	go f(next)
-	return &ObservableImpl{iterable: &IterableImpl{channel: next}}
+	return &observableImpl{iterable: &iterableImpl{channel: next}}
 }
 
 //filter root data from the stream

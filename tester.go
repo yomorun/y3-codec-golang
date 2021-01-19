@@ -34,7 +34,7 @@ func testDecoder(observe byte, buf []byte, callback func(v []byte) (interface{},
 func (t *observableTester) Init(callback func(v []byte) (interface{}, error)) *observableTester {
 	t.sourceChannel = make(chan interface{})
 
-	t.source = &ObservableImpl{iterable: &IterableImpl{channel: t.sourceChannel}}
+	t.source = &observableImpl{iterable: &iterableImpl{channel: t.sourceChannel}}
 
 	consumer := t.source.Subscribe(t.observe).OnObserve(callback)
 
