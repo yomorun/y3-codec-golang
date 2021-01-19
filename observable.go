@@ -32,6 +32,7 @@ func (o *ObservableImpl) Observe() <-chan interface{} {
 	return o.iterable.Observe()
 }
 
+//FromStream reads data from reader
 func FromStream(reader io.Reader) Observable {
 
 	f := func(next chan interface{}) {
@@ -51,6 +52,7 @@ func FromStream(reader io.Reader) Observable {
 	return createObservable(f)
 }
 
+//Processing callback function when there is data
 func (o *ObservableImpl) OnObserve(function func(v []byte) (interface{}, error)) chan interface{} {
 	_next := make(chan interface{})
 
@@ -81,6 +83,7 @@ func (o *ObservableImpl) OnObserve(function func(v []byte) (interface{}, error))
 	return _next
 }
 
+//Get the value of the subscribe key from the stream
 func (o *ObservableImpl) Subscribe(key byte) Observable {
 
 	f := func(next chan interface{}) {
@@ -88,7 +91,7 @@ func (o *ObservableImpl) Subscribe(key byte) Observable {
 
 		resultBuffer := make([]byte, 0)
 		var (
-			flow   int32 = 0 //0 未监听到，1 判断长度，2 判断v
+			flow   int32 = 0 //0 start，1 get length，2 get value
 			length int32 = 1
 			value  int32 = 0
 			reject bool  = false
@@ -174,6 +177,7 @@ func createObservable(f func(next chan interface{})) Observable {
 	return &ObservableImpl{iterable: &IterableImpl{channel: next}}
 }
 
+//filter root data from the stream
 func filterRoot(observe <-chan interface{}) <-chan interface{} {
 	next := make(chan interface{})
 
@@ -183,7 +187,7 @@ func filterRoot(observe <-chan interface{}) <-chan interface{} {
 		var send chan interface{}
 
 		var (
-			rootflow   int32 = 0 //0 未监听到，1 判断长度，2 判断v
+			rootflow   int32 = 0 //0 start，1 get length，2 get value
 			rootlength int32 = 1
 			rootvalue  int32 = 0
 			rootkey    byte  = 0x01
@@ -216,7 +220,7 @@ func filterRoot(observe <-chan interface{}) <-chan interface{} {
 
 					if rootflow == 1 { // L
 						rootBuffer = append(rootBuffer, b)
-						l, e := decodeLength(rootBuffer[1 : rootlength+1]) //l 是value占字节，s是l占字节
+						l, e := decodeLength(rootBuffer[1 : rootlength+1])
 
 						if e != nil {
 							rootlength++
