@@ -18,8 +18,8 @@ func TestToObject(t *testing.T) {
 	err := ToObject(inputBuf[2:], &mold)
 
 	assert.NoError(t, err, fmt.Sprintf("converter error:%v", err))
-	assert.Equal(t, input.Temperature, mold.Temperature, fmt.Sprintf("testing %v: %X", input.Temperature, mold.Temperature))
-	assert.Equal(t, input.Humidity, mold.Humidity, fmt.Sprintf("testing %v: %X", input.Humidity, mold.Humidity))
+	assert.Equal(t, input.Temperature, mold.Temperature, fmt.Sprintf("tester %v: %X", input.Temperature, mold.Temperature))
+	assert.Equal(t, input.Humidity, mold.Humidity, fmt.Sprintf("tester %v: %X", input.Humidity, mold.Humidity))
 	testPrintf("mold=%v, Temperature=%v, err=%v\n", mold, mold.Temperature, err)
 }
 
@@ -31,8 +31,8 @@ func TestToObjectSlice(t *testing.T) {
 	err := ToObject(inputBuf[2:], &mold)
 
 	assert.NoError(t, err, fmt.Sprintf("converter error:%v", err))
-	assert.Equal(t, input[0].Temperature, mold[0].Temperature, fmt.Sprintf("testing %v: %X", input[0].Temperature, mold[0].Temperature))
-	assert.Equal(t, input[0].Humidity, mold[0].Humidity, fmt.Sprintf("testing %v: %X", input[0].Humidity, mold[0].Humidity))
+	assert.Equal(t, input[0].Temperature, mold[0].Temperature, fmt.Sprintf("tester %v: %X", input[0].Temperature, mold[0].Temperature))
+	assert.Equal(t, input[0].Humidity, mold[0].Humidity, fmt.Sprintf("tester %v: %X", input[0].Humidity, mold[0].Humidity))
 	testPrintf("mold[0].Temperature=%v, mold[0].Humidity=%v, err=%v\n", mold[0].Temperature, mold[0].Humidity, err)
 }
 
@@ -169,7 +169,7 @@ func testBasic(t *testing.T, expected interface{}, buf []byte, converter func(v 
 	testPrintf("value=%v err=%v\n", result, err)
 
 	assert.NoError(t, err, fmt.Sprintf("converter error:%v", err))
-	assert.Equal(t, expected, result, fmt.Sprintf("testing %v: %X", expected, utils.FormatBytes(buf)))
+	assert.Equal(t, expected, result, fmt.Sprintf("tester %v: %X", expected, utils.FormatBytes(buf)))
 }
 
 func testBasicSlice(t *testing.T, expected interface{}, buf []byte, converter func(v []byte) (interface{}, error)) {
@@ -179,7 +179,7 @@ func testBasicSlice(t *testing.T, expected interface{}, buf []byte, converter fu
 	expectedValue := reflect.ValueOf(expected)
 	resultValue := reflect.ValueOf(result)
 
-	assert.Equal(t, expected, result, fmt.Sprintf("testing %v: %X", expected, utils.FormatBytes(buf)))
+	assert.Equal(t, expected, result, fmt.Sprintf("tester %v: %X", expected, utils.FormatBytes(buf)))
 	assert.Equal(t, expectedValue.Kind(), resultValue.Kind(), fmt.Sprintf("Kind mismatch %v: %v", expectedValue.Kind(), resultValue.Kind()))
 	assert.Equal(t, expectedValue.Len(), resultValue.Len(), fmt.Sprintf("Len is not equal %v: %v", expectedValue.Len(), resultValue.Len()))
 

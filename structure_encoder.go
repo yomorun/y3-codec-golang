@@ -1,68 +1,79 @@
 package y3
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
+// StructEncoder is a Encoder for Struct type
 type StructEncoder interface {
-	Encode(input interface{}) ([]byte, error)
+	// Encode encode interface to bytes
+	Encode(input interface{}, signals ...*Signal) ([]byte, error)
 }
 
-// structEncoder: for encode structure to packet
+// structEncoder is implementation of the StructEncoder interface
 type structEncoder struct {
 	config  *StructEncoderConfig
 	observe byte
+	root    byte
 }
 
-// StructEncoderConfig: config for Encoder
+// StructEncoderConfig is configuration for structEncoder
 type StructEncoderConfig struct {
 	ZeroFields bool
-	Mold       interface{}
-	TagName    string // Default value: yomo
+	TagName    string
 }
 
-func NewStructEncoder(observe byte, mold interface{}) StructEncoder {
-	config := &StructEncoderConfig{
-		ZeroFields: true,
-		Mold:       mold,
-	}
+// StructEncoderOption create structEncoder with option
+type StructEncoderOption func(*structEncoder)
 
-	return NewStructEncoderWithConfig(observe, config)
+// StructEncoderOptionRoot set root value for creating structEncoder
+func StructEncoderOptionRoot(root byte) StructEncoderOption {
+	return func(e *structEncoder) {
+		e.root = root
+	}
 }
 
-// NewStructEncoderWithConfig: create a Encoder for Struct
-func NewStructEncoderWithConfig(observe byte, config *StructEncoderConfig) StructEncoder {
-	if config.TagName == "" {
-		config.TagName = "yomo"
+// StructEncoderOptionConfig set StructEncoderConfig value for creating structEncoder
+func StructEncoderOptionConfig(config *StructEncoderConfig) StructEncoderOption {
+	return func(e *structEncoder) {
+		e.config = config
 	}
+}
 
-	result := &structEncoder{
-		config:  config,
+// NewStructEncoder create a StructEncoder interface
+func NewStructEncoder(observe byte, options ...func(*structEncoder)) StructEncoder {
+	if utils.ForbiddenCustomizedKey(observe) {
+		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
+	}
+	encoder := &structEncoder{
+		config: &StructEncoderConfig{
+			ZeroFields: true,
+			TagName:    "yomo",
+		},
 		observe: observe,
+		root:    utils.EmptyKey,
 	}
-
-	return result
+	for _, option := range options {
+		option(encoder)
+	}
+	return encoder
 }
 
-func (e structEncoder) Encode(input interface{}) ([]byte, error) {
-	packetEncoder, err := e.encode(input)
-	if err != nil {
-		return nil, err
+// Encode encode interface{} to bytes
+func (e structEncoder) Encode(input interface{}, signals ...*Signal) ([]byte, error) {
+	encoders := make([]*PrimitivePacketEncoder, 0)
+	for _, signal := range signals {
+		encoders = append(encoders, signal.ToEncoder())
 	}
-
-	if len(packetEncoder.GetValBuf()) == 0 {
-		return nil, fmt.Errorf("::Encode valBuf of packetEncoder is empty")
-	}
-
-	buf := packetEncoder.Encode()
-	return buf, err
+	return e.encode(input, encoders)
 }
 
-// encode: encode interface to NodePacketEncoder
-func (e *structEncoder) encode(input interface{}) (*NodePacketEncoder, error) {
+// encode encode interface to bytes
+func (e *structEncoder) encode(input interface{}, signals []*PrimitivePacketEncoder) ([]byte, error) {
 	var inputVal reflect.Value
 
 	if input != nil {
@@ -80,46 +91,37 @@ func (e *structEncoder) encode(input interface{}) (*NodePacketEncoder, error) {
 		return nil, fmt.Errorf("::encode input value is not valid")
 	}
 
-	var packetEncode *NodePacketEncoder
+	var nodeEncoder *NodePacketEncoder
 
 	inputKind := inputVal.Kind()
 	switch inputKind {
 	case reflect.Struct:
-		if utils.IsEmptyKey(e.observe) {
-			packetEncode = e.encodeStruct(reflect.ValueOf(input), nil)
-		} else {
-			root := NewNodePacketEncoder(int(startingToken))
-			packetEncode = e.encodeStruct(reflect.ValueOf(input), NewNodePacketEncoder(int(e.observe)))
-			if !packetEncode.IsEmpty() {
-				root.AddNodePacket(packetEncode)
-			}
-			packetEncode = root
-		}
+		nodeEncoder = e.encodeStruct(reflect.ValueOf(input), NewNodePacketEncoder(int(e.observe)))
 	case reflect.Slice:
-		if utils.IsEmptyKey(e.observe) {
-			packetEncode = e.encodeSlice(reflect.ValueOf(input), nil)
-		} else {
-			root := NewNodeArrayPacketEncoder(int(startingToken))
-			packetEncode = e.encodeSlice(reflect.ValueOf(input), NewNodePacketEncoder(int(e.observe)))
-			if !packetEncode.IsEmpty() {
-				root.AddNodePacket(packetEncode)
-			}
-			packetEncode = root
-		}
-
+		nodeEncoder = e.encodeSlice(reflect.ValueOf(input), NewNodePacketEncoder(int(e.observe)))
 	default:
 		return nil, fmt.Errorf("unsupported type: %s", inputKind)
 	}
 
-	return packetEncode, nil
+	if !utils.IsEmptyKey(e.root) {
+		root := NewNodePacketEncoder(int(e.root))
+		for _, signal := range signals {
+			root.AddPrimitivePacket(signal)
+		}
+		root.AddNodePacket(nodeEncoder)
+		return root.Encode(), nil
+	} else {
+		buf := make([][]byte, 0)
+		for _, signal := range signals {
+			buf = append(buf, signal.Encode())
+		}
+		buf = append(buf, nodeEncoder.Encode())
+		return bytes.Join(buf, []byte{}), nil
+	}
 }
 
-// encodeSlice: encode slice to NodePacketEncoder
-func (e *structEncoder) encodeSlice(sliceVal reflect.Value, root *NodePacketEncoder) *NodePacketEncoder {
-	if root == nil {
-		root = NewNodeArrayPacketEncoder(int(startingToken))
-	}
-
+// encodeSlice encode slice to NodePacketEncoder
+func (e *structEncoder) encodeSlice(sliceVal reflect.Value, wrapper *NodePacketEncoder) *NodePacketEncoder {
 	structType := sliceVal.Type()
 
 	for i := 0; i < sliceVal.Len(); i++ {
@@ -129,22 +131,18 @@ func (e *structEncoder) encodeSlice(sliceVal reflect.Value, root *NodePacketEnco
 			currentValue := sliceVal.Index(i)
 			p := e.encodeStruct(currentValue, NewNodePacketEncoder(utils.KeyOfArrayItem))
 			if !p.IsEmpty() {
-				root.AddNodePacket(p)
+				wrapper.AddNodePacket(p)
 			}
 		default:
 			panic(fmt.Errorf("root slice unsupported type: %s", elemType.Kind()))
 		}
 	}
 
-	return root
+	return wrapper
 }
 
-// encodeStruct: encode struct to NodePacketEncoder
-func (e *structEncoder) encodeStruct(structVal reflect.Value, root *NodePacketEncoder) *NodePacketEncoder {
-	if root == nil {
-		root = NewNodePacketEncoder(int(startingToken))
-	}
-
+// encodeStruct encode struct to NodePacketEncoder
+func (e *structEncoder) encodeStruct(structVal reflect.Value, wrapper *NodePacketEncoder) *NodePacketEncoder {
 	var fields []field
 
 	structType := structVal.Type()
@@ -156,14 +154,18 @@ func (e *structEncoder) encodeStruct(structVal reflect.Value, root *NodePacketEn
 	for _, f := range fields {
 		structField, fieldValue := f.field, f.val
 		fieldName := fieldNameByTag(e.config.TagName, structField)
-		e.encodeStructFromField(structField.Type, fieldName, fieldValue, root)
+		e.encodeStructFromField(structField.Type, fieldName, fieldValue, wrapper)
 	}
 
-	return root
+	return wrapper
 }
 
-// encodeStructFromField: encode struct from field
+// encodeStructFromField encode struct from field
 func (e *structEncoder) encodeStructFromField(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, en *NodePacketEncoder) {
+	if utils.ForbiddenCustomizedKey(utils.KeyOf(fieldName)) {
+		panic(fmt.Errorf("prohibit the use of this key: %v", fieldName))
+	}
+
 	if fieldType.Kind() == reflect.Struct {
 		leafNode := NewNodePacketEncoder(int(utils.KeyOf(fieldName)))
 		fieldValueType := fieldValue.Type()
@@ -215,7 +217,7 @@ func (e *structEncoder) encodeStructFromField(fieldType reflect.Type, fieldName 
 	}
 }
 
-// encodeArrayFromField: encode array from field
+// encodeArrayFromField encode array from field
 func (e *structEncoder) encodeArrayFromField(fieldValue reflect.Value, en *NodePacketEncoder) {
 	for i := 0; i < fieldValue.Len(); i++ {
 		currentData := fieldValue.Index(i)
@@ -224,7 +226,7 @@ func (e *structEncoder) encodeArrayFromField(fieldValue reflect.Value, en *NodeP
 	}
 }
 
-// encodeSliceFromField: encode slice from field
+// encodeSliceFromField encode slice from field
 func (e *structEncoder) encodeSliceFromField(fieldValue reflect.Value, en *NodePacketEncoder) {
 	for i := 0; i < fieldValue.Len(); i++ {
 		currentData := fieldValue.Index(i)
@@ -233,7 +235,7 @@ func (e *structEncoder) encodeSliceFromField(fieldValue reflect.Value, en *NodeP
 	}
 }
 
-// fieldValueToString: get string value from fieldValue
+// fieldValueToString get string value from fieldValue
 func (e *structEncoder) fieldValueToString(fieldType reflect.Type, fieldValue reflect.Value) string {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).String()
@@ -241,7 +243,7 @@ func (e *structEncoder) fieldValueToString(fieldType reflect.Type, fieldValue re
 	return fieldValue.String()
 }
 
-// fieldValueToInt32: get int32 value from fieldValue
+// fieldValueToInt32 get int32 value from fieldValue
 func (e *structEncoder) fieldValueToInt32(fieldType reflect.Type, fieldValue reflect.Value) int32 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return int32(reflect.Zero(fieldType).Int())
@@ -249,7 +251,7 @@ func (e *structEncoder) fieldValueToInt32(fieldType reflect.Type, fieldValue ref
 	return int32(fieldValue.Int())
 }
 
-// fieldValueToUint32: get uint32 value from fieldValue
+// fieldValueToUint32 get uint32 value from fieldValue
 func (e *structEncoder) fieldValueToUint32(fieldType reflect.Type, fieldValue reflect.Value) uint32 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return uint32(reflect.Zero(fieldType).Uint())
@@ -257,7 +259,7 @@ func (e *structEncoder) fieldValueToUint32(fieldType reflect.Type, fieldValue re
 	return uint32(fieldValue.Uint())
 }
 
-// fieldValueToInt64: get int64 value from fieldValue
+// fieldValueToInt64 get int64 value from fieldValue
 func (e *structEncoder) fieldValueToInt64(fieldType reflect.Type, fieldValue reflect.Value) int64 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Int()
@@ -265,7 +267,7 @@ func (e *structEncoder) fieldValueToInt64(fieldType reflect.Type, fieldValue ref
 	return fieldValue.Int()
 }
 
-// fieldValueToUInt64: get uint64 value from fieldValue
+// fieldValueToUInt64 get uint64 value from fieldValue
 func (e *structEncoder) fieldValueToUInt64(fieldType reflect.Type, fieldValue reflect.Value) uint64 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Uint()
@@ -273,7 +275,7 @@ func (e *structEncoder) fieldValueToUInt64(fieldType reflect.Type, fieldValue re
 	return fieldValue.Uint()
 }
 
-// fieldValueToFloat32: get float32 value from fieldValue
+// fieldValueToFloat32 get float32 value from fieldValue
 func (e *structEncoder) fieldValueToFloat32(fieldType reflect.Type, fieldValue reflect.Value) float32 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return float32(reflect.Zero(fieldType).Float())
@@ -281,7 +283,7 @@ func (e *structEncoder) fieldValueToFloat32(fieldType reflect.Type, fieldValue r
 	return float32(fieldValue.Float())
 }
 
-// fieldValueToFloat64: get float64 value from fieldValue
+// fieldValueToFloat64 get float64 value from fieldValue
 func (e *structEncoder) fieldValueToFloat64(fieldType reflect.Type, fieldValue reflect.Value) float64 {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Float()
@@ -289,7 +291,7 @@ func (e *structEncoder) fieldValueToFloat64(fieldType reflect.Type, fieldValue r
 	return fieldValue.Float()
 }
 
-// fieldValueToBool: get bool value from fieldValue
+// fieldValueToBool get bool value from fieldValue
 func (e *structEncoder) fieldValueToBool(fieldType reflect.Type, fieldValue reflect.Value) bool {
 	if fieldValue.IsZero() && e.config.ZeroFields {
 		return reflect.Zero(fieldType).Bool()

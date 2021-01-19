@@ -29,7 +29,7 @@ func TestMarshalBasicNative(t *testing.T) {
 }
 
 func testMarshalBasicNative(t *testing.T, expected []byte, T interface{}) {
-	var msg = fmt.Sprintf("testing %v, (%v)", expected, T)
+	var msg = fmt.Sprintf("tester %v, (%v)", expected, T)
 	proto := NewProtoCodec(packetutils.KeyOf(""))
 	buf, _ := proto.MarshalNative(T)
 	//fmt.Printf("#000 testMarshalBasicNative Kind=%v, buf=%v\n", reflect.ValueOf(T).Kind(), packetutils.FormatBytes(buf))
@@ -37,7 +37,7 @@ func testMarshalBasicNative(t *testing.T, expected []byte, T interface{}) {
 }
 
 func testMarshalBasicNativeSlice(t *testing.T, expected []byte, T interface{}) {
-	var msg = fmt.Sprintf("testing %v, (%v)", expected, T)
+	var msg = fmt.Sprintf("tester %v, (%v)", expected, T)
 	proto := NewProtoCodec(packetutils.KeyOf(""))
 	buf, _ := proto.MarshalNative(T)
 	//fmt.Printf("#000 testMarshalBasicNativeSlice Kind=%v, Elem=%v, buf=%v\n", reflect.ValueOf(T).Kind(), reflect.ValueOf(T).Index(0).Kind(), packetutils.FormatBytes(buf))

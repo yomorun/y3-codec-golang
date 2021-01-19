@@ -5,7 +5,17 @@ import (
 	"strings"
 )
 
-// KeyOf: parse hex string to byte
+const (
+	// EmptyKey mark an empty key
+	EmptyKey byte = 0
+)
+
+// IsEmptyKey determine if observe is empty
+func IsEmptyKey(observe byte) bool {
+	return observe == byte(EmptyKey)
+}
+
+// KeyOf parse hex string to byte
 func KeyOf(hexStr string) byte {
 	if strings.HasPrefix(hexStr, "0x") {
 		hexStr = strings.TrimPrefix(hexStr, "0x")
@@ -27,6 +37,20 @@ func KeyOf(hexStr string) byte {
 	return data[0]
 }
 
-func IsEmptyKey(observe byte) bool {
-	return observe == byte(0)
+// ForbiddenCustomizedKey is disabled for customized Key
+func ForbiddenCustomizedKey(key byte) bool {
+	switch key {
+	case 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f:
+		return true
+	}
+	return false
+}
+
+// AllowableSignalKey is allowed for creating Signal
+func AllowableSignalKey(key byte) bool {
+	switch key {
+	case 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f:
+		return true
+	}
+	return false
 }
