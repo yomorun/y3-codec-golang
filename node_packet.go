@@ -15,10 +15,12 @@ func (n *NodePacket) SeqID() byte {
 	return n.basePacket.tag.SeqID()
 }
 
-func (n *NodePacket) IsArray() bool {
-	return n.basePacket.tag.IsArray()
+// IsSlice determine if the current node is a Slice
+func (n *NodePacket) IsSlice() bool {
+	return n.basePacket.tag.IsSlice()
 }
 
-func (n *NodePacket) GetValbuf() []byte {
-	return n.valbuf
+// GetValBuf get raw buffer of NodePacket
+func (n *NodePacket) GetValBuf() []byte {
+	return n.valBuf
 }

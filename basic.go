@@ -219,7 +219,7 @@ func (e *basicEncoder) encodeBasicStringSlice(value reflect.Value) *NodePacketEn
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToStringSliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetStringValue(fmt.Sprintf("%v", v))
 			node.AddPrimitivePacket(item)
 		}
@@ -232,7 +232,7 @@ func (e *basicEncoder) encodeBasicInt32Slice(value reflect.Value) *NodePacketEnc
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetInt32Value(int32(v.(int64)))
 			node.AddPrimitivePacket(item)
 		}
@@ -245,7 +245,7 @@ func (e *basicEncoder) encodeBasicUint32Slice(value reflect.Value) *NodePacketEn
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetUInt32Value(uint32(v.(uint64)))
 			node.AddPrimitivePacket(item)
 		}
@@ -258,7 +258,7 @@ func (e *basicEncoder) encodeBasicInt64Slice(value reflect.Value) *NodePacketEnc
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetInt64Value(v.(int64))
 			node.AddPrimitivePacket(item)
 		}
@@ -271,7 +271,7 @@ func (e *basicEncoder) encodeBasicUint64Slice(value reflect.Value) *NodePacketEn
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetUInt64Value(v.(uint64))
 			node.AddPrimitivePacket(item)
 		}
@@ -284,7 +284,7 @@ func (e *basicEncoder) encodeBasicFloat32Slice(value reflect.Value) *NodePacketE
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetFloat32Value(float32(v.(float64)))
 			node.AddPrimitivePacket(item)
 		}
@@ -297,7 +297,7 @@ func (e *basicEncoder) encodeBasicFloat64Slice(value reflect.Value) *NodePacketE
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetFloat64Value(v.(float64))
 			node.AddPrimitivePacket(item)
 		}
@@ -310,7 +310,7 @@ func (e *basicEncoder) encodeBasicBoolSlice(value reflect.Value) *NodePacketEnco
 	var node = NewNodeArrayPacketEncoder(int(e.observe))
 	if out, ok := utils.ToBoolSliceArray(value.Interface()); ok {
 		for _, v := range out {
-			var item = NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetBoolValue(v.(bool))
 			node.AddPrimitivePacket(item)
 		}

@@ -162,7 +162,7 @@ func (e *Encoder) encodeSlice(sliceVal reflect.Value, root *y3.NodePacketEncoder
 		switch elemType.Kind() {
 		case reflect.Struct:
 			currentValue := sliceVal.Index(i)
-			p := e.encodeStruct(currentValue, y3.NewNodePacketEncoder(utils.KeyOfArrayItem))
+			p := e.encodeStruct(currentValue, y3.NewNodePacketEncoder(utils.KeyOfSliceItem))
 			if !p.IsEmpty() {
 				root.AddNodePacket(p)
 			}
@@ -255,7 +255,7 @@ func (e *Encoder) encodeArrayFromField(fieldValue reflect.Value, en *y3.NodePack
 	for i := 0; i < fieldValue.Len(); i++ {
 		currentData := fieldValue.Index(i)
 		currentType := fieldValue.Index(i).Type()
-		e.encodeStructFromField(currentType, utils.KeyStringOfArrayItem, currentData, en)
+		e.encodeStructFromField(currentType, utils.KeyStringOfSliceItem, currentData, en)
 	}
 }
 
@@ -264,7 +264,7 @@ func (e *Encoder) encodeSliceFromField(fieldValue reflect.Value, en *y3.NodePack
 	for i := 0; i < fieldValue.Len(); i++ {
 		currentData := fieldValue.Index(i)
 		currentType := fieldValue.Index(i).Type()
-		e.encodeStructFromField(currentType, utils.KeyStringOfArrayItem, currentData, en)
+		e.encodeStructFromField(currentType, utils.KeyStringOfSliceItem, currentData, en)
 	}
 }
 

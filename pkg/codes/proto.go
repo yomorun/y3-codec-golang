@@ -63,7 +63,7 @@ func (c *protoCodec) MarshalNative(input interface{}) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return np.GetValbuf(), nil
+		return np.GetValBuf(), nil
 	}
 	return marshalBasicNative(c.Observe, input)
 }

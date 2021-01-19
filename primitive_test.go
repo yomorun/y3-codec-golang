@@ -43,8 +43,8 @@ func TestPacketRead(t *testing.T) {
 		t.Errorf("res.Length actual = %v, and Expected = %v", res.length, expectedLength)
 	}
 
-	if !_compareByteSlice(res.valbuf, expectedValue) {
-		t.Errorf("res.raw actual = %v, and Expected = %v", res.valbuf, expectedValue)
+	if !_compareByteSlice(res.valBuf, expectedValue) {
+		t.Errorf("res.raw actual = %v, and Expected = %v", res.valBuf, expectedValue)
 	}
 
 	if endPos != 3 {

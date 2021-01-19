@@ -35,7 +35,7 @@ func (d BasicDecoder) UnmarshalNative(data []byte, mold *interface{}) error {
 		if err != nil {
 			return err
 		}
-		if nodePacket.IsArray() && len(nodePacket.PrimitivePackets) > 0 {
+		if nodePacket.IsSlice() && len(nodePacket.PrimitivePackets) > 0 {
 			return d.unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
 		}
 		return fmt.Errorf("not be a packet that can be resolved. mold=%v", mold)
@@ -65,7 +65,7 @@ func (d BasicDecoder) unmarshalPacket(packet interface{}, isNode bool, mold *int
 	}
 
 	nodePacket := packet.(y3.NodePacket)
-	if nodePacket.IsArray() && len(nodePacket.PrimitivePackets) > 0 {
+	if nodePacket.IsSlice() && len(nodePacket.PrimitivePackets) > 0 {
 		return d.unmarshalPrimitivePacketArray(nodePacket.PrimitivePackets, mold)
 	}
 

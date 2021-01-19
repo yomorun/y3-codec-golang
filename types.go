@@ -6,11 +6,13 @@ import (
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
+// ToObject decode bytes to interface
 func ToObject(v []byte, output interface{}) error {
 	output, err := NewStructDecoder(output).Decode(v)
 	return err
 }
 
+// ToInt32 decode bytes to int32
 func ToInt32(v []byte) (int32, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -23,12 +25,13 @@ func ToInt32(v []byte) (int32, error) {
 	return value, nil
 }
 
+// ToInt32Slice decode bytes to []int32
 func ToInt32Slice(v []byte) ([]int32, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]int32, 0)
@@ -39,6 +42,7 @@ func ToInt32Slice(v []byte) ([]int32, error) {
 	return result, nil
 }
 
+// ToUInt32 decode bytes to uint32
 func ToUInt32(v []byte) (uint32, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -51,12 +55,13 @@ func ToUInt32(v []byte) (uint32, error) {
 	return value, nil
 }
 
+// ToUInt32Slice decode bytes to []uint32
 func ToUInt32Slice(v []byte) ([]uint32, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]uint32, 0)
@@ -67,6 +72,7 @@ func ToUInt32Slice(v []byte) ([]uint32, error) {
 	return result, nil
 }
 
+// ToInt64 decode bytes to int64
 func ToInt64(v []byte) (int64, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -79,12 +85,13 @@ func ToInt64(v []byte) (int64, error) {
 	return value, nil
 }
 
+// ToInt64Slice decode bytes to []int64
 func ToInt64Slice(v []byte) ([]int64, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]int64, 0)
@@ -95,6 +102,7 @@ func ToInt64Slice(v []byte) ([]int64, error) {
 	return result, nil
 }
 
+// ToUInt64 decode bytes to uint64
 func ToUInt64(v []byte) (uint64, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -107,12 +115,13 @@ func ToUInt64(v []byte) (uint64, error) {
 	return value, nil
 }
 
+// ToUInt64Slice decode bytes to []uint64
 func ToUInt64Slice(v []byte) ([]uint64, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]uint64, 0)
@@ -123,6 +132,7 @@ func ToUInt64Slice(v []byte) ([]uint64, error) {
 	return result, nil
 }
 
+// ToFloat32 decode bytes to float32
 func ToFloat32(v []byte) (float32, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -135,12 +145,13 @@ func ToFloat32(v []byte) (float32, error) {
 	return value, nil
 }
 
+// ToFloat32Slice decode bytes to []float32
 func ToFloat32Slice(v []byte) ([]float32, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]float32, 0)
@@ -151,6 +162,7 @@ func ToFloat32Slice(v []byte) ([]float32, error) {
 	return result, nil
 }
 
+// ToFloat64 decode bytes to float64
 func ToFloat64(v []byte) (float64, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -163,12 +175,13 @@ func ToFloat64(v []byte) (float64, error) {
 	return value, nil
 }
 
+// ToFloat64Slice decode bytes to []float64
 func ToFloat64Slice(v []byte) ([]float64, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]float64, 0)
@@ -179,6 +192,7 @@ func ToFloat64Slice(v []byte) ([]float64, error) {
 	return result, nil
 }
 
+// ToBool decode bytes to bool
 func ToBool(v []byte) (bool, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -191,12 +205,13 @@ func ToBool(v []byte) (bool, error) {
 	return value, nil
 }
 
+// ToBoolSlice decode bytes to []bool
 func ToBoolSlice(v []byte) ([]bool, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]bool, 0)
@@ -207,6 +222,7 @@ func ToBoolSlice(v []byte) ([]bool, error) {
 	return result, nil
 }
 
+// ToUTF8String decode bytes to string
 func ToUTF8String(v []byte) (string, error) {
 	primitivePacket, _, _, err := DecodePrimitivePacket(v)
 	if err != nil {
@@ -219,12 +235,13 @@ func ToUTF8String(v []byte) (string, error) {
 	return value, nil
 }
 
+// ToUTF8StringSlice decode bytes to []string
 func ToUTF8StringSlice(v []byte) ([]string, error) {
 	packet, _, err := DecodeNodePacket(v)
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsArray() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]string, 0)

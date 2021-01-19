@@ -311,34 +311,3 @@ func parseNestedArrayPrimitivePacket() {
 	res, _, _ := y3.DecodeNodePacket(buf)
 	printNodePacket(res)
 }
-
-//func printPacketArray(packet *y3.PrimitivePacket) {
-//	arr, _ := packet.ToPacketArray()
-//	//fmt.Println("#20", "len(arr):", len(arr))
-//	for _, item := range arr {
-//		if item.HasPacketArray() {
-//			printPacketArray(item)
-//		} else {
-//			fmt.Println("#20", "Item:", fmt.Sprintf("key=%v value=%v", item.SeqID(), valueOf(item)))
-//		}
-//	}
-//}
-
-func valueOf(packet *y3.PrimitivePacket) interface{} {
-	num, err := packet.ToInt32()
-	if err == nil && num > 0 {
-		return num
-	}
-	str, _ := packet.ToUTF8String()
-	return str
-}
-
-func int32Of(packet *y3.PrimitivePacket) int32 {
-	n, _ := packet.ToInt32()
-	return n
-}
-
-func stringOf(packet *y3.PrimitivePacket) string {
-	str, _ := packet.ToUTF8String()
-	return str
-}

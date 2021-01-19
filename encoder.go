@@ -29,7 +29,7 @@ func (enc *encoder) IsEmpty() bool {
 }
 
 func (enc *encoder) String() string {
-	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valbuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
+	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valBuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
 }
 
 // PrimitivePacketEncoder used for encode a primitive packet
@@ -59,7 +59,7 @@ func (enc *PrimitivePacketEncoder) SetInt32Value(v int32) {
 	if err != nil {
 		panic(err)
 	}
-	// enc.valbuf.Write(buf)
+	// enc.valBuf.Write(buf)
 }
 
 // SetUInt32Value encode uint32 value
@@ -131,7 +131,7 @@ func (enc *PrimitivePacketEncoder) SetBoolValue(v bool) {
 // SetStringValue encode string
 func (enc *PrimitivePacketEncoder) SetStringValue(v string) {
 	// buf := []byte(v)
-	// enc.valbuf.Write(buf)
+	// enc.valBuf.Write(buf)
 	enc.valbuf = []byte(v)
 }
 
@@ -204,7 +204,7 @@ func (enc *encoder) writeTag() {
 }
 
 func (enc *encoder) writeLengthBuf() {
-	// vallen := enc.valbuf.Len()
+	// vallen := enc.valBuf.Len()
 	vallen := len(enc.valbuf)
 	if vallen < 1 {
 		panic("length must greater than 0")
@@ -229,7 +229,7 @@ func (enc *encoder) Encode() []byte {
 	// Length
 	enc.writeLengthBuf()
 	// Value
-	// enc.buf.Write(enc.valbuf.Bytes())
+	// enc.buf.Write(enc.valBuf.Bytes())
 	enc.buf.Write(enc.valbuf)
 
 	return enc.buf.Bytes()

@@ -28,7 +28,7 @@ func PrintNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bo
 
 	if len(node.NodePackets) > 0 {
 		for _, n := range node.NodePackets {
-			if n.IsArray() {
+			if n.IsSlice() {
 				fmt.Printf(" %#x:[ ", n.SeqID())
 				PrintNodeFormat(&n, format, true, false)
 				fmt.Printf(" ]")

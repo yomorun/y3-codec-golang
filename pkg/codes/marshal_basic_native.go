@@ -124,7 +124,7 @@ func marshalStringSlice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToStringSliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetStringValue(fmt.Sprintf("%v", v))
 			node.AddPrimitivePacket(item)
 		}
@@ -137,7 +137,7 @@ func marshalInt32Slice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToInt64SliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetInt32Value(int32(v.(int64)))
 			node.AddPrimitivePacket(item)
 		}
@@ -150,7 +150,7 @@ func marshalUint32Slice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUInt64SliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetUInt32Value(uint32(v.(uint64)))
 			node.AddPrimitivePacket(item)
 		}
@@ -163,7 +163,7 @@ func marshalInt64Slice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToInt64SliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetInt64Value(v.(int64))
 			node.AddPrimitivePacket(item)
 		}
@@ -176,7 +176,7 @@ func marshalUint64Slice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUInt64SliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetUInt64Value(v.(uint64))
 			node.AddPrimitivePacket(item)
 		}
@@ -189,7 +189,7 @@ func marshalFloat32Slice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUFloat64SliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetFloat32Value(float32(v.(float64)))
 			node.AddPrimitivePacket(item)
 		}
@@ -202,7 +202,7 @@ func marshalFloat64Slice(observe byte, input interface{}) []byte {
 	var node = y3.NewNodeArrayPacketEncoder(int(observe))
 	if out, ok := utils.ToUFloat64SliceArray(input); ok {
 		for _, v := range out {
-			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfArrayItem)
+			var item = y3.NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetFloat64Value(v.(float64))
 			node.AddPrimitivePacket(item)
 		}

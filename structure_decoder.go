@@ -230,7 +230,7 @@ func (d *structDecoder) takeValueByKey(fieldName string, fieldType reflect.Type,
 
 // takeNodeValue take Value from NodePacket
 func (d *structDecoder) takeNodeValue(fieldType reflect.Type, nodePacket NodePacket) (reflect.Value, bool) {
-	if nodePacket.IsArray() {
+	if nodePacket.IsSlice() {
 		switch fieldType.Kind() {
 		case reflect.Array:
 			return d.paddingToArray(fieldType, nodePacket), true
@@ -313,7 +313,7 @@ func (d *structDecoder) paddingToArray(fieldType reflect.Type, nodePacket NodePa
 
 	arrayType := reflect.ArrayOf(len(nodePacket.PrimitivePackets), fieldType.Elem())
 	arrayValue := reflect.New(arrayType).Elem()
-	reflect.Copy(arrayValue, slice) // TODO: 注意性能影响
+	reflect.Copy(arrayValue, slice)
 	return arrayValue
 }
 
