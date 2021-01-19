@@ -1,11 +1,9 @@
-package packetutils
+package examples
 
 import (
 	"fmt"
-	"io"
-	"time"
 
-	y3 "github.com/yomorun/y3-codec-golang"
+	"github.com/yomorun/y3-codec-golang"
 )
 
 func PrintNodePacket(node *y3.NodePacket) {
@@ -62,26 +60,4 @@ func PrintNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bo
 			fmt.Printf(" }")
 		}
 	}
-}
-
-type FmtOut struct{ io.Writer }
-
-func (w FmtOut) Write(buf []byte) (int, error) {
-	res, _, _ := y3.DecodeNodePacket(buf)
-	fmt.Printf("%v:\t", time.Now().Format("2006-01-02 15:04:05")) // debug:
-	PrintNodePacket(res)
-	fmt.Println()
-	return 0, nil
-}
-
-func FormatBytes(buf []byte) string {
-	var str = ""
-	for i, c := range buf {
-		if i == 0 {
-			str = str + fmt.Sprintf("%#x", c)
-			continue
-		}
-		str = str + fmt.Sprintf(" %#x", c)
-	}
-	return str
 }

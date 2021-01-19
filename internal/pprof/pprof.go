@@ -16,9 +16,9 @@ type pprofConf struct {
 }
 
 const (
-	pprofEnabled = "YOMO_PPROF_ENABLED"
-	pathPrefix   = "YOMO_PPROF_PATH_PREFIX"
-	endpoint     = "YOMO_PPROF_ENDPOINT"
+	pprofEnabled = "Y3_PPROF_ENABLED"
+	pathPrefix   = "Y3_PPROF_PATH_PREFIX"
+	endpoint     = "Y3_PPROF_ENDPOINT"
 )
 
 func newConf() pprofConf {
