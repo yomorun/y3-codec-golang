@@ -2,6 +2,7 @@ package y3
 
 import (
 	"io"
+	"sync"
 
 	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 )
@@ -21,11 +22,52 @@ type observableImpl struct {
 }
 
 type iterableImpl struct {
-	channel chan interface{}
+	next                   chan interface{}
+	subscribers            []chan interface{}
+	mutex                  sync.RWMutex
+	producerAlreadyCreated bool
 }
 
 func (i *iterableImpl) Observe() <-chan interface{} {
-	return i.channel
+	i.connect()
+	ch := make(chan interface{})
+	i.mutex.Lock()
+	i.subscribers = append(i.subscribers, ch)
+	i.mutex.Unlock()
+	return ch
+}
+
+func (i *iterableImpl) connect() {
+	i.mutex.Lock()
+	if !i.producerAlreadyCreated {
+		go i.produce()
+		i.producerAlreadyCreated = true
+	}
+	i.mutex.Unlock()
+}
+
+func (i *iterableImpl) produce() {
+	defer func() {
+		i.mutex.RLock()
+		for _, subscriber := range i.subscribers {
+			close(subscriber)
+		}
+		i.mutex.RUnlock()
+	}()
+
+	for {
+		select {
+		case item, ok := <-i.next:
+			if !ok {
+				return
+			}
+			i.mutex.RLock()
+			for _, subscriber := range i.subscribers {
+				subscriber <- item
+			}
+			i.mutex.RUnlock()
+		}
+	}
 }
 
 func (o *observableImpl) Observe() <-chan interface{} {
@@ -173,8 +215,10 @@ func decodeLength(buf []byte) (length int32, err error) {
 
 func createObservable(f func(next chan interface{})) Observable {
 	next := make(chan interface{})
+	subscribers := make([]chan interface{}, 0)
+
 	go f(next)
-	return &observableImpl{iterable: &iterableImpl{channel: next}}
+	return &observableImpl{iterable: &iterableImpl{next: next, subscribers: subscribers}}
 }
 
 //filter root data from the stream
