@@ -1,28 +1,14 @@
-package packetstructure
+package y3
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
-	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
-
-	y3 "github.com/yomorun/y3-codec-golang"
+	"github.com/yomorun/y3-codec-golang/internal/tester"
 )
 
-type Basic struct {
-	Vstring  string  `yomo:"0x10"`
-	Vint32   int32   `yomo:"0x11"`
-	Vint64   int64   `yomo:"0x12"`
-	Vuint32  uint32  `yomo:"0x13"`
-	Vuint64  uint64  `yomo:"0x14"`
-	Vfloat32 float32 `yomo:"0x15"`
-	Vfloat64 float64 `yomo:"0x16"`
-	Vbool    bool    `yomo:"0x17"`
-}
-
-func newBasic() Basic {
-	return Basic{
+func newBasic() tester.BasicTestData {
+	return tester.BasicTestData{
 		Vstring:  "foo",
 		Vint32:   int32(127),
 		Vint64:   int64(-1),
@@ -34,99 +20,19 @@ func newBasic() Basic {
 	}
 }
 
-type Embedded struct {
-	Basic   `yomo:"0x1a"`
-	Vaction string `yomo:"0x1b"`
-}
-
-type EmbeddedMore struct {
-	Embedded `yomo:"0x1c"`
-	Vanimal  string `yomo:"0x1d"`
-}
-
-type Named struct {
-	Base    Basic  `yomo:"0x1e"`
-	Vaction string `yomo:"0x1f"`
-}
-
-type NamedMore struct {
-	MyNest  Named  `yomo:"0x2a"`
-	Vanimal string `yomo:"0x2b"`
-}
-
-type Array struct {
-	Vfoo          string     `yomo:"0x20"`
-	Vbar          [2]string  `yomo:"0x21"`
-	Vint32Array   [2]int32   `yomo:"0x22"`
-	Vint64Array   [2]int64   `yomo:"0x23"`
-	Vuint32Array  [2]uint32  `yomo:"0x24"`
-	Vuint64Array  [2]uint64  `yomo:"0x25"`
-	Vfloat32Array [2]float32 `yomo:"0x26"`
-	Vfloat64Array [2]float64 `yomo:"0x27"`
-}
-
-type Slice struct {
-	Vfoo          string    `yomo:"0x30"`
-	Vbar          []string  `yomo:"0x31"`
-	Vint32Slice   []int32   `yomo:"0x32"`
-	Vint64Slice   []int64   `yomo:"0x33"`
-	Vuint32Slice  []uint32  `yomo:"0x34"`
-	Vuint64Slice  []uint64  `yomo:"0x35"`
-	Vfloat32Slice []float32 `yomo:"0x36"`
-	Vfloat64Slice []float64 `yomo:"0x37"`
-}
-
-type SliceStruct struct {
-	Vstring          string         `yomo:"0x2e"`
-	BaseList         []Basic        `yomo:"0x2f"`
-	NamedMoreList    []NamedMore    `yomo:"0x3a"`
-	EmbeddedMoreList []EmbeddedMore `yomo:"0x3b"`
-}
-
-type ArrayStruct struct {
-	Vstring          string          `yomo:"0x2e"`
-	BaseList         [2]Basic        `yomo:"0x2f"`
-	NamedMoreList    [2]NamedMore    `yomo:"0x3a"`
-	EmbeddedMoreList [2]EmbeddedMore `yomo:"0x3b"`
-}
-
-type Nested struct {
-	SubNested Sub1Nested `yomo:"0x3a"`
-}
-
-type Sub1Nested struct {
-	SubNested Sub2Nested `yomo:"0x3b"`
-}
-
-type Sub2Nested struct {
-	SubNested Sub3Nested `yomo:"0x3c"`
-}
-
-type Sub3Nested struct {
-	BasicList []Basic `yomo:"0x3d"`
-}
-
 func TestBasic_Struct(t *testing.T) {
 	t.Parallel()
 
 	input := newBasic()
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	fmt.Println("#404 DEBUG::TestBasic_Struct:")
-	fmt.Println(input)
-	packetutils.PrintNodePacket(node)
-	fmt.Println()
-
-	//result := Basic{}
-	var result Basic
-	runDecode(t, node, &result)
+	var result tester.BasicTestData
+	runDecode(t, inputBuf, &result)
 	testBasicStruct(t, result, input)
-	//fmt.Printf("#41.2 result=%v\n", result)
 }
 
-func runDecode(t *testing.T, node *y3.NodePacket, output interface{}) {
-	err := Decode(node, output)
+func runDecode(t *testing.T, inputBuf []byte, output interface{}) {
+	_, err := newStructDecoder(output).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -136,19 +42,14 @@ func runDecode(t *testing.T, node *y3.NodePacket, output interface{}) {
 func TestDecode_Embedded(t *testing.T) {
 	t.Parallel()
 
-	input := Embedded{
-		Basic:   newBasic(),
-		Vaction: "drink",
+	input := tester.EmbeddedTestData{
+		BasicTestData: newBasic(),
+		Vaction:       "drink",
 	}
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestDecode_Embedded: ")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result Embedded
-	err := Decode(node, &result)
+	var result tester.EmbeddedTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -158,22 +59,17 @@ func TestDecode_Embedded(t *testing.T) {
 		t.Errorf("vstring value should be 'drink': %#v", result.Vaction)
 	}
 
-	testBasicStruct(t, result.Basic, input.Basic)
+	testBasicStruct(t, result.BasicTestData, input.BasicTestData)
 }
 
 func TestDecode_EmbeddedMore(t *testing.T) {
 	t.Parallel()
 
-	input := EmbeddedMore{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"}
-	node, _ := Encode(input)
+	input := tester.EmbeddedMoreTestData{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestDecode_EmbeddedMore: ")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result EmbeddedMore
-	err := Decode(node, &result)
+	var result tester.EmbeddedMoreTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -187,22 +83,17 @@ func TestDecode_EmbeddedMore(t *testing.T) {
 		t.Errorf("vstring value should be 'drink': %#v", result.Vaction)
 	}
 
-	testBasicStruct(t, result.Basic, input.Basic)
+	testBasicStruct(t, result.BasicTestData, input.BasicTestData)
 }
 
 func TestDecoder_Named(t *testing.T) {
 	t.Parallel()
 
-	input := Named{Base: newBasic(), Vaction: "drink"}
-	node, _ := Encode(input)
+	input := tester.NamedTestData{Base: newBasic(), Vaction: "drink"}
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	// debug:
-	//fmt.Println("#404 DEBUG::TestDecoder_Named: ")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result Named
-	err := Decode(node, &result)
+	var result tester.NamedTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -218,16 +109,11 @@ func TestDecoder_Named(t *testing.T) {
 func TestDecoder_NamedMore(t *testing.T) {
 	t.Parallel()
 
-	input := NamedMore{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}
-	node, _ := Encode(input)
+	input := tester.NamedMoreTestData{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestDecode_EmbeddedMore: ")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result NamedMore
-	err := Decode(node, &result)
+	var result tester.NamedMoreTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -247,7 +133,7 @@ func TestDecoder_NamedMore(t *testing.T) {
 func TestArray(t *testing.T) {
 	t.Parallel()
 
-	input := Array{
+	input := tester.ArrayTestData{
 		"foo",
 		[2]string{"foo", "bar"},
 		[2]int32{1, 2},
@@ -257,15 +143,10 @@ func TestArray(t *testing.T) {
 		[2]float32{1, 2},
 		[2]float64{1, 2},
 	}
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestArray:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result Array
-	err := Decode(node, &result)
+	var result tester.ArrayTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -283,7 +164,7 @@ func TestArray(t *testing.T) {
 func TestSlice(t *testing.T) {
 	t.Parallel()
 
-	input := Slice{
+	input := tester.SliceTestData{
 		"foo",
 		[]string{"foo", "bar"},
 		[]int32{1, 2},
@@ -294,15 +175,10 @@ func TestSlice(t *testing.T) {
 		[]float64{1, 2},
 	}
 
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestSlice:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result Slice
-	err := Decode(node, &result)
+	var result tester.SliceTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -320,26 +196,21 @@ func TestSlice(t *testing.T) {
 func TestSliceStruct(t *testing.T) {
 	t.Parallel()
 
-	input := SliceStruct{
+	input := tester.SliceStructTestData{
 		Vstring:  "foo",
-		BaseList: []Basic{newBasic(), newBasic()},
-		NamedMoreList: []NamedMore{
-			{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
-			{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
-		EmbeddedMoreList: []EmbeddedMore{
-			{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
-			{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
+		BaseList: []tester.BasicTestData{newBasic(), newBasic()},
+		NamedMoreList: []tester.NamedMoreTestData{
+			{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
+			{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
+		EmbeddedMoreList: []tester.EmbeddedMoreTestData{
+			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
+			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
 	}
 
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestSliceStruct:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result SliceStruct
-	err := Decode(node, &result)
+	var result tester.SliceStructTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -366,33 +237,28 @@ func TestSliceStruct(t *testing.T) {
 	for i, v := range result.EmbeddedMoreList {
 		testValue(t, v.Vanimal, input.EmbeddedMoreList[i].Vanimal)
 		testValue(t, v.Vaction, input.EmbeddedMoreList[i].Vaction)
-		testBasicStruct(t, v.Basic, input.EmbeddedMoreList[i].Basic)
+		testBasicStruct(t, v.BasicTestData, input.EmbeddedMoreList[i].BasicTestData)
 	}
 }
 
 func TestArrayStruct(t *testing.T) {
 	t.Parallel()
 
-	input := ArrayStruct{
+	input := tester.ArrayStructTestData{
 		Vstring:  "foo",
-		BaseList: [2]Basic{newBasic(), newBasic()},
-		NamedMoreList: [2]NamedMore{
-			{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
-			{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
-		EmbeddedMoreList: [2]EmbeddedMore{
-			{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
-			{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
+		BaseList: [2]tester.BasicTestData{newBasic(), newBasic()},
+		NamedMoreList: [2]tester.NamedMoreTestData{
+			{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
+			{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
+		EmbeddedMoreList: [2]tester.EmbeddedMoreTestData{
+			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
+			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
 	}
 
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestArrayStruct:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result ArrayStruct
-	err := Decode(node, &result)
+	var result tester.ArrayStructTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -419,30 +285,25 @@ func TestArrayStruct(t *testing.T) {
 	for i, v := range result.EmbeddedMoreList {
 		testValue(t, v.Vanimal, input.EmbeddedMoreList[i].Vanimal)
 		testValue(t, v.Vaction, input.EmbeddedMoreList[i].Vaction)
-		testBasicStruct(t, v.Basic, input.EmbeddedMoreList[i].Basic)
+		testBasicStruct(t, v.BasicTestData, input.EmbeddedMoreList[i].BasicTestData)
 	}
 }
 
 func TestRootSliceWithBasicStruct(t *testing.T) {
 	t.Parallel()
 
-	input := []Basic{newBasic(), newBasic()}
+	input := []tester.BasicTestData{newBasic(), newBasic()}
 
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestRootSliceWithBasicStruct:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result []Basic
-	err := Decode(node, &result)
+	var result []tester.BasicTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
 	}
 
-	testValueWith(t, len(result), len(input), "[]Basic len")
+	testValueWith(t, len(result), len(input), "[]BasicTestData len")
 
 	for i, v := range result {
 		testBasicStruct(t, v, input[i])
@@ -452,34 +313,29 @@ func TestRootSliceWithBasicStruct(t *testing.T) {
 func TestRootSliceWithSliceStruct(t *testing.T) {
 	t.Parallel()
 
-	input1 := SliceStruct{
+	input1 := tester.SliceStructTestData{
 		Vstring:  "foo",
-		BaseList: []Basic{newBasic(), newBasic()},
-		NamedMoreList: []NamedMore{
-			{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
-			{MyNest: Named{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
-		EmbeddedMoreList: []EmbeddedMore{
-			{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
-			{Embedded: Embedded{Basic: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
+		BaseList: []tester.BasicTestData{newBasic(), newBasic()},
+		NamedMoreList: []tester.NamedMoreTestData{
+			{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
+			{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
+		EmbeddedMoreList: []tester.EmbeddedMoreTestData{
+			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"},
+			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
 	}
 
-	input := []SliceStruct{input1, input1}
+	input := []tester.SliceStructTestData{input1, input1}
 
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestRootSliceWithSliceStruct:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result []SliceStruct
-	err := Decode(node, &result)
+	var result []tester.SliceStructTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
 	}
 
-	testValueWith(t, len(result), len(input), "[]SliceStruct len")
+	testValueWith(t, len(result), len(input), "[]SliceStructTestData len")
 
 	for i, v := range result {
 		testValue(t, v.Vstring, input[i].Vstring)
@@ -503,7 +359,7 @@ func TestRootSliceWithSliceStruct(t *testing.T) {
 		for i, vv := range v.EmbeddedMoreList {
 			testValue(t, vv.Vanimal, input[i].EmbeddedMoreList[i].Vanimal)
 			testValue(t, vv.Vaction, input[i].EmbeddedMoreList[i].Vaction)
-			testBasicStruct(t, vv.Basic, input[i].EmbeddedMoreList[i].Basic)
+			testBasicStruct(t, vv.BasicTestData, input[i].EmbeddedMoreList[i].BasicTestData)
 		}
 	}
 
@@ -512,19 +368,14 @@ func TestRootSliceWithSliceStruct(t *testing.T) {
 func TestNested(t *testing.T) {
 	t.Parallel()
 
-	input := Nested{Sub1Nested{Sub2Nested{Sub3Nested{
-		BasicList: []Basic{newBasic(), newBasic()},
+	input := tester.NestedTestData{tester.Sub1NestedTestData{tester.Sub2NestedTestData{tester.Sub3NestedTestData{
+		BasicList: []tester.BasicTestData{newBasic(), newBasic()},
 	}}}}
 
-	node, _ := Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
 
-	//debug:
-	//fmt.Println("#404 DEBUG::TestNested:")
-	//codes.PrintNodePacket(node)
-	//fmt.Println()
-
-	var result Nested
-	err := Decode(node, &result)
+	var result tester.NestedTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()
@@ -536,7 +387,7 @@ func TestNested(t *testing.T) {
 
 }
 
-func testBasicStruct(t *testing.T, result Basic, expected Basic) {
+func testBasicStruct(t *testing.T, result tester.BasicTestData, expected tester.BasicTestData) {
 	if result.Vstring != expected.Vstring {
 		t.Errorf("Vstring value should be: %v", expected.Vstring)
 	}

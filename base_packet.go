@@ -5,10 +5,11 @@ import (
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
+// basePacket is the base type of the NodePacket and PrimitivePacket
 type basePacket struct {
 	tag    *mark.Tag
 	length uint32
-	valbuf []byte
+	valBuf []byte
 }
 
 func (bp *basePacket) Length() uint32 {

@@ -1,72 +1,90 @@
-package packetstructure
+package y3
 
 import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
-	"github.com/yomorun/y3-codec-golang/pkg/packetutils"
-
-	y3 "github.com/yomorun/y3-codec-golang"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
-// Decoder: for decode packet to structure
-type Decoder struct {
-	config *DecoderConfig
+// structEncoder is a Decoder for Struct type
+type structDecoder interface {
+	// Decode decode bytes to interface
+	Decode(input []byte) (interface{}, error)
 }
 
-// DecoderConfig: config for Decoder
-type DecoderConfig struct {
-	ZeroFields bool // 在解码值前进行清零或清空操作
-	Result     interface{}
+// structDecoderImpl is implementation of the structDecoder interface
+type structDecoderImpl struct {
+	config *structDecoderConfig
+	result interface{}
+}
+
+// structDecoderConfig is configuration for structDecoderImpl
+type structDecoderConfig struct {
+	ZeroFields bool   // 在解码值前进行清零或清空操作
 	TagName    string // 默认值: yomo
 }
 
-// NewDecoder: create a Decoder
-func NewDecoder(config *DecoderConfig) (*Decoder, error) {
-	val := reflect.ValueOf(config.Result)
-	if val.Kind() != reflect.Ptr {
-		return nil, errors.New("result must be a pointer")
-	}
+// structDecoderOption create structDecoderImpl with option
+type structDecoderOption func(*structDecoderImpl)
 
-	val = val.Elem()
-	if !val.CanAddr() {
-		return nil, errors.New("result must be addressable (a pointer)")
+// structDecoderOptionConfig set structDecoderConfig value for creating structDecoderImpl
+func structDecoderOptionConfig(config *structDecoderConfig) structDecoderOption {
+	return func(e *structDecoderImpl) {
+		e.config = config
 	}
-
-	if config.TagName == "" {
-		config.TagName = "yomo"
-	}
-
-	result := &Decoder{
-		config: config,
-	}
-
-	return result, nil
 }
 
-// Decode: shortcut of Decoder
-func Decode(input *y3.NodePacket, output interface{}) error {
-	config := &DecoderConfig{
-		ZeroFields: true,
-		Result:     output,
+// newStructDecoder create a structDecoder interface
+func newStructDecoder(mold interface{}, options ...func(*structDecoderImpl)) structDecoder {
+	// check mold
+	val := reflect.ValueOf(mold)
+	if val.Kind() != reflect.Ptr {
+		panic(errors.New("mold must be a pointer"))
+	}
+	val = val.Elem()
+	if !val.CanAddr() {
+		panic(errors.New("mold must be addressable (a pointer)"))
 	}
 
-	decoder, err := NewDecoder(config)
+	decoder := &structDecoderImpl{
+		config: &structDecoderConfig{
+			ZeroFields: true,
+			TagName:    "yomo",
+		},
+		result: mold,
+	}
+
+	for _, option := range options {
+		option(decoder)
+	}
+
+	return decoder
+}
+
+// Decode decode bytes to interface
+func (d *structDecoderImpl) Decode(input []byte) (interface{}, error) {
+	err := d.decode(input)
+	if err != nil {
+		return nil, err
+	}
+	return d.result, nil
+}
+
+// Decode decode interface to d.config.Result
+func (d *structDecoderImpl) decode(input []byte) error {
+	node, _, err := DecodeNodePacket(input)
 	if err != nil {
 		return err
 	}
 
-	return decoder.Decode(input)
+	return d.decodeNode(node, reflect.ValueOf(d.result).Elem())
 }
 
-// Decode: public func for decode
-func (d *Decoder) Decode(input *y3.NodePacket) error {
-	return d.decode(startingToken, input, reflect.ValueOf(d.config.Result).Elem())
-}
-
-// decode: observe NodePacket to struct
-func (d *Decoder) decode(name byte, input *y3.NodePacket, outVal reflect.Value) error {
+// decodeNode is entry function for decoding NodePacket
+func (d *structDecoderImpl) decodeNode(input *NodePacket, outVal reflect.Value) error {
 	var inputVal reflect.Value
 
 	if input != nil {
@@ -99,22 +117,14 @@ func (d *Decoder) decode(name byte, input *y3.NodePacket, outVal reflect.Value) 
 	case reflect.Slice:
 		err = d.decodeSlice(input, outVal)
 	default:
-		return fmt.Errorf("%#x: unsupported type: %s", name, outputKind)
+		return fmt.Errorf("decode unsupported type: %s", outputKind)
 	}
 
 	return err
 }
 
-// Bare: get value or elem
-func (d *Decoder) Bare(v reflect.Value) reflect.Value {
-	if v.Kind() != reflect.Interface {
-		return v
-	}
-	return v.Elem()
-}
-
-// decodeSlice: decode slice
-func (d *Decoder) decodeSlice(data *y3.NodePacket, val reflect.Value) error {
+// decodeSlice decode slice of struct
+func (d *structDecoderImpl) decodeSlice(data *NodePacket, val reflect.Value) error {
 	elemType := val.Type().Elem()
 
 	items := make([]reflect.Value, 0)
@@ -139,8 +149,8 @@ func (d *Decoder) decodeSlice(data *y3.NodePacket, val reflect.Value) error {
 	return nil
 }
 
-// decodeStruct: decode struct
-func (d *Decoder) decodeStruct(data *y3.NodePacket, val reflect.Value) error {
+// decodeStruct decode struct
+func (d *structDecoderImpl) decodeStruct(data *NodePacket, val reflect.Value) error {
 	var fields []field
 	valType := val.Type()
 	for i := 0; i < valType.NumField(); i++ {
@@ -159,8 +169,8 @@ func (d *Decoder) decodeStruct(data *y3.NodePacket, val reflect.Value) error {
 	return nil
 }
 
-// decodeStructFromNodePacket: decode struct from NodePacket
-func (d *Decoder) decodeStructFromNodePacket(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, dataVal *y3.NodePacket) error {
+// decodeStructFromNodePacket decode struct from NodePacket
+func (d *structDecoderImpl) decodeStructFromNodePacket(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, dataVal *NodePacket) error {
 	if fieldType.Kind() == reflect.Struct {
 		fieldValueType := fieldValue.Type()
 		for i := 0; i < fieldValueType.NumField(); i++ {
@@ -194,38 +204,33 @@ func (d *Decoder) decodeStructFromNodePacket(fieldType reflect.Type, fieldName s
 
 	fieldValue.Set(obtainedValue)
 
-	key := packetutils.KeyOf(fieldName)
-	if !d.allowCustomizedKey(key) && key != startingToken {
-		return fmt.Errorf("not allow key:%#x", key)
-	}
-
 	return nil
 }
 
-// getKind: get kind of Value
-func (d *Decoder) getKind(val reflect.Value) reflect.Kind {
+// getKind get kind of reflect.Value
+func (d *structDecoderImpl) getKind(val reflect.Value) reflect.Kind {
 	return val.Kind()
 }
 
-// takeValueByKey: take Value by fieldName
-func (d *Decoder) takeValueByKey(fieldName string, fieldType reflect.Type, node *y3.NodePacket) (reflect.Value, bool) {
-	key := packetutils.KeyOf(fieldName)
+// takeValueByKey take Value by fieldName
+func (d *structDecoderImpl) takeValueByKey(fieldName string, fieldType reflect.Type, node *NodePacket) (reflect.Value, bool) {
+	key := utils.KeyOf(fieldName)
 	flag, isNode, packet := d.matchingKey(key, node)
 	if flag == false {
 		return reflect.Indirect(reflect.ValueOf(packet)), false
 	}
 	if isNode {
-		nodePacket := packet.(y3.NodePacket)
+		nodePacket := packet.(NodePacket)
 		return d.takeNodeValue(fieldType, nodePacket)
 	}
 
-	primitivePacket := packet.(y3.PrimitivePacket)
+	primitivePacket := packet.(PrimitivePacket)
 	return d.takePrimitiveValue(fieldType, primitivePacket)
 }
 
-// takeNodeValue: take Value from NodePacket
-func (d *Decoder) takeNodeValue(fieldType reflect.Type, nodePacket y3.NodePacket) (reflect.Value, bool) {
-	if nodePacket.IsArray() {
+// takeNodeValue take Value from NodePacket
+func (d *structDecoderImpl) takeNodeValue(fieldType reflect.Type, nodePacket NodePacket) (reflect.Value, bool) {
+	if nodePacket.IsSlice() {
 		switch fieldType.Kind() {
 		case reflect.Array:
 			return d.paddingToArray(fieldType, nodePacket), true
@@ -248,8 +253,8 @@ func (d *Decoder) takeNodeValue(fieldType reflect.Type, nodePacket y3.NodePacket
 	return reflect.Indirect(reflect.ValueOf(nodePacket)), true
 }
 
-// paddingToStruct: padding to struct from NodePacket
-func (d *Decoder) paddingToStruct(fieldType reflect.Type, nodePacket y3.NodePacket) reflect.Value {
+// paddingToStruct padding to struct from NodePacket
+func (d *structDecoderImpl) paddingToStruct(fieldType reflect.Type, nodePacket NodePacket) reflect.Value {
 	obj := reflect.New(fieldType)
 	obj = reflect.Indirect(obj)
 
@@ -258,7 +263,7 @@ func (d *Decoder) paddingToStruct(fieldType reflect.Type, nodePacket y3.NodePack
 			structField := obj.Type().Field(i)
 			valueField := obj.Field(i)
 			fieldName := fieldNameByTag(d.config.TagName, structField)
-			if v.SeqID() == packetutils.KeyOf(fieldName) {
+			if v.SeqID() == utils.KeyOf(fieldName) {
 				vv, _ := d.takePrimitiveValue(valueField.Type(), v)
 				valueField.Set(vv)
 			}
@@ -270,7 +275,7 @@ func (d *Decoder) paddingToStruct(fieldType reflect.Type, nodePacket y3.NodePack
 			structField := obj.Type().Field(i)
 			valueField := obj.Field(i)
 			fieldName := fieldNameByTag(d.config.TagName, structField)
-			if v.SeqID() == packetutils.KeyOf(fieldName) {
+			if v.SeqID() == utils.KeyOf(fieldName) {
 				vv, _ := d.takeNodeValue(structField.Type, v)
 				valueField.Set(vv)
 			}
@@ -280,8 +285,8 @@ func (d *Decoder) paddingToStruct(fieldType reflect.Type, nodePacket y3.NodePack
 	return reflect.Indirect(obj)
 }
 
-// paddingToArray: padding to Array from NodePacket
-func (d *Decoder) paddingToArray(fieldType reflect.Type, nodePacket y3.NodePacket) reflect.Value {
+// paddingToArray padding to ArrayTestData from NodePacket
+func (d *structDecoderImpl) paddingToArray(fieldType reflect.Type, nodePacket NodePacket) reflect.Value {
 	sliceType := reflect.SliceOf(fieldType.Elem())
 	sliceValue := reflect.New(sliceType).Elem()
 
@@ -308,12 +313,12 @@ func (d *Decoder) paddingToArray(fieldType reflect.Type, nodePacket y3.NodePacke
 
 	arrayType := reflect.ArrayOf(len(nodePacket.PrimitivePackets), fieldType.Elem())
 	arrayValue := reflect.New(arrayType).Elem()
-	reflect.Copy(arrayValue, slice) // TODO: 注意性能影响
+	reflect.Copy(arrayValue, slice)
 	return arrayValue
 }
 
-// paddingToSlice: padding to Slice from NodePacket
-func (d *Decoder) paddingToSlice(fieldType reflect.Type, nodePacket y3.NodePacket) reflect.Value {
+// paddingToSlice padding to SliceTestData from NodePacket
+func (d *structDecoderImpl) paddingToSlice(fieldType reflect.Type, nodePacket NodePacket) reflect.Value {
 	sliceType := reflect.SliceOf(fieldType.Elem())
 	sliceValue := reflect.New(sliceType).Elem()
 
@@ -336,8 +341,8 @@ func (d *Decoder) paddingToSlice(fieldType reflect.Type, nodePacket y3.NodePacke
 	return slice
 }
 
-// takePrimitiveValue: take primitive value from PrimitivePacket
-func (d *Decoder) takePrimitiveValue(fieldType reflect.Type, primitivePacket y3.PrimitivePacket) (reflect.Value, bool) {
+// takePrimitiveValue take primitive value from PrimitivePacket
+func (d *structDecoderImpl) takePrimitiveValue(fieldType reflect.Type, primitivePacket PrimitivePacket) (reflect.Value, bool) {
 	switch fieldType.Kind() {
 	case reflect.String:
 		val, err := primitivePacket.ToUTF8String()
@@ -392,8 +397,8 @@ func (d *Decoder) takePrimitiveValue(fieldType reflect.Type, primitivePacket y3.
 	}
 }
 
-// matchingKey: matching node of key from NodePacket
-func (d *Decoder) matchingKey(key byte, node *y3.NodePacket) (flag bool, isNode bool, packet interface{}) {
+// matchingKey matching node of key from NodePacket
+func (d *structDecoderImpl) matchingKey(key byte, node *NodePacket) (flag bool, isNode bool, packet interface{}) {
 	if len(node.PrimitivePackets) > 0 {
 		for _, p := range node.PrimitivePackets {
 			if key == p.SeqID() {
@@ -418,11 +423,26 @@ func (d *Decoder) matchingKey(key byte, node *y3.NodePacket) (flag bool, isNode 
 	return false, false, nil
 }
 
-// allowCustomizedKey: allow customized key
-func (d *Decoder) allowCustomizedKey(key byte) bool {
-	switch key {
-	case 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f:
-		return false
+var (
+	// rootToken: mark the root node
+	rootToken byte = 0x01
+)
+
+// field store the contents of a reflect
+type field struct {
+	field reflect.StructField
+	val   reflect.Value
+}
+
+// fieldNameByTag: get fieldName by considering tagName
+func fieldNameByTag(tagName string, field reflect.StructField) string {
+	fieldName := field.Name
+
+	tagValue := field.Tag.Get(tagName)
+	tagValue = strings.SplitN(tagValue, ",", 2)[0]
+	if tagValue != "" {
+		fieldName = tagValue
 	}
-	return true
+
+	return fieldName
 }

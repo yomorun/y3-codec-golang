@@ -44,7 +44,7 @@ func TestNUInt64(t *testing.T) {
 }
 
 func testNVarInt32(t *testing.T, value int32, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%X): %X", value, uint32(value), bytes)
+	var msg = fmt.Sprintf("tester %v (%X): %X", value, uint32(value), bytes)
 	var size = SizeOfNVarInt32(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -60,7 +60,7 @@ func testNVarInt32(t *testing.T, value int32, bytes []byte) {
 }
 
 func testNVarUInt32(t *testing.T, value uint32, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%X): %X", value, value, bytes)
+	var msg = fmt.Sprintf("tester %v (%X): %X", value, value, bytes)
 	var size = SizeOfNVarUInt32(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -76,7 +76,7 @@ func testNVarUInt32(t *testing.T, value uint32, bytes []byte) {
 }
 
 func testNVarInt64(t *testing.T, value int64, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%X): %X", value, uint64(value), bytes)
+	var msg = fmt.Sprintf("tester %v (%X): %X", value, uint64(value), bytes)
 	var size = SizeOfNVarInt64(value)
 	assert.Equal(t, len(bytes), size, msg)
 
@@ -92,7 +92,7 @@ func testNVarInt64(t *testing.T, value int64, bytes []byte) {
 }
 
 func testNVarUInt64(t *testing.T, value uint64, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%X): %X", value, value, bytes)
+	var msg = fmt.Sprintf("tester %v (%X): %X", value, value, bytes)
 	var size = SizeOfNVarUInt64(value)
 	assert.Equal(t, len(bytes), size, msg)
 

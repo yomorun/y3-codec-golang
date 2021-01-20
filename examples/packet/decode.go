@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	utils2 "github.com/yomorun/y3-codec-golang/pkg/packetutils"
+	"github.com/yomorun/y3-codec-golang/examples"
 
 	"github.com/yomorun/y3-codec-golang/internal/utils"
 
@@ -218,22 +218,7 @@ func parseComplexNodePacket() {
 }
 
 func printNodePacket(node *y3.NodePacket) {
-	//if len(node.NodePackets) > 0 {
-	//	for _, n := range node.NodePackets {
-	//		printNodePacket(&n)
-	//	}
-	//}
-	//if len(node.PrimitivePackets) > 0 {
-	//	for _, p := range node.PrimitivePackets {
-	//		if p.HasPacketArray() {
-	//			printPacketArray(&p)
-	//			continue
-	//		}
-	//		fmt.Printf("#35 %#X=%v\n", p.SeqID(), valueOf(&p))
-	//	}
-	//}
-
-	utils2.PrintNodePacket(node)
+	examples.PrintNodePacket(node)
 }
 
 func parseInt32PrimitivePacket() {
@@ -261,7 +246,7 @@ func parseUInt32PrimitivePacket() {
 }
 
 func printArrayNode(node *y3.NodePacket) {
-	utils2.PrintNodePacket(node)
+	examples.PrintNodePacket(node)
 }
 
 func parseArrayPacket() {
@@ -284,13 +269,7 @@ func parseArrayPacket() {
 	//res, _, _, _ = y3.DecodePrimitivePacket(buf)
 	res, _, _ = y3.DecodeNodePacket(buf)
 	//printArray(res)
-	utils2.PrintArrayPacket(res)
-	//codes.PrintNodeFormat(res, "", true, true)
-	//arr, _ := res.ToPacketArray()
-	//for _, item := range arr {
-	//	i, _ := item.ToInt32()
-	//	fmt.Println("#30", "Item:", fmt.Sprintf("value=%v", i))
-	//}
+	examples.PrintArrayPacket(res)
 }
 
 func parseNestedArrayPrimitivePacket() {
@@ -310,35 +289,4 @@ func parseNestedArrayPrimitivePacket() {
 	//res, _, _, _ := y3.DecodePrimitivePacket(buf)
 	res, _, _ := y3.DecodeNodePacket(buf)
 	printNodePacket(res)
-}
-
-//func printPacketArray(packet *y3.PrimitivePacket) {
-//	arr, _ := packet.ToPacketArray()
-//	//fmt.Println("#20", "len(arr):", len(arr))
-//	for _, item := range arr {
-//		if item.HasPacketArray() {
-//			printPacketArray(item)
-//		} else {
-//			fmt.Println("#20", "Item:", fmt.Sprintf("key=%v value=%v", item.SeqID(), valueOf(item)))
-//		}
-//	}
-//}
-
-func valueOf(packet *y3.PrimitivePacket) interface{} {
-	num, err := packet.ToInt32()
-	if err == nil && num > 0 {
-		return num
-	}
-	str, _ := packet.ToUTF8String()
-	return str
-}
-
-func int32Of(packet *y3.PrimitivePacket) int32 {
-	n, _ := packet.ToInt32()
-	return n
-}
-
-func stringOf(packet *y3.PrimitivePacket) string {
-	str, _ := packet.ToUTF8String()
-	return str
 }

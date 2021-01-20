@@ -24,6 +24,7 @@ func (t *Tag) SeqID() byte {
 	return t.raw & utils.DropMSBArrayFlag
 }
 
+// String return string description
 func (t *Tag) String() string {
 	return fmt.Sprintf("Tag: raw=%4b, SeqID=%v", t.raw, t.SeqID())
 }
@@ -33,10 +34,12 @@ func NewTag(b byte) *Tag {
 	return &Tag{raw: b}
 }
 
-func (t *Tag) IsArray() bool {
-	return t.raw&utils.ArrayFlag == utils.ArrayFlag
+// IsSlice determine if the current node is a Slice
+func (t *Tag) IsSlice() bool {
+	return t.raw&utils.SliceFlag == utils.SliceFlag
 }
 
+// Raw return the original byte
 func (t *Tag) Raw() byte {
 	return t.raw
 }

@@ -3,13 +3,12 @@ package y3
 import (
 	"errors"
 
-	"github.com/yomorun/y3-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 
 	"github.com/yomorun/y3-codec-golang/internal/mark"
 )
 
 func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *PrimitivePacket, err error) {
-	// fmt.Printf("\t(parsePayload) b=%#x\n", b)
 	if len(b) == 0 {
 		return 0, false, nil, nil, errors.New("parsePacket params can not be nil")
 	}
@@ -22,16 +21,15 @@ func parsePayload(b []byte) (endPos int, ifNodePacket bool, np *NodePacket, pp *
 	}
 
 	pp, endPos, _, err = DecodePrimitivePacket(b)
-	// fmt.Printf("\t\tb=[%#x], pp:%v\n", b, pp)
 	return endPos, false, nil, pp, err
 }
 
 // DecodeNodePacket parse out whole buffer to a NodePacket
-func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
-	// fmt.Println(hex.Dump(b))
+func DecodeNodePacket(buf []byte) (pct *NodePacket, endPos int, err error) {
+	// fmt.Println(hex.Dump(buf))
 	pct = &NodePacket{}
 
-	if len(b) == 0 {
+	if len(buf) == 0 {
 		return pct, 0, nil
 	}
 
@@ -41,51 +39,44 @@ func DecodeNodePacket(b []byte) (pct *NodePacket, endPos int, err error) {
 	pos := 0
 
 	// `Tag`
-	tag := mark.NewTag(b[pos])
+	tag := mark.NewTag(buf[pos])
 	pct.basePacket.tag = tag
-	// fmt.Printf("pos=%d, n.Tag=%v\n", pos, pct.tag.String())
 	pos++
 
 	// `Length`: the type is `varint`
-	tmpBuf := b[pos:]
+	tmpBuf := buf[pos:]
 	var vallen int32
 	codec := encoding.VarCodec{}
 	err = codec.DecodePVarInt32(tmpBuf, &vallen)
-	// _len, vallen, err := encoding.Upvarint(b, pos)
+	// _len, vallen, err := encoding.Upvarint(buf, pos)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	//pct.basePacket.length = uint32(codec.Size) // Length的值是Value的字节长度
-	// fmt.Printf("pos=%v, vallen=%v, n.Length=%v\n", pos, vallen, pct.Length())
-	// TODO:根据文档表述，pct.basePacket.length指的是value的长度，所以修改为vallen的值
 	pct.basePacket.length = uint32(vallen)
 	pos += codec.Size
 
 	// `raw` is pct.Length() length
 	vl := int(vallen)
 	endPos = pos + vl
-	pct.basePacket.valbuf = make([]byte, vl)
-	copy(pct.basePacket.valbuf, b[pos:endPos])
-	// fmt.Printf("pos=%v, endPos=%v, buf=[% x], n.Raw=[% x](len=%v)\n", pos, endPos, b[pos:endPos], pct.basePacket.valbuf, len(pct.basePacket.valbuf))
+	pct.basePacket.valBuf = make([]byte, vl)
+	copy(pct.basePacket.valBuf, buf[pos:endPos])
 
 	// Parse value to Packet
 	for {
-		// fmt.Println("------>pos:", pos, ", endPos:", endPos, ", len(b)", len(b))
-		if pos >= endPos || pos >= len(b) {
+		// fmt.Println("------>pos:", pos, ", endPos:", endPos, ", len(buf)", len(buf))
+		if pos >= endPos || pos >= len(buf) {
 			// fmt.Println("===GAME OVER===")
 			break
 		}
-		_p, isNode, np, pp, err := parsePayload(b[pos:endPos])
+		_p, isNode, np, pp, err := parsePayload(buf[pos:endPos])
 		pos += _p
 		if err != nil {
 			return nil, 0, err
 		}
 		if isNode {
-			// fmt.Printf("\tisNode=true, _p=%v, pos=%v, payload=% x, [np]:%v\n", _p, pos, b[pos:endPos], np)
 			nodeArr = append(nodeArr, *np)
 		} else {
-			// fmt.Printf("\tisNode=false, _p=%v, pos=%v, payload=% x, [pp]:%v\n", _p, pos, b[pos:endPos], pp)
 			primArr = append(primArr, *pp)
 		}
 	}

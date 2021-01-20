@@ -13,7 +13,7 @@ func TestPVarBool(t *testing.T) {
 }
 
 func testPVarBool(t *testing.T, value bool, bytes []byte) {
-	var msg = fmt.Sprintf("testing %v (%v): %X", value, value, bytes)
+	var msg = fmt.Sprintf("tester %v (%v): %X", value, value, bytes)
 	var size = SizeOfPVarUInt32(uint32(1))
 	assert.Equal(t, len(bytes), size, msg)
 
