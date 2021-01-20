@@ -78,6 +78,7 @@ func (o *observableImpl) Observe() <-chan interface{} {
 func FromStream(reader io.Reader) Observable {
 
 	f := func(next chan interface{}) {
+		defer close(next)
 		for {
 			buf := make([]byte, 3*1024)
 			n, err := reader.Read(buf)
