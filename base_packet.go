@@ -1,23 +1,20 @@
 package y3
 
 import (
-	codec "github.com/yomorun/yomo-codec-golang/internal/codec"
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/mark"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
+// basePacket is the base type of the NodePacket and PrimitivePacket
 type basePacket struct {
-	tag    *codec.Tag
+	tag    *mark.Tag
 	length uint32
-	valbuf []byte
+	valBuf []byte
 }
 
 func (bp *basePacket) Length() uint32 {
 	return bp.length
 }
-
-// func (bp *basePacket) Buffer() []byte {
-// 	return bp.valbuf
-// }
 
 func (bp *basePacket) SeqID() byte {
 	return bp.tag.SeqID()

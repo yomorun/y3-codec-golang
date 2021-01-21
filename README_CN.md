@@ -2,10 +2,10 @@
 >
 > ⛳️ STATE: WIP
 >
-> 🇨🇳 [简体中文](README_CN.md)  🇬🇧 [English](https://github.com/yomorun/yomo-codec-golang/blob/master/README.md)
+> 🇨🇳 [简体中文](README_CN.md)  🇬🇧 [English](https://github.com/yomorun/y3-codec-golang/blob/master/README.md)
 
 # Y3
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_shield)
 
 Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
@@ -13,10 +13,10 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
 ## 目标
 
-[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang) 是通过golang语言实现[YoMo Codec](https://github.com/yomorun/yomo-codec)的[SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述 ；提供对`TLV结构`及基础数据类型进行编解码的能力，并且为[YoMo](https://github.com/yomorun/yomo)提供支持其消息处理的编解码工具。你可以为其扩展出更多数据类型的处理，甚至可以扩展并应用到其它需要编解码的框架中。
+[y3-codec-golang](https://github.com/yomorun/y3-codec-golang) 是通过golang语言实现[YoMo Codec](https://github.com/yomorun/yomo-codec)的[SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述 ；提供对`TLV结构`及基础数据类型进行编解码的能力，并且为[YoMo](https://github.com/yomorun/yomo)提供支持其消息处理的编解码工具。你可以为其扩展出更多数据类型的处理，甚至可以扩展并应用到其它需要编解码的框架中。
 
 ## 结构
-![yomo-codec-golang-v1.0.png](./docs/yomo-codec-golang-v1.0.png)
+![y3-codec-golang-v1.0.png](./docs/y3-codec-golang-v1.0.png)
 
 逻辑结构上主要分为两部分：实现[SPEC](https://github.com/yomorun/yomo-codec/blob/draft-01/SPEC.md)描述的基础编解码能力；在spec功能基础上为[YoMo](https://github.com/yomorun/yomo)等外部框架提供的扩展能力。
 
@@ -41,7 +41,7 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
 * ProtoCodec：实现了序列化和反序列化的接口方法，支持基础数据类型及其数组、结构体类型；为以此为基础构建特定框架适配的编解码接口工具提供必要的封装和能力，不需重复开发。
 
-  ```go 
+  ```go 
   type ProtoCodec interface {
   	// Marshal: Marshal interface to []byte
   	Marshal(input interface{}) ([]byte, error)
@@ -76,7 +76,7 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
   
   * packetstructure包：为ProtoCodec接口提供对结构体的编解码能力，并在定义struct时通过"yomo"标签描述其编解码的行为(key)：
   
-    ```go 
+    ```go 
     type Example struct {
     	Id   int32  `yomo:"0x22"`
     	Name string `yomo:"0x23"`
@@ -85,7 +85,7 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
   
 * YomoCodec：在ProtoCodec的基础上封装了对[YoMo](https://github.com/yomorun/yomo)框架的支持接口，该接口特定于框架的特定需求(如合并模式: *解析--监听--存储--读取--处理--合并--写入*)，针对于其它框架或者[YoMo](https://github.com/yomorun/yomo)框架不同版本的需要，则可以自定义开发不同的支持接口，以满足实际应用的需求。
 
-  ```go 
+  ```go 
   type YomoCodec interface {
   	Decoder(buf []byte)
   	Read(mold interface{}) (interface{}, error)
@@ -104,7 +104,7 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
 
 YomoCodec接口是为满足[YoMo](https://github.com/yomorun/yomo)框架对消息进行处理的特定需要而定义，因为[YoMo](https://github.com/yomorun/yomo)框架是基于QUIC的流式传输而设计，在对消息进行订阅并处理的过程中需要经过：解析--监听--存储--读取--处理--合并--写入的过程，这些过程的逻辑处理将融入到YomoCodec接口的实现中，[YoMo](https://github.com/yomorun/yomo)框架需要在适当的时机调用这些接口方法，例如如下伪代码：
 
-```go 
+```go 
 codec := codes.NewCodec(observe)
 codec.Decoder(buf)
 for {
@@ -134,7 +134,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -156,7 +156,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -181,7 +181,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -206,7 +206,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/codes"
+	"github.com/yomorun/y3-codec-golang/pkg/codes"
 )
 
 func main() {
@@ -234,7 +234,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -272,7 +272,7 @@ package main
 import (
 	"fmt"
 
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -295,7 +295,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -336,7 +336,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 )
 
 func main() {
@@ -380,7 +380,7 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
 
 #### 测试源代码：
 
-* Y3: [Y3 Benchmark](https://github.com/yomorun/yomo-codec-golang/blob/master/pkg/codes/yomo_benchmark_test.go)
+* Y3: [Y3 Benchmark](https://github.com/yomorun/y3-codec-golang/blob/master/pkg/codes/yomo_benchmark_test.go)
 * JSON: [JSON Benchmark](https://github.com/10cella/yomo-json-codec/blob/master/codec_benchmark_test.go)
 
 ### 2. 性能比较
@@ -414,7 +414,7 @@ More examples in `/pkg/spec/encoding/pvarint_test.go|varfloat_test.go`
   - [x] 支持Bool类型
 - [x] v0.4.0 - 支持[yomo-thermometer-plugin](https://github.com/10cella/yomo-thermometer-plugin)插件
   - [x] 支持[]Thermometer{}的Mold形式
-  - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[Yomo-codec-golang](https://github.com/yomorun/yomo-codec-golang)
+  - [x] [YoMo](https://github.com/yomorun/yomo)框架的正式切换至[y3-codec-golang](https://github.com/yomorun/y3-codec-golang)
 - [x] v1.0.0 - 性能压测及优化重构
   - [x] YomoCodec的性能测试，与JSON实现版本的对比
   - [x] 通过跳KEY解码字节流优化性能
@@ -442,4 +442,4 @@ See [SPEC](https://github.com/yomorun/yomo-codec)
 [//]: contributor-faces
 
 ## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_large)

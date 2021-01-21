@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 )
 
 // Encoder will encode object to Y3 encoding
@@ -29,17 +29,17 @@ func (enc *encoder) IsEmpty() bool {
 }
 
 func (enc *encoder) String() string {
-	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valbuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
+	return fmt.Sprintf("Encoder: isNode=%v | seqID=%#x | valBuf=%#v | buf=%#v", enc.isNode, enc.seqID, enc.valbuf, enc.buf)
 }
 
-// PirmitivePacketEncoder used for encode a primitive packet
-type PirmitivePacketEncoder struct {
+// PrimitivePacketEncoder used for encode a primitive packet
+type PrimitivePacketEncoder struct {
 	encoder
 }
 
-// NewPrimitivePacketEncoder return an encoder for primitive packet
-func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
-	primEnc := &PirmitivePacketEncoder{
+// NewPrimitivePacketEncoder return an Encoder for primitive packet
+func NewPrimitivePacketEncoder(sid int) *PrimitivePacketEncoder {
+	primEnc := &PrimitivePacketEncoder{
 		encoder: encoder{
 			isNode: false,
 			buf:    new(bytes.Buffer),
@@ -51,7 +51,7 @@ func NewPrimitivePacketEncoder(sid int) *PirmitivePacketEncoder {
 }
 
 // SetInt32Value encode int32 value
-func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
+func (enc *PrimitivePacketEncoder) SetInt32Value(v int32) {
 	size := encoding.SizeOfPVarInt32(v)
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -59,11 +59,11 @@ func (enc *PirmitivePacketEncoder) SetInt32Value(v int32) {
 	if err != nil {
 		panic(err)
 	}
-	// enc.valbuf.Write(buf)
+	// enc.valBuf.Write(buf)
 }
 
 // SetUInt32Value encode uint32 value
-func (enc *PirmitivePacketEncoder) SetUInt32Value(v uint32) {
+func (enc *PrimitivePacketEncoder) SetUInt32Value(v uint32) {
 	size := encoding.SizeOfPVarUInt32(v)
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -74,7 +74,7 @@ func (enc *PirmitivePacketEncoder) SetUInt32Value(v uint32) {
 }
 
 // SetInt64Value encode int64 value
-func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
+func (enc *PrimitivePacketEncoder) SetInt64Value(v int64) {
 	size := encoding.SizeOfPVarInt64(v)
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -85,7 +85,7 @@ func (enc *PirmitivePacketEncoder) SetInt64Value(v int64) {
 }
 
 // SetUInt64Value encode uint64 value
-func (enc *PirmitivePacketEncoder) SetUInt64Value(v uint64) {
+func (enc *PrimitivePacketEncoder) SetUInt64Value(v uint64) {
 	size := encoding.SizeOfPVarUInt64(v)
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -96,7 +96,7 @@ func (enc *PirmitivePacketEncoder) SetUInt64Value(v uint64) {
 }
 
 // SetFloat32Value encode float32 value
-func (enc *PirmitivePacketEncoder) SetFloat32Value(v float32) {
+func (enc *PrimitivePacketEncoder) SetFloat32Value(v float32) {
 	var size = encoding.SizeOfVarFloat32(v)
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -107,7 +107,7 @@ func (enc *PirmitivePacketEncoder) SetFloat32Value(v float32) {
 }
 
 // SetFloat64Value encode float64 value
-func (enc *PirmitivePacketEncoder) SetFloat64Value(v float64) {
+func (enc *PrimitivePacketEncoder) SetFloat64Value(v float64) {
 	var size = encoding.SizeOfVarFloat64(v)
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -118,7 +118,7 @@ func (enc *PirmitivePacketEncoder) SetFloat64Value(v float64) {
 }
 
 // SetBoolValue encode bool value
-func (enc *PirmitivePacketEncoder) SetBoolValue(v bool) {
+func (enc *PrimitivePacketEncoder) SetBoolValue(v bool) {
 	var size = encoding.SizeOfPVarUInt32(uint32(1))
 	codec := encoding.VarCodec{Size: size}
 	enc.valbuf = make([]byte, size)
@@ -129,13 +129,13 @@ func (enc *PirmitivePacketEncoder) SetBoolValue(v bool) {
 }
 
 // SetStringValue encode string
-func (enc *PirmitivePacketEncoder) SetStringValue(v string) {
+func (enc *PrimitivePacketEncoder) SetStringValue(v string) {
 	// buf := []byte(v)
-	// enc.valbuf.Write(buf)
+	// enc.valBuf.Write(buf)
 	enc.valbuf = []byte(v)
 }
 
-func (enc *PirmitivePacketEncoder) SetBytes(buf []byte) {
+func (enc *PrimitivePacketEncoder) SetBytes(buf []byte) {
 	enc.valbuf = buf
 }
 
@@ -144,7 +144,7 @@ type NodePacketEncoder struct {
 	encoder
 }
 
-// NewNodePacketEncoder returns an encoder for node packet
+// NewNodePacketEncoder returns an Encoder for node packet
 func NewNodePacketEncoder(sid int) *NodePacketEncoder {
 	nodeEnc := &NodePacketEncoder{
 		encoder: encoder{
@@ -176,7 +176,7 @@ func (enc *NodePacketEncoder) AddNodePacket(np *NodePacketEncoder) {
 }
 
 // AddPrimitivePacket add new primitive to this node
-func (enc *NodePacketEncoder) AddPrimitivePacket(np *PirmitivePacketEncoder) {
+func (enc *NodePacketEncoder) AddPrimitivePacket(np *PrimitivePacketEncoder) {
 	enc.addRawPacket(np)
 }
 
@@ -204,7 +204,7 @@ func (enc *encoder) writeTag() {
 }
 
 func (enc *encoder) writeLengthBuf() {
-	// vallen := enc.valbuf.Len()
+	// vallen := enc.valBuf.Len()
 	vallen := len(enc.valbuf)
 	if vallen < 1 {
 		panic("length must greater than 0")
@@ -229,7 +229,7 @@ func (enc *encoder) Encode() []byte {
 	// Length
 	enc.writeLengthBuf()
 	// Value
-	// enc.buf.Write(enc.valbuf.Bytes())
+	// enc.buf.Write(enc.valBuf.Bytes())
 	enc.buf.Write(enc.valbuf)
 
 	return enc.buf.Bytes()

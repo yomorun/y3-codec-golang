@@ -2,10 +2,10 @@
 >
 > ⛳️ STATE: WIP
 >
-> 🇨🇳 [简体中文](https://gitee.com/yomorun/yomo-codec-golang/blob/master/README_CN.md)  🇬🇧 [English](https://github.com/yomorun/yomo-codec-golang/blob/master/README.md)
+> 🇨🇳 [简体中文](https://gitee.com/yomorun/y3-codec-golang/blob/master/README_CN.md)  🇬🇧 [English](https://github.com/yomorun/y3-codec-golang/blob/master/README.md)
 
 # Y3
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_shield)
 
 Y3 is the golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec), which describe a fast and low CPU binding data encoder/decoder focus on edge computing and streaming processing.
 
@@ -21,7 +21,7 @@ See [YoMo Codec SPEC](https://github.com/yomorun/yomo-codec)
 
 ## Use 
 
-`go get -u github.com/yomorun/yomo-codec-golang`
+`go get -u github.com/yomorun/y3-codec-golang`
 
 ## Examples
 
@@ -32,7 +32,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -69,7 +69,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -92,7 +92,7 @@ package main
 
 import (
 	"fmt"
-	y3 "github.com/yomorun/yomo-codec-golang"
+	y3 "github.com/yomorun/y3-codec-golang"
 )
 
 func main() {
@@ -129,4 +129,4 @@ More examples in `/examples/`
 [//]: contributor-faces
 
 ## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fyomo-codec-golang?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_large)

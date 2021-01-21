@@ -9,9 +9,11 @@ const DropMSB = 0x3F
 // DropMSBArrayFlag 描述了`0011 1111`, 用于去除标识位使用
 const DropMSBArrayFlag = 0x3F
 
-// ArrayFlag 描述了`0100 0000`, 用于表示该节点的Value为Slice类型
-const ArrayFlag = 0x40
+// SliceFlag 描述了`0100 0000`, 用于表示该节点的Value为Slice类型
+const SliceFlag = 0x40
 
-// KeyOfArrayItem 描述数组项的TLV的sid值
-const KeyOfArrayItem = 0x00
-const KeyStringOfArrayItem = "0x00"
+// KeyOfSliceItem 描述数组项的TLV的sid值
+const KeyOfSliceItem = 0x00
+
+// KeyStringOfSliceItem 描述数组项的TLV的sid值的字符串表示
+const KeyStringOfSliceItem = "0x00"

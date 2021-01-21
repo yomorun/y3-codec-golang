@@ -3,13 +3,13 @@ package y3
 import (
 	"errors"
 
-	"github.com/yomorun/yomo-codec-golang/pkg/spec/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 
-	"github.com/yomorun/yomo-codec-golang/internal/codec"
-	"github.com/yomorun/yomo-codec-golang/internal/utils"
+	"github.com/yomorun/y3-codec-golang/internal/mark"
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
-// DecodePrimitivePacket 将一个完整的Packet的buffer全部读入，返回BasePacket对象
+// DecodePrimitivePacket parse out whole buffer to a PrimitivePacket
 //
 // Examples:
 // [0x01, 0x01, 0x01] -> Key=0x01, Value=0x01
@@ -22,11 +22,11 @@ func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, siz
 		return nil, 0, 0, errors.New("invalid y3 packet minimal size")
 	}
 
-	p := &PrimitivePacket{valbuf: buf}
+	p := &PrimitivePacket{valBuf: buf}
 
 	var pos = 0
 	// first byte is `Tag`
-	p.tag = codec.NewTag(buf[pos])
+	p.tag = mark.NewTag(buf[pos])
 	pos++
 
 	// read `Varint` from buf for `Length of value`
@@ -53,8 +53,8 @@ func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, siz
 
 	logger.Debugf(">>> sizeL=%v, length=%v, pos=%v, endPos=%v", sizeL, p.length, pos, endPos)
 
-	p.valbuf = buf[pos:endPos]
-	logger.Debugf("valbuf = %#X", p.valbuf)
+	p.valBuf = buf[pos:endPos]
+	logger.Debugf("valBuf = %#X", p.valBuf)
 
 	return p, endPos, sizeL, nil
 }
