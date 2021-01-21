@@ -2,14 +2,14 @@
 
 ## Problem and Motivation
 
-- There isn't an efficient codec under persistent connection in the market, for example Protobuf is aimed at the scene of offline data, while users are facing the real-time data processing, and this kind of data is generated at high-frequency and the changing of data structure is low-frequency.
-- In the decoding stage, other codecs are full decode, we have to get a full data packet before we can start the decoding process, which is low efficiency in real-time data processing.
+- There isn't an efficient codec under persistent connection in the market, for example Protocol Buffers is aimed at the scene of offline data, while users are facing the real-time data processing, and this kind of data is generated at high-frequency and the changing of data structure is low-frequency.
+- In the decoding stage, other codecs are full decode, the users have to get a full data packet before they can start the decoding process, which is low efficiency in real-time data processing.
 
 ## Goals
 
 - Faster than real-time.
 - Provide efficient `decoding` for real-time stream processing under persistent connection. Users don't have to wait to get the full packet before they can start `decoding`.
-- Users only need to 'observe key' to get the data they concern.
+- Users only need to `observe key` to get the data they concern.
 
 ## Key use-cases
 
@@ -18,17 +18,19 @@
 
 ## Proposed solutions
 
-`Y3`'s scenario is to deal with real-time stream processing under persistent connection, so the user gives the raw stream to `Y3`, and then tells `Y3` to observe the key. `Y3` starts the parsing operation after taking over the raw stream. When the key is observed, `Y3` will decode the value in specified type and trigger callback function.
+`Y3`'s scenario is to deal with real-time stream processing under persistent connection, so the user gives the raw stream to `Y3`, and then tells `Y3` to observe the key. `Y3` starts the parsing operation after taking over the raw stream. When the key is observed, `Y3` will decode the value in specified type and trigger a callback function.
+
+`Y3` describes the object as a set of `TLV` structures. When decoding packets, it can know earlier whether the current T is the observed key, and determine whether to jump to the next set of TLV structures directly, without unnecessary decoding operations on unobserved packets, so `Y3` can improve the decoding efficiency and resource utilization.
 
 Core interfaces include:
 
 - **Marshal** serializes the user's data according to the `Y3`'s encoding rules.
-- **Subscribe** observes the `key` which the user specified.
-- **OnObserve** triggers the callback function while the is observed by `Y3`.
+- **Subscribe** observes the `key` which is specified by user.
+- **OnObserve** triggers the callback function while the key is observed by `Y3`.
 
 ## Examples
 
-### 1. The data source is a batch of JSON (including concerned and unconcerned data). These data need to be encoded by 'Y3' and transported to the receiver by streaming, such as `YoMo flow`. The receiver observes the concerned data and processes it
+### 1. The data source is a batch of JSON (including concerned and unconcerned data). These data need to be encoded by 'Y3' and transported to the receiver by streaming, such as [yomo-flow](https://yomo.run/flow). The receiver observes the concerned data and processes it
 
 #### Encode data
 
