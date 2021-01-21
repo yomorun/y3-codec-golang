@@ -47,14 +47,15 @@ type Thermometer struct {
 }
 
 func main() {
-   input := SourceData{
-      Name:  "yomo",
-      Noise: float32(456),
-      Therm: Thermometer{Temperature: float32(30), Humidity: float32(40)},
-   }
-   codec := y3.NewCodec(0x20)
-   inputBuf, err := codec.Marshal(input)
-   fmt.Printf("inputBuf=%v, err=%v\n", packetutils.FormatBytes(inputBuf), err)
+	input := SourceData{
+		Name:  "yomo",
+		Noise: float32(456),
+		Therm: Thermometer{Temperature: float32(30), Humidity: float32(40)},
+	}
+  // encode to the data in Y3-Codec format
+	codec := y3.NewCodec(0x20)
+	inputBuf, _ := codec.Marshal(input)
+	fmt.Printf("inputBuf=%#v\n", inputBuf)
 }
 ```
 
@@ -62,11 +63,17 @@ func main() {
 
 ```go
 func main() {
-   var onObserve = func(v []byte) {
-      f, err := y3.ToFloat32(v)
-      fmt.Printf("observed v=%v\n", f)
-   }
-   codec = y3.FromStream(xx)
-   codec.Subscribe(0x11).OnObserve(onObserve)
+	// define callback function to process the data being observed
+	callback := func(v []byte) (interface{}, error) {
+		return y3.ToFloat32(v)
+	}
+	// create the Observable interface
+	source := y3.FromStream(bytes.NewReader(inputBuf))
+  // subscribe the Key being observed and set the callback function
+	consumer := source.Subscribe(0x11).OnObserve(callback)
+	// checking data after it has been processed
+	for c := range consumer {
+		fmt.Printf("observed value=%v, type=%v\n", c, reflect.ValueOf(c).Kind())
+	}
 }
 ```

@@ -47,14 +47,15 @@ type Thermometer struct {
 }
 
 func main() {
-   input := SourceData{
-      Name:  "yomo",
-      Noise: float32(456),
-      Therm: Thermometer{Temperature: float32(30), Humidity: float32(40)},
-   }
-   codec := y3.NewCodec(0x20)
-   inputBuf, err := codec.Marshal(input)
-   fmt.Printf("inputBuf=%v, err=%v\n", packetutils.FormatBytes(inputBuf), err)
+	input := SourceData{
+		Name:  "yomo",
+		Noise: float32(456),
+		Therm: Thermometer{Temperature: float32(30), Humidity: float32(40)},
+	}
+  // 把对象编码为符合Y3-Codec格式的数据
+	codec := y3.NewCodec(0x20)
+	inputBuf, _ := codec.Marshal(input)
+	fmt.Printf("inputBuf=%#v\n", inputBuf)
 }
 ```
 
@@ -62,11 +63,17 @@ func main() {
 
 ```go
 func main() {
-   var onObserve = func(v []byte) {
-      f, err := y3.ToFloat32(v)
-      fmt.Printf("observed v=%v\n", f)
-   }
-   codec = y3.FromStream(xx)
-   codec.Subscribe(0x11).OnObserve(onObserve)
+	// 定义回调函数用于处理被监听的数据
+	callback := func(v []byte) (interface{}, error) {
+		return y3.ToFloat32(v)
+	}
+	// 创建Observable接口
+	source := y3.FromStream(bytes.NewReader(inputBuf))
+	// 订阅被监听的Key，并设置回调函数
+	consumer := source.Subscribe(0x11).OnObserve(callback)
+	// 检查被处理后的数据
+	for c := range consumer {
+		fmt.Printf("observed value=%v, type=%v\n", c, reflect.ValueOf(c).Kind())
+	}
 }
 ```
