@@ -102,7 +102,7 @@ func encodeArrayPacket() {
 	var club = y3.NewNodePacketEncoder(0x01)
 
 	// 0xc2 - []*bar
-	var bars = y3.NewNodeArrayPacketEncoder(0x02)
+	var bars = y3.NewNodeSlicePacketEncoder(0x02)
 
 	// 0x03 - Name="a1"
 	var bar1 = y3.NewNodePacketEncoder(0x00)
@@ -119,7 +119,7 @@ func encodeArrayPacket() {
 	bars.AddNodePacket(bar2)
 
 	// 0x44 - kinds
-	var kinds = y3.NewNodeArrayPacketEncoder(0x04)
+	var kinds = y3.NewNodeSlicePacketEncoder(0x04)
 
 	// 0x44 - item1
 	var item1 = y3.NewPrimitivePacketEncoder(0x00)
