@@ -217,7 +217,7 @@ func (e *basicEncoderImpl) encodeBasicBool(input interface{}) *PrimitivePacketEn
 // encodeBasicStringSlice encode reflect.Value of []string to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicStringSlice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToStringSliceArray(value.Interface()); ok {
+	if out, ok := utils.ToStringSlice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetStringValue(fmt.Sprintf("%v", v))
@@ -230,7 +230,7 @@ func (e *basicEncoderImpl) encodeBasicStringSlice(value reflect.Value) *NodePack
 // encodeBasicInt32Slice encode reflect.Value of []int32 to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicInt32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
+	if out, ok := utils.ToInt64Slice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetInt32Value(int32(v.(int64)))
@@ -243,7 +243,7 @@ func (e *basicEncoderImpl) encodeBasicInt32Slice(value reflect.Value) *NodePacke
 // encodeBasicUint32Slice encode reflect.Value of []uint32 to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicUint32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
+	if out, ok := utils.ToUInt64Slice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetUInt32Value(uint32(v.(uint64)))
@@ -256,7 +256,7 @@ func (e *basicEncoderImpl) encodeBasicUint32Slice(value reflect.Value) *NodePack
 // encodeBasicInt64Slice encode reflect.Value of []int64 to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicInt64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToInt64SliceArray(value.Interface()); ok {
+	if out, ok := utils.ToInt64Slice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetInt64Value(v.(int64))
@@ -269,7 +269,7 @@ func (e *basicEncoderImpl) encodeBasicInt64Slice(value reflect.Value) *NodePacke
 // encodeBasicUint64Slice encode reflect.Value of []uint64 to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicUint64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToUInt64SliceArray(value.Interface()); ok {
+	if out, ok := utils.ToUInt64Slice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetUInt64Value(v.(uint64))
@@ -282,7 +282,7 @@ func (e *basicEncoderImpl) encodeBasicUint64Slice(value reflect.Value) *NodePack
 // encodeBasicFloat32Slice encode reflect.Value of []float32 to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicFloat32Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
+	if out, ok := utils.ToUFloat64Slice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetFloat32Value(float32(v.(float64)))
@@ -295,7 +295,7 @@ func (e *basicEncoderImpl) encodeBasicFloat32Slice(value reflect.Value) *NodePac
 // encodeBasicFloat64Slice encode reflect.Value of []float64 to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicFloat64Slice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToUFloat64SliceArray(value.Interface()); ok {
+	if out, ok := utils.ToUFloat64Slice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetFloat64Value(v.(float64))
@@ -308,7 +308,7 @@ func (e *basicEncoderImpl) encodeBasicFloat64Slice(value reflect.Value) *NodePac
 // encodeBasicBoolSlice encode reflect.Value of []bool to NodePacketEncoder
 func (e *basicEncoderImpl) encodeBasicBoolSlice(value reflect.Value) *NodePacketEncoder {
 	var node = NewNodeSlicePacketEncoder(int(e.observe))
-	if out, ok := utils.ToBoolSliceArray(value.Interface()); ok {
+	if out, ok := utils.ToBoolSlice(value.Interface()); ok {
 		for _, v := range out {
 			var item = NewPrimitivePacketEncoder(utils.KeyOfSliceItem)
 			item.SetBoolValue(v.(bool))
