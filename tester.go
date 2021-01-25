@@ -27,7 +27,7 @@ func testDecoder(observe byte, buf []byte, callback func(v []byte) (interface{},
 	newObservableTester(observe).
 		Init(callback).
 		Write(buf).
-		CloseWith(100)
+		CloseWith(150)
 }
 
 // Init create a channel for testing
