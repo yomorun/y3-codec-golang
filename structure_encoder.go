@@ -110,14 +110,14 @@ func (e *structEncoderImpl) encode(input interface{}, signals []*PrimitivePacket
 		}
 		root.AddNodePacket(nodeEncoder)
 		return root.Encode(), nil
-	} else {
-		buf := make([][]byte, 0)
-		for _, signal := range signals {
-			buf = append(buf, signal.Encode())
-		}
-		buf = append(buf, nodeEncoder.Encode())
-		return bytes.Join(buf, []byte{}), nil
 	}
+
+	buf := make([][]byte, 0)
+	for _, signal := range signals {
+		buf = append(buf, signal.Encode())
+	}
+	buf = append(buf, nodeEncoder.Encode())
+	return bytes.Join(buf, []byte{}), nil
 }
 
 // encodeSlice encode slice to NodePacketEncoder
@@ -199,12 +199,12 @@ func (e *structEncoderImpl) encodeStructFromField(fieldType reflect.Type, fieldN
 	case reflect.Bool:
 		ppe.SetBoolValue(e.fieldValueToBool(fieldType, fieldValue))
 	case reflect.Array:
-		arrNode := NewNodeArrayPacketEncoder(int(utils.KeyOf(fieldName)))
+		arrNode := NewNodeSlicePacketEncoder(int(utils.KeyOf(fieldName)))
 		e.encodeArrayFromField(fieldValue, arrNode)
 		en.AddNodePacket(arrNode)
 		return
 	case reflect.Slice:
-		sliceNode := NewNodeArrayPacketEncoder(int(utils.KeyOf(fieldName)))
+		sliceNode := NewNodeSlicePacketEncoder(int(utils.KeyOf(fieldName)))
 		e.encodeSliceFromField(fieldValue, sliceNode)
 		en.AddNodePacket(sliceNode)
 		return

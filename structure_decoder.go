@@ -128,8 +128,9 @@ func (d *structDecoderImpl) decodeSlice(data *NodePacket, val reflect.Value) err
 	elemType := val.Type().Elem()
 
 	items := make([]reflect.Value, 0)
-	for _, node := range data.NodePackets {
+	for i := range data.NodePackets {
 		elemValue := reflect.Indirect(reflect.New(elemType))
+		node := data.NodePackets[i]
 		err := d.decodeStruct(&node, elemValue)
 		if err != nil {
 			return err
@@ -408,11 +409,11 @@ func (d *structDecoderImpl) matchingKey(key byte, node *NodePacket) (flag bool, 
 	}
 
 	if len(node.NodePackets) > 0 {
-		for _, n := range node.NodePackets {
+		for i := range node.NodePackets {
+			n := node.NodePackets[i]
 			if key == n.SeqID() {
 				return true, true, n
 			}
-			//return matchingKey(key, &n)
 			flag, isNode, packet = d.matchingKey(key, &n)
 			if flag {
 				return

@@ -4,20 +4,20 @@ import (
 	"reflect"
 )
 
-// Y3Codec encode the user's data according to the Y3 encoding rules
-type Y3Codec interface {
+// Codec encode the user's data according to the Y3 encoding rules
+type Codec interface {
 	// Marshal encode interface to []byte
 	Marshal(input interface{}) ([]byte, error)
 }
 
-// NewCodec create a Y3Codec interface
-func NewCodec(observe byte) Y3Codec {
+// NewCodec create a Codec interface
+func NewCodec(observe byte) Codec {
 	return &y3Codec{
 		observe: observe,
 	}
 }
 
-// y3Codec is implementation of the Y3Codec interface
+// y3Codec is implementation of the Codec interface
 type y3Codec struct {
 	observe byte
 }
