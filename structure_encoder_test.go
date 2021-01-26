@@ -16,7 +16,11 @@ func TestStructEncoderWithSignals(t *testing.T) {
 		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
 	}
 
-	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken))
+	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken),
+		structEncoderOptionConfig(&structEncoderConfig{
+			ZeroFields: true,
+			TagName:    "yomo",
+		}))
 	inputBuf, _ := encoder.Encode(input,
 		createSignal(0x02).SetString("a"),
 		createSignal(0x03).SetString("b"))

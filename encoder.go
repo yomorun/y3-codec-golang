@@ -135,6 +135,7 @@ func (enc *PrimitivePacketEncoder) SetStringValue(v string) {
 	enc.valbuf = []byte(v)
 }
 
+// SetBytes set bytes to internal buf variable
 func (enc *PrimitivePacketEncoder) SetBytes(buf []byte) {
 	enc.valbuf = buf
 }
@@ -157,7 +158,8 @@ func NewNodePacketEncoder(sid int) *NodePacketEncoder {
 	return nodeEnc
 }
 
-func NewNodeArrayPacketEncoder(sid int) *NodePacketEncoder {
+// NewNodeSlicePacketEncoder returns an Encoder for node packet that is a slice
+func NewNodeSlicePacketEncoder(sid int) *NodePacketEncoder {
 	nodeEnc := &NodePacketEncoder{
 		encoder: encoder{
 			isNode:  true,

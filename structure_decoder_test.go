@@ -32,7 +32,10 @@ func TestBasic_Struct(t *testing.T) {
 }
 
 func runDecode(t *testing.T, inputBuf []byte, output interface{}) {
-	_, err := newStructDecoder(output).Decode(inputBuf)
+	_, err := newStructDecoder(output, structDecoderOptionConfig(&structDecoderConfig{
+		ZeroFields: true,
+		TagName:    "yomo",
+	})).Decode(inputBuf)
 	if err != nil {
 		t.Errorf("got an err: %s", err.Error())
 		t.FailNow()

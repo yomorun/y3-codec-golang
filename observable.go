@@ -7,10 +7,12 @@ import (
 	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 )
 
+// Iterable iterate through and get the data of observe
 type Iterable interface {
 	Observe() <-chan interface{}
 }
 
+// Observable provide subscription and notification processing
 type Observable interface {
 	Iterable
 	Subscribe(key byte) Observable

@@ -20,22 +20,18 @@ func TestObservable(t *testing.T) {
 		if (v[0] == 17) && (v[1] == 2) && (v[2] == 67) && (v[3] == 228) {
 			count1++
 			return "ok1", nil
-		} else {
-			err1 = errors.New("fail")
-			return nil, errors.New("fail")
 		}
-
+		err1 = errors.New("fail")
+		return nil, errors.New("fail")
 	}
 
 	callback2 := func(v []byte) (interface{}, error) {
 		if (v[0] == 19) && (v[1] == 2) && (v[2] == 65) && (v[3] == 240) {
 			count2++
 			return "ok2", nil
-		} else {
-			err2 = errors.New("fail")
-			return nil, errors.New("fail")
 		}
-
+		err2 = errors.New("fail")
+		return nil, errors.New("fail")
 	}
 
 	reader := bytes.NewReader(buf)
