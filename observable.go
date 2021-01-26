@@ -31,11 +31,11 @@ type iterableImpl struct {
 }
 
 func (i *iterableImpl) Observe() <-chan interface{} {
-	i.connect()
 	ch := make(chan interface{})
 	i.mutex.Lock()
 	i.subscribers = append(i.subscribers, ch)
 	i.mutex.Unlock()
+	i.connect()
 	return ch
 }
 

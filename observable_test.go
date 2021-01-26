@@ -43,15 +43,11 @@ func TestObservable(t *testing.T) {
 	consumer2 := source.Subscribe(0x13).OnObserve(callback2)
 
 	for range consumer1 {
-		if count1 == 3 || err1 != nil {
-			break
-		}
+
 	}
 
 	for range consumer2 {
-		if count2 == 3 || err2 != nil {
-			break
-		}
+
 	}
 
 	assert.NoError(t, err1, fmt.Sprintf("subscribe2 error:%v", err1))
