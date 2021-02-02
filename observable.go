@@ -258,9 +258,11 @@ func filterRoot(observe <-chan interface{}) <-chan interface{} {
 
 					b := buf[i]
 
-					if rootflow == 0 && ((b<<2)>>2 == rootkey) {
-						rootflow = 1
-						rootBuffer = append(rootBuffer, b)
+					if rootflow == 0 {
+						if (b<<2)>>2 == rootkey {
+							rootflow = 1
+							rootBuffer = append(rootBuffer, b)
+						}
 						i++
 						continue
 					}
