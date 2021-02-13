@@ -47,7 +47,7 @@ func sizeOfVarFloat(bits uint64, width int) int {
 	const mask = uint64(0xFF) // mask of encoding unit
 
 	for s := 0; width > 1; s += unit {
-		if bits & (mask << s) != 0 {
+		if bits&(mask<<s) != 0 {
 			return width
 		}
 		width--
@@ -68,7 +68,7 @@ func (codec *VarCodec) encodeVarFloat(buffer []byte, bits uint64, width int) err
 			return ErrBufferInsufficient
 		}
 		codec.Size--
-		buffer[codec.Ptr] = byte(bits >> ((codec.Size & mask + gap) * unit))
+		buffer[codec.Ptr] = byte(bits >> ((codec.Size&mask + gap) * unit))
 		codec.Ptr++
 	}
 

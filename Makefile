@@ -14,8 +14,14 @@ vet:
 lint:
 	$(GOLINT) $(GOFILES)
 
-test:
+v1test:
 	$(GO) test -v ./...
 
 cover:
-	$(GO) test -coverprofile=prof.out && $(GO) tool cover -html=prof.out && rm prof.out
+	$(GO) test github.com/yomorun/y3-codec-golang/pkg -coverprofile=prof.out && $(GO) tool cover -html=prof.out && rm prof.out
+
+test:
+	$(GO) test -v api.go api_test.go stream_api.go stream_api_test.go
+
+test-spec:
+	$(GO) test -v github.com/yomorun/y3-codec-golang/pkg/spec
