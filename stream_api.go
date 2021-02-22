@@ -86,6 +86,7 @@ func (sd *StreamDecoder) fill(b byte) error {
 				// make a Packet object
 				sd.fullfiled()
 				sd.state = "Nil"
+        return nil
 			}
 			// update state
 			sd.state = "VS"
