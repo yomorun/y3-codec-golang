@@ -78,8 +78,8 @@ Golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec)
   
     ```go 
     type Example struct {
-    	Id   int32  `yomo:"0x22"`
-    	Name string `yomo:"0x23"`
+    	Id   int32  `y3:"0x22"`
+    	Name string `y3:"0x23"`
     }
     ```
   
@@ -167,8 +167,8 @@ func main() {
 }
 
 type Example struct {
-	Id   int32  `yomo:"0x22"`
-	Name string `yomo:"0x23"`
+	Id   int32  `y3:"0x22"`
+	Name string `y3:"0x23"`
 }
 ```
 
@@ -218,8 +218,8 @@ func main() {
 }
 
 type Example struct {
-	Id   int32  `yomo:"0x22"`
-	Name string `yomo:"0x23"`
+	Id   int32  `y3:"0x22"`
+	Name string `y3:"0x23"`
 }
 ```
 

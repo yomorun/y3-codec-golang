@@ -52,7 +52,7 @@ func newStructEncoder(observe byte, options ...func(*structEncoderImpl)) structE
 	encoder := &structEncoderImpl{
 		config: &structEncoderConfig{
 			ZeroFields: true,
-			TagName:    "yomo",
+			TagName:    "y3",
 		},
 		observe: observe,
 		root:    utils.EmptyKey,

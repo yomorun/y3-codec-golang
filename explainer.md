@@ -36,14 +36,14 @@ Core interfaces include:
 
 ```go
 type SourceData struct {
-   Name  string      `yomo:"0x10"`
-   Noise float32     `yomo:"0x11"`
-   Therm Thermometer `yomo:"0x12"`
+   Name  string      `y3:"0x10"`
+   Noise float32     `y3:"0x11"`
+   Therm Thermometer `y3:"0x12"`
 }
 
 type Thermometer struct {
-   Temperature float32 `yomo:"0x13"`
-   Humidity    float32 `yomo:"0x14"`
+   Temperature float32 `y3:"0x13"`
+   Humidity    float32 `y3:"0x14"`
 }
 
 func main() {

@@ -223,16 +223,16 @@ func TestMarshalObjectSlice(t *testing.T) {
 }
 
 type exampleData struct {
-	Name  string      `yomo:"0x10"`
-	Noise float32     `yomo:"0x11"`
-	Therm thermometer `yomo:"0x12"`
+	Name  string      `y3:"0x10"`
+	Noise float32     `y3:"0x11"`
+	Therm thermometer `y3:"0x12"`
 }
 
 type thermometer struct {
-	Temperature float32 `yomo:"0x13"`
-	Humidity    float32 `yomo:"0x14"`
+	Temperature float32 `y3:"0x13"`
+	Humidity    float32 `y3:"0x14"`
 }
 
 type exampleSlice struct {
-	Therms []thermometer `yomo:"0x12"`
+	Therms []thermometer `y3:"0x12"`
 }
