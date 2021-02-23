@@ -19,7 +19,7 @@ func TestStructEncoderWithSignals(t *testing.T) {
 	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken),
 		structEncoderOptionConfig(&structEncoderConfig{
 			ZeroFields: true,
-			TagName:    "yomo",
+			TagName:    "y3",
 		}))
 	inputBuf, _ := encoder.Encode(input,
 		createSignal(0x02).SetString("a"),

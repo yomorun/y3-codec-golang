@@ -52,7 +52,7 @@ func newStructDecoder(mold interface{}, options ...func(*structDecoderImpl)) str
 	decoder := &structDecoderImpl{
 		config: &structDecoderConfig{
 			ZeroFields: true,
-			TagName:    "yomo",
+			TagName:    "y3",
 		},
 		result: mold,
 	}
