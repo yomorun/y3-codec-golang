@@ -17,7 +17,7 @@ See [YoMo Codec SPEC](https://github.com/yomorun/yomo-codec)
 
 ## Test
 
-`go test ./...`
+`make test`
 
 ## Use 
 
@@ -26,6 +26,8 @@ See [YoMo Codec SPEC](https://github.com/yomorun/yomo-codec)
 ## Examples
 
 ### Encode examples
+
+Encode Key-Value type `{ID: 3}` to Y3: 
 
 ```go
 package main
@@ -36,33 +38,46 @@ import (
 )
 
 func main() {
-	// if we want to repesent `var obj = &foo{ID: -1, bar: &bar{Name: "C"}}` 
-	// in YoMo-Codec:
-
-	// 0x81 -> node
-	var foo = y3.NewNodePacketEncoder(0x01)
-
-	// 0x02 -> foo.ID=-11
-	var yp1 = y3.NewPrimitivePacketEncoder(0x02)
-	yp1.SetInt32Value(-1)
-	foo.AddPrimitivePacket(yp1)
-
-	// 0x83 -> &bar{}
-	var bar = y3.NewNodePacketEncoder(0x03)
-
-	// 0x04 -> bar.Name="C"
-	var yp2 = y3.NewPrimitivePacketEncoder(0x04)
-	yp2.SetStringValue("C")
-	bar.AddPrimitivePacket(yp2)
+	// Key:ID = Tag:0x01
+	buffer, _ = y3.EncodeInt(0x01, 3)
 	
-	// -> foo.bar=&bar
-	foo.AddNodePacket(bar)
+	// get whole buf
+	fmt.Printf("res=%#v", buffer) // res=[]byte{0x01, 0x01, 0x03}
+}
+```
 
-	fmt.Printf("res=%#v", foo.Encode()) // res=[]byte{0x81, 0x08, 0x02, 0x01, 0x7F, 0x83, 0x03, 0x04, 0x01, 0x43}
+if we want to repesent JSON `foo: {ID: -1, Name: "C"}` in Y3:
+
+```go
+package main
+
+import (
+	"fmt"
+	y3 "github.com/yomorun/y3-codec-golang"
+)
+
+func main() {
+	// Key:ID 0x01 -> -1
+	var id, _ = y3.NewPacket(0x01)
+	id.SetInt32(-1)
+	
+	// Key:Name 0x02 -> "C"
+	var name, _ = y3.NewPacket(0x02)
+	name.SetString("C")
+
+	// parent node
+	var foo, _ = y3.NewPacket(0x10)
+	foo.AddNode(id)
+	foo.AddNode(name)
+	
+	// get whole buf
+	fmt.Printf("res=%#v", foo.Encode()) // res=[]byte{0x10, 0x06, 0x01, 0x01, 0x7F, 0x02, 0x01, 0x43}
 }
 ```
 
 ### Decode examples 1: decode a primitive packet
+
+Decode `[0x0A, 0x01, 0x7F]` as Int type
 
 ```go
 package main
@@ -75,13 +90,13 @@ import (
 func main() {
 	fmt.Println(">> Parsing [0x0A, 0x01, 0x7F], which like Key-Value format = 0x0A: 127")
 	buf := []byte{0x0A, 0x01, 0x7F}
-	res, _, err := y3.DecodePrimitivePacket(buf)
-	v1, err := res.ToUInt32()
+	res, _, err := y3.DecodePacket(buf)
+	val, err := res.ToInt32()
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Tag Key=[%#X], Value=%v\n", res.SeqID(), v1)
+	fmt.Printf("Tag Key=[%#X], Value=%v\n", res.Tag, val)
 }
 ```
 
@@ -130,3 +145,9 @@ More examples in `/examples/`
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_large)
+
+## CLA
+
+[Sign CLA](https://cla-assistant.io/yomorun/y3-codec-golang)
+
+[![CLA assistant](https://cla-assistant.io/readme/badge/yomorun/y3-codec-golang)](https://cla-assistant.io/yomorun/y3-codec-golang)

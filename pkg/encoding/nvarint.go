@@ -78,7 +78,7 @@ func sizeOfNVarInt(value int64, width int) int {
 	const unit = 8 // bit width of encoding unit
 
 	var lead = value >> (width - 1)
-	for size := width / unit - 1; size > 0; size-- {
+	for size := width/unit - 1; size > 0; size-- {
 		var lookAhead = value >> (size*unit - 1)
 		if lookAhead != lead {
 			return size + 1

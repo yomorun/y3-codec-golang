@@ -123,7 +123,7 @@ func (codec *VarCodec) decodePVarInt(buffer []byte, value *int64) error {
 		return ErrBufferInsufficient
 	}
 
-	const unit = 7 // bit width of encoding unit
+	const unit = 7       // bit width of encoding unit
 	if codec.Size == 0 { // initialize sign bit
 		const flag = 8 - unit // bit width for non-encoding bits
 		*value = int64(int8(buffer[codec.Ptr]) << flag >> unit)
@@ -135,7 +135,7 @@ func (codec *VarCodec) decodePVarInt(buffer []byte, value *int64) error {
 		codec.Ptr++
 
 		codec.Size++
-		*value = (*value << unit) | int64(mask & part)
+		*value = (*value << unit) | int64(mask&part)
 
 		if part >= 0 { // it's the last byte
 			return nil
