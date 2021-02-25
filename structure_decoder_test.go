@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/yomorun/y3-codec-golang/internal/utils"
+
 	"github.com/yomorun/y3-codec-golang/internal/tester"
 )
 
@@ -24,7 +26,7 @@ func TestBasic_Struct(t *testing.T) {
 	t.Parallel()
 
 	input := newBasic()
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.BasicTestData
 	runDecode(t, inputBuf, &result)
@@ -49,7 +51,7 @@ func TestDecode_Embedded(t *testing.T) {
 		BasicTestData: newBasic(),
 		Vaction:       "drink",
 	}
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.EmbeddedTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -69,7 +71,7 @@ func TestDecode_EmbeddedMore(t *testing.T) {
 	t.Parallel()
 
 	input := tester.EmbeddedMoreTestData{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.EmbeddedMoreTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -93,7 +95,7 @@ func TestDecoder_Named(t *testing.T) {
 	t.Parallel()
 
 	input := tester.NamedTestData{Base: newBasic(), Vaction: "drink"}
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.NamedTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -113,7 +115,7 @@ func TestDecoder_NamedMore(t *testing.T) {
 	t.Parallel()
 
 	input := tester.NamedMoreTestData{MyNest: tester.NamedTestData{Base: newBasic(), Vaction: "drink"}, Vanimal: "bird"}
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.NamedMoreTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -146,7 +148,7 @@ func TestArray(t *testing.T) {
 		[2]float32{1, 2},
 		[2]float64{1, 2},
 	}
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.ArrayTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -178,7 +180,7 @@ func TestSlice(t *testing.T) {
 		[]float64{1, 2},
 	}
 
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.SliceTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -210,7 +212,7 @@ func TestSliceStruct(t *testing.T) {
 			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
 	}
 
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.SliceStructTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -258,7 +260,7 @@ func TestArrayStruct(t *testing.T) {
 			{EmbeddedTestData: tester.EmbeddedTestData{BasicTestData: newBasic(), Vaction: "drink"}, Vanimal: "bird"}},
 	}
 
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.ArrayStructTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -297,7 +299,7 @@ func TestRootSliceWithBasicStruct(t *testing.T) {
 
 	input := []tester.BasicTestData{newBasic(), newBasic()}
 
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result []tester.BasicTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -329,7 +331,7 @@ func TestRootSliceWithSliceStruct(t *testing.T) {
 
 	input := []tester.SliceStructTestData{input1, input1}
 
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result []tester.SliceStructTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)
@@ -375,7 +377,7 @@ func TestNested(t *testing.T) {
 		BasicList: []tester.BasicTestData{newBasic(), newBasic()},
 	}}}}
 
-	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(rootToken)).Encode(input)
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
 	var result tester.NestedTestData
 	_, err := newStructDecoder(&result).Decode(inputBuf)

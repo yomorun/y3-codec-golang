@@ -17,3 +17,6 @@ const KeyOfSliceItem = 0x00
 
 // KeyStringOfSliceItem 描述数组项的TLV的sid值的字符串表示
 const KeyStringOfSliceItem = "0x00"
+
+// RootToken 描述根节点的sid值
+const RootToken byte = 0x01

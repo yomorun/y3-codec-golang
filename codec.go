@@ -2,6 +2,8 @@ package y3
 
 import (
 	"reflect"
+
+	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 // Codec encode the user's data according to the Y3 encoding rules
@@ -25,9 +27,9 @@ type y3Codec struct {
 // Marshal encode interface to []byte
 func (c y3Codec) Marshal(input interface{}) ([]byte, error) {
 	if c.isStruct(input) {
-		return newStructEncoder(c.observe, structEncoderOptionRoot(rootToken)).Encode(input)
+		return newStructEncoder(c.observe, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 	}
-	return newBasicEncoder(c.observe, basicEncoderOptionRoot(rootToken)).Encode(input)
+	return newBasicEncoder(c.observe, basicEncoderOptionRoot(utils.RootToken)).Encode(input)
 }
 
 // isStruct determine whether an interface is a structure

@@ -424,11 +424,6 @@ func (d *structDecoderImpl) matchingKey(key byte, node *NodePacket) (flag bool, 
 	return false, false, nil
 }
 
-var (
-	// rootToken: mark the root node
-	rootToken byte = 0x01
-)
-
 // field store the contents of a reflect
 type field struct {
 	field reflect.StructField

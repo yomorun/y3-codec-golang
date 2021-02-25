@@ -16,7 +16,7 @@ func TestStructEncoderWithSignals(t *testing.T) {
 		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
 	}
 
-	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken),
+	encoder := newStructEncoder(0x30, structEncoderOptionRoot(utils.RootToken),
 		structEncoderOptionConfig(&structEncoderConfig{
 			ZeroFields: true,
 			TagName:    "y3",
@@ -65,7 +65,7 @@ func TestStructSliceEncoderWithSignals(t *testing.T) {
 		},
 	}
 
-	encoder := newStructEncoder(0x30, structEncoderOptionRoot(rootToken))
+	encoder := newStructEncoder(0x30, structEncoderOptionRoot(utils.RootToken))
 	inputBuf, _ := encoder.Encode(input,
 		createSignal(0x02).SetString("a"),
 		createSignal(0x03).SetString("b"))

@@ -13,7 +13,7 @@ import (
 func TestBasicEncoderWithSignals(t *testing.T) {
 	input := int32(456)
 
-	encoder := newBasicEncoder(0x10, basicEncoderOptionRoot(rootToken))
+	encoder := newBasicEncoder(0x10, basicEncoderOptionRoot(utils.RootToken))
 	inputBuf, _ := encoder.Encode(input,
 		createSignal(0x02).SetString("a"),
 		createSignal(0x03).SetString("b"))
@@ -41,7 +41,7 @@ func TestBasicEncoderWithSignalsNoRoot(t *testing.T) {
 func TestBasicSliceEncoderWithSignals(t *testing.T) {
 	input := []int32{123, 456}
 
-	encoder := newBasicEncoder(0x10, basicEncoderOptionRoot(rootToken))
+	encoder := newBasicEncoder(0x10, basicEncoderOptionRoot(utils.RootToken))
 	inputBuf, _ := encoder.Encode(input,
 		createSignal(0x02).SetString("a"),
 		createSignal(0x03).SetString("b"))
