@@ -79,3 +79,36 @@ func TestBasicSliceEncoderWithSignalsNoRoot(t *testing.T) {
 				expectedValue.Index(i).Interface(), resultValue.Index(i).Interface()))
 	}
 }
+
+func TestBasicForbidUserKey(t *testing.T) {
+	input := int32(456)
+
+	var key byte = 0x02
+	assert.Panics(t, func() {
+		newBasicEncoder(key,
+			basicEncoderOptionRoot(utils.RootToken),
+			basicEncoderOptionForbidUserKey(utils.ForbidUserKey)).
+			Encode(input)
+	}, "should forbid this Key: %#x", key)
+
+	key = 0x0f
+	assert.Panics(t, func() {
+		newBasicEncoder(key,
+			basicEncoderOptionRoot(utils.RootToken),
+			basicEncoderOptionForbidUserKey(utils.ForbidUserKey)).
+			Encode(input)
+	}, "should forbid this Key: %#x", key)
+}
+
+func TestBasicAllowSignalKey(t *testing.T) {
+	input := int32(456)
+
+	var signalKey byte = 0x02
+	assert.NotPanics(t, func() {
+		newBasicEncoder(0x10,
+			basicEncoderOptionRoot(utils.RootToken),
+			basicEncoderOptionAllowSignalKey(utils.AllowSignalKey)).
+			Encode(input, createSignal(signalKey).SetString("a"))
+	}, "should allow this Signal Key: %#x", signalKey)
+
+}

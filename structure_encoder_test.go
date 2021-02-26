@@ -104,3 +104,56 @@ func TestStructSliceEncoderWithSignalsNoRoot(t *testing.T) {
 	assert.Equal(t, float32(50), mold.Therms[1].Temperature, fmt.Sprintf("value does not match(%v): %v", float32(50), mold.Therms[1].Temperature))
 	assert.Equal(t, float32(60), mold.Therms[1].Humidity, fmt.Sprintf("value does not match(%v): %v", float32(60), mold.Therms[1].Humidity))
 }
+
+func TestStructForbidUserKey(t *testing.T) {
+	input := exampleData{
+		Name:  "yomo",
+		Noise: float32(456),
+		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
+	}
+
+	var key byte = 0x02
+	assert.Panics(t, func() {
+		newStructEncoder(key,
+			structEncoderOptionRoot(utils.RootToken),
+			structEncoderOptionConfig(&structEncoderConfig{
+				ZeroFields: true,
+				TagName:    "y3",
+			}),
+			structEncoderOptionForbidUserKey(utils.ForbidUserKey)).
+			Encode(input)
+	}, "should forbid this Key: %#x", key)
+
+	key = 0x0f
+	assert.Panics(t, func() {
+		newStructEncoder(key,
+			structEncoderOptionRoot(utils.RootToken),
+			structEncoderOptionConfig(&structEncoderConfig{
+				ZeroFields: true,
+				TagName:    "y3",
+			}),
+			structEncoderOptionForbidUserKey(utils.ForbidUserKey)).
+			Encode(input)
+	}, "should forbid this Key: %#x", key)
+
+}
+
+func TestStructAllowSignalKey(t *testing.T) {
+	input := exampleData{
+		Name:  "yomo",
+		Noise: float32(456),
+		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
+	}
+
+	var signalKey byte = 0x02
+	assert.NotPanics(t, func() {
+		newStructEncoder(0x30,
+			structEncoderOptionRoot(utils.RootToken),
+			structEncoderOptionConfig(&structEncoderConfig{
+				ZeroFields: true,
+				TagName:    "y3",
+			}),
+			structEncoderOptionAllowSignalKey(utils.AllowSignalKey)).
+			Encode(input, createSignal(signalKey).SetString("a"))
+	}, "should allow this Signal Key: %#x", signalKey)
+}

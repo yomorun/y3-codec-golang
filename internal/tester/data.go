@@ -1,5 +1,6 @@
 package tester
 
+// BasicTestData is data of basic test
 type BasicTestData struct {
 	Vstring  string  `y3:"0x10"`
 	Vint32   int32   `y3:"0x11"`
@@ -11,26 +12,31 @@ type BasicTestData struct {
 	Vbool    bool    `y3:"0x17"`
 }
 
+// EmbeddedTestData is data of embedded test
 type EmbeddedTestData struct {
 	BasicTestData `y3:"0x1a"`
 	Vaction       string `y3:"0x1b"`
 }
 
+// EmbeddedMoreTestData is data of embedded more test
 type EmbeddedMoreTestData struct {
 	EmbeddedTestData `y3:"0x1c"`
 	Vanimal          string `y3:"0x1d"`
 }
 
+// NamedTestData is data of named test
 type NamedTestData struct {
 	Base    BasicTestData `y3:"0x1e"`
 	Vaction string        `y3:"0x1f"`
 }
 
+// NamedMoreTestData is data of named more test
 type NamedMoreTestData struct {
 	MyNest  NamedTestData `y3:"0x2a"`
 	Vanimal string        `y3:"0x2b"`
 }
 
+// ArrayTestData is data of array test
 type ArrayTestData struct {
 	Vfoo          string     `y3:"0x20"`
 	Vbar          [2]string  `y3:"0x21"`
@@ -42,6 +48,7 @@ type ArrayTestData struct {
 	Vfloat64Array [2]float64 `y3:"0x27"`
 }
 
+// SliceTestData is data of slice test
 type SliceTestData struct {
 	Vfoo          string    `y3:"0x30"`
 	Vbar          []string  `y3:"0x31"`
@@ -53,6 +60,7 @@ type SliceTestData struct {
 	Vfloat64Slice []float64 `y3:"0x37"`
 }
 
+// SliceStructTestData is data of slice struct test
 type SliceStructTestData struct {
 	Vstring          string                 `y3:"0x2e"`
 	BaseList         []BasicTestData        `y3:"0x2f"`
@@ -60,6 +68,7 @@ type SliceStructTestData struct {
 	EmbeddedMoreList []EmbeddedMoreTestData `y3:"0x3b"`
 }
 
+// ArrayStructTestData is data of array struct test
 type ArrayStructTestData struct {
 	Vstring          string                  `y3:"0x2e"`
 	BaseList         [2]BasicTestData        `y3:"0x2f"`
@@ -67,18 +76,22 @@ type ArrayStructTestData struct {
 	EmbeddedMoreList [2]EmbeddedMoreTestData `y3:"0x3b"`
 }
 
+// NestedTestData is data of nested test
 type NestedTestData struct {
 	SubNested Sub1NestedTestData `y3:"0x3a"`
 }
 
+// Sub1NestedTestData is data of sub1 nested test
 type Sub1NestedTestData struct {
 	SubNested Sub2NestedTestData `y3:"0x3b"`
 }
 
+// Sub2NestedTestData is data of sub2 nested test
 type Sub2NestedTestData struct {
 	SubNested Sub3NestedTestData `y3:"0x3c"`
 }
 
+// Sub3NestedTestData is data of sub3 nested test
 type Sub3NestedTestData struct {
 	BasicList []BasicTestData `y3:"0x3d"`
 }

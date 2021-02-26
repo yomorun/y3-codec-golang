@@ -37,8 +37,8 @@ func KeyOf(hexStr string) byte {
 	return data[0]
 }
 
-// ForbiddenCustomizedKey is disabled for customized Key
-func ForbiddenCustomizedKey(key byte) bool {
+// ForbidUserKey forbid user set that key
+func ForbidUserKey(key byte) bool {
 	switch key {
 	case 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f:
 		return true
@@ -46,8 +46,8 @@ func ForbiddenCustomizedKey(key byte) bool {
 	return false
 }
 
-// AllowableSignalKey is allowed for creating Signal
-func AllowableSignalKey(key byte) bool {
+// AllowSignalKey allow set that signal key
+func AllowSignalKey(key byte) bool {
 	switch key {
 	case 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f:
 		return true

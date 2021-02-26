@@ -12,7 +12,7 @@ func DecodeLength(buf []byte) (length int32, err error) {
 	return
 }
 
-// RootToken judge if it is the root node
-func IsRootToken(b byte) bool {
+// IsRootTag judge if it is the root node
+func IsRootTag(b byte) bool {
 	return b == (utils.MSB | utils.RootToken)
 }

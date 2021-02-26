@@ -4,7 +4,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/yomorun/y3-codec-golang/pkg/encoding"
+	"github.com/yomorun/y3-codec-golang/pkg/common"
 )
 
 // Iterable iterate through and get the data of observe
@@ -89,6 +89,7 @@ func FromStream(reader io.Reader) Observable {
 				break
 			} else {
 				value := buf[:n]
+				//fmt.Printf("%v:\t $1 on y3 value=%#v\n", time.Now().Format("2006-01-02 15:04:05"), value)
 				next <- value
 			}
 		}
@@ -170,7 +171,7 @@ func (o *observableImpl) Subscribe(key byte) Observable {
 
 						if flow == 1 { // L
 							resultBuffer = append(resultBuffer, b)
-							l, e := decodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
+							l, e := common.DecodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
 
 							if e != nil {
 								length++
@@ -208,12 +209,6 @@ func (o *observableImpl) Subscribe(key byte) Observable {
 
 	return createObservable(f)
 
-}
-
-func decodeLength(buf []byte) (length int32, err error) {
-	varCodec := encoding.VarCodec{}
-	err = varCodec.DecodePVarInt32(buf, &length)
-	return
 }
 
 func createObservable(f func(next chan interface{})) Observable {
@@ -269,7 +264,7 @@ func filterRoot(observe <-chan interface{}) <-chan interface{} {
 
 					if rootflow == 1 { // L
 						rootBuffer = append(rootBuffer, b)
-						l, e := decodeLength(rootBuffer[1 : rootlength+1])
+						l, e := common.DecodeLength(rootBuffer[1 : rootlength+1])
 
 						if e != nil {
 							rootlength++

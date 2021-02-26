@@ -8,12 +8,14 @@ import (
 	"github.com/yomorun/y3-codec-golang"
 )
 
+// SourceData define struct for this example
 type SourceData struct {
 	Name  string      `y3:"0x10"`
 	Noise float32     `y3:"0x11"`
 	Therm Thermometer `y3:"0x12"`
 }
 
+// Thermometer define struct for this example
 type Thermometer struct {
 	Temperature float32 `y3:"0x13"`
 	Humidity    float32 `y3:"0x14"`

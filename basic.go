@@ -16,8 +16,10 @@ type basicEncoder interface {
 
 // basicEncoderImpl is implementation of the basicEncoder interface
 type basicEncoderImpl struct {
-	observe byte
-	root    byte
+	observe        byte
+	root           byte
+	forbidUserKey  func(key byte) bool
+	allowSignalKey func(key byte) bool
 }
 
 // basicEncoderOption create basicEncoderImpl with option
@@ -30,16 +32,30 @@ func basicEncoderOptionRoot(root byte) basicEncoderOption {
 	}
 }
 
+// basicEncoderOptionForbidUserKey set func to forbid some key
+func basicEncoderOptionForbidUserKey(f func(key byte) bool) basicEncoderOption {
+	return func(b *basicEncoderImpl) {
+		b.forbidUserKey = f
+	}
+}
+
+// basicEncoderOptionAllowSignalKey set func to allow signal key
+func basicEncoderOptionAllowSignalKey(f func(key byte) bool) basicEncoderOption {
+	return func(b *basicEncoderImpl) {
+		b.allowSignalKey = f
+	}
+}
+
 // newBasicEncoder create a basicEncoder interface
 func newBasicEncoder(observe byte, options ...func(*basicEncoderImpl)) basicEncoder {
-	if utils.ForbiddenCustomizedKey(observe) {
-		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
-	}
-
 	encoder := &basicEncoderImpl{observe: observe, root: utils.EmptyKey}
 
 	for _, option := range options {
 		option(encoder)
+	}
+
+	if encoder.forbidUserKey != nil && encoder.forbidUserKey(observe) {
+		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
 	}
 
 	return encoder
@@ -49,7 +65,7 @@ func newBasicEncoder(observe byte, options ...func(*basicEncoderImpl)) basicEnco
 func (e *basicEncoderImpl) Encode(input interface{}, signals ...*signal) (buf []byte, err error) {
 	encoders := make([]*PrimitivePacketEncoder, 0)
 	for _, signal := range signals {
-		encoders = append(encoders, signal.ToEncoder())
+		encoders = append(encoders, signal.ToEncoder(e.allowSignalKey))
 	}
 	return e.encodeBasic(input, encoders)
 }

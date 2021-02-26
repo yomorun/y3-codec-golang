@@ -6,15 +6,18 @@ import (
 	"github.com/yomorun/y3-codec-golang"
 )
 
+// PrintNodePacket prettily print node packet
 func PrintNodePacket(node *y3.NodePacket) {
 	PrintNodeFormat(node, " %#X=%v ", false, true)
 }
 
+// PrintArrayPacket prettily print array packet
 func PrintArrayPacket(node *y3.NodePacket) {
 	//Parsing [0xc1, 0x06, 0x00, 0x01, 0x61, 0x00, 0x01, 0x62] EQUALS 0xc1:[0x02,0x04]")
 	PrintNodeFormat(node, " %#X=%v ", true, true)
 }
 
+// PrintNodeFormat prettily print array packet with format
 func PrintNodeFormat(node *y3.NodePacket, format string, isArray bool, isRoot bool) {
 	if isRoot {
 		if isArray {

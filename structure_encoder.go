@@ -16,9 +16,11 @@ type structEncoder interface {
 
 // structEncoderImpl is implementation of the structEncoder interface
 type structEncoderImpl struct {
-	config  *structEncoderConfig
-	observe byte
-	root    byte
+	config         *structEncoderConfig
+	observe        byte
+	root           byte
+	forbidUserKey  func(key byte) bool
+	allowSignalKey func(key byte) bool
 }
 
 // structEncoderConfig is configuration for structEncoderImpl
@@ -44,11 +46,22 @@ func structEncoderOptionConfig(config *structEncoderConfig) structEncoderOption 
 	}
 }
 
+// structEncoderOptionForbidUserKey set func to forbid some key
+func structEncoderOptionForbidUserKey(f func(key byte) bool) structEncoderOption {
+	return func(e *structEncoderImpl) {
+		e.forbidUserKey = f
+	}
+}
+
+// structEncoderOptionAllowSignalKey set func to allow signal key
+func structEncoderOptionAllowSignalKey(f func(key byte) bool) structEncoderOption {
+	return func(e *structEncoderImpl) {
+		e.allowSignalKey = f
+	}
+}
+
 // newStructEncoder create a structEncoder interface
 func newStructEncoder(observe byte, options ...func(*structEncoderImpl)) structEncoder {
-	if utils.ForbiddenCustomizedKey(observe) {
-		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
-	}
 	encoder := &structEncoderImpl{
 		config: &structEncoderConfig{
 			ZeroFields: true,
@@ -57,9 +70,15 @@ func newStructEncoder(observe byte, options ...func(*structEncoderImpl)) structE
 		observe: observe,
 		root:    utils.EmptyKey,
 	}
+
 	for _, option := range options {
 		option(encoder)
 	}
+
+	if encoder.forbidUserKey != nil && encoder.forbidUserKey(observe) {
+		panic(fmt.Errorf("prohibit the use of this key: %#x", observe))
+	}
+
 	return encoder
 }
 
@@ -67,7 +86,7 @@ func newStructEncoder(observe byte, options ...func(*structEncoderImpl)) structE
 func (e structEncoderImpl) Encode(input interface{}, signals ...*signal) ([]byte, error) {
 	encoders := make([]*PrimitivePacketEncoder, 0)
 	for _, signal := range signals {
-		encoders = append(encoders, signal.ToEncoder())
+		encoders = append(encoders, signal.ToEncoder(e.allowSignalKey))
 	}
 	return e.encode(input, encoders)
 }
@@ -162,7 +181,7 @@ func (e *structEncoderImpl) encodeStruct(structVal reflect.Value, wrapper *NodeP
 
 // encodeStructFromField encode struct from field
 func (e *structEncoderImpl) encodeStructFromField(fieldType reflect.Type, fieldName string, fieldValue reflect.Value, en *NodePacketEncoder) {
-	if utils.ForbiddenCustomizedKey(utils.KeyOf(fieldName)) {
+	if e.forbidUserKey != nil && e.forbidUserKey(utils.KeyOf(fieldName)) {
 		panic(fmt.Errorf("prohibit the use of this key: %v", fieldName))
 	}
 

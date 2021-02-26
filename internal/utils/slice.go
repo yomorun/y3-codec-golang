@@ -37,7 +37,7 @@ func ToUFloat64Slice(arg interface{}) (out []interface{}, ok bool) {
 	})
 }
 
-// ToUFloat64Slice converting interface to interface slice for bool
+// ToBoolSlice converting interface to interface slice for bool
 func ToBoolSlice(arg interface{}) (out []interface{}, ok bool) {
 	return ToSliceWith(arg, func(value reflect.Value) interface{} {
 		bl, _ := strconv.ParseBool(fmt.Sprintf("%v", value))

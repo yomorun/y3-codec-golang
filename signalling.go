@@ -2,8 +2,6 @@ package y3
 
 import (
 	"fmt"
-
-	"github.com/yomorun/y3-codec-golang/internal/utils"
 )
 
 // signal is builder for PrimitivePacketEncoder
@@ -35,8 +33,8 @@ func (s *signal) SetFloat64(v float64) *signal {
 }
 
 // ToEncoder return current PrimitivePacketEncoder, and checking legality
-func (s *signal) ToEncoder() *PrimitivePacketEncoder {
-	if !utils.AllowableSignalKey(byte(s.encoder.seqID)) {
+func (s *signal) ToEncoder(allow func(key byte) bool) *PrimitivePacketEncoder {
+	if allow != nil && !allow(byte(s.encoder.seqID)) {
 		panic(fmt.Errorf("it is not allowed to use this key to create a signal: %#x", byte(s.encoder.seqID)))
 	}
 

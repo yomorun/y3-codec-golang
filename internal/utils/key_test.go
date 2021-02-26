@@ -23,11 +23,11 @@ func TestIsEmptyKey(t *testing.T) {
 }
 
 func TestForbiddenCustomizedKey(t *testing.T) {
-	assert.True(t, ForbiddenCustomizedKey(0x01), "0x01 is disabled")
-	assert.False(t, ForbiddenCustomizedKey(0x10), "0x10 is allowed")
+	assert.True(t, ForbidUserKey(0x01), "0x01 is disabled")
+	assert.False(t, ForbidUserKey(0x10), "0x10 is allowed")
 }
 
 func TestAllowableSignalKey(t *testing.T) {
-	assert.True(t, AllowableSignalKey(0x02), "0x01 is allowed")
-	assert.False(t, AllowableSignalKey(0x01), "0x10 is disabled")
+	assert.True(t, AllowSignalKey(0x02), "0x01 is allowed")
+	assert.False(t, AllowSignalKey(0x01), "0x10 is disabled")
 }
