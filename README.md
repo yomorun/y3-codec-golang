@@ -7,13 +7,13 @@
 # Y3
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_shield)
 
-Y3 is the golang implementation of [YoMo Codec](https://github.com/yomorun/yomo-codec), which describe a fast and low CPU binding data encoder/decoder focus on edge computing and streaming processing.
+Y3 is the golang implementation of [Y3 Codec](https://github.com/yomorun/y3-codec), which describe a fast and low CPU binding data encoder/decoder focus on edge computing and streaming processing.
 
 See the [explainer](explainer.md) for more info.
 
-## YoMo Codec
+## Y3 Codec
 
-See [YoMo Codec SPEC](https://github.com/yomorun/yomo-codec)
+See [Y3 Codec SPEC](https://github.com/yomorun/y3-codec)
 
 ## Test
 
@@ -37,7 +37,7 @@ import (
 
 func main() {
 	// if we want to repesent `var obj = &foo{ID: -1, bar: &bar{Name: "C"}}` 
-	// in YoMo-Codec:
+	// in Y3-Codec:
 
 	// 0x81 -> node
 	var foo = y3.NewNodePacketEncoder(0x01)
