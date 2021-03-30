@@ -2,6 +2,7 @@ package y3
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 
@@ -53,6 +54,9 @@ func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, siz
 
 	logger.Debugf(">>> sizeL=%v, length=%v, pos=%v, endPos=%v", sizeL, p.length, pos, endPos)
 
+	if pos > endPos {
+		return nil, 0, sizeL, fmt.Errorf("beyond the boundary, pos=%v, endPos=%v", pos, endPos)
+	}
 	p.valBuf = buf[pos:endPos]
 	logger.Debugf("valBuf = %#X", p.valBuf)
 
