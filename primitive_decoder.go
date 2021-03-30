@@ -54,7 +54,7 @@ func DecodePrimitivePacket(buf []byte) (packet *PrimitivePacket, endPos int, siz
 
 	logger.Debugf(">>> sizeL=%v, length=%v, pos=%v, endPos=%v", sizeL, p.length, pos, endPos)
 
-	if pos > endPos {
+	if pos > endPos || endPos > len(buf) || pos > len(buf) {
 		return nil, 0, sizeL, fmt.Errorf("beyond the boundary, pos=%v, endPos=%v", pos, endPos)
 	}
 	p.valBuf = buf[pos:endPos]
