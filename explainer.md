@@ -77,3 +77,11 @@ func main() {
 	}
 }
 ```
+
+## Attention
+
+The key being subscribed has a defined range: 
+
+- User-defined key to be subscribed: `0x10 ~ 0x3e`
+- System reserved: `0x01 ~ 0x0f`
+

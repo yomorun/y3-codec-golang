@@ -9,7 +9,7 @@
 
 Y3 is the golang implementation of [Y3 Codec](https://github.com/yomorun/y3-codec), which describe a fast and low CPU binding data encoder/decoder focus on edge computing and streaming processing.
 
-See the [explainer](explainer.md) for more info.
+See the [explainer](https://github.com/yomorun/y3-codec-golang/blob/master/explainer.md) for more info, more about the ways to combine with [YoMo](https://github.com/yomorun/yomo).
 
 ## Y3 Codec
 
@@ -130,3 +130,4 @@ More examples in `/examples/`
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyomorun%2Fy3-codec-golang?ref=badge_large)
+
