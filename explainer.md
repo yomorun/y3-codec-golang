@@ -78,6 +78,30 @@ func main() {
 }
 ```
 
+## Types
+
+Y3 provides support for decoding base types and structs and their slices, which can be done by the following methods：
+
+- y3.ToObject
+- y3.ToInt32
+- y3.ToInt32Slice
+- y3.ToUInt32
+- y3.ToUInt32Slice
+- y3.ToInt64
+- y3.ToInt64Slice
+- y3.ToUInt64
+- y3.ToUInt64Slice
+- y3.ToFloat32
+- y3.ToFloat32Slice
+- y3.ToFloat64
+- y3.ToFloat64Slice
+- y3.ToBool
+- y3.ToBoolSlice
+- y3.ToUTF8String
+- y3.ToUTF8StringSlice
+
+More examples in `/examples/`
+
 ## Attention
 
 The key being subscribed has a defined range: 

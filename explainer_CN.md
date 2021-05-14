@@ -78,6 +78,32 @@ func main() {
 }
 ```
 
+
+
+## Types
+
+Y3提供对基础类型和结构体及其切片的解码支持，可以通过如下方法进行解码：
+
+- y3.ToObject
+- y3.ToInt32
+- y3.ToInt32Slice
+- y3.ToUInt32
+- y3.ToUInt32Slice
+- y3.ToInt64
+- y3.ToInt64Slice
+- y3.ToUInt64
+- y3.ToUInt64Slice
+- y3.ToFloat32
+- y3.ToFloat32Slice
+- y3.ToFloat64
+- y3.ToFloat64Slice
+- y3.ToBool
+- y3.ToBoolSlice
+- y3.ToUTF8String
+- y3.ToUTF8StringSlice
+
+更多例子请看： `/examples/`
+
 ## Attention
 
 被监听的key有规定的使用范围：
