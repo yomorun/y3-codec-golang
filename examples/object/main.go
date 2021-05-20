@@ -3,41 +3,33 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/yomorun/y3-codec-golang"
 )
 
-/**
-Simulate how to encode and decode the slice of int32 type
-
-The supported types of slice:
-[]int32,[]uint32,[]int64,[]uint64,[]float32,[]float64,[]bool,[]string
-
-Use the following method for decoding：
-y3.ToInt32Slice
-y3.ToUInt32Slice
-y3.ToInt64Slice
-y3.ToUInt64Slice
-y3.ToFloat32Slice
-y3.ToFloat64Slice
-y3.ToBoolSlice
-y3.ToUTF8StringSlice
-*/
 func main() {
 	// Simulate source to generate and send data
-	data := []int32{123, 456}
+	data := NoiseData{Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.ToInt32(v)
+		var obj NoiseData
+		err := y3.ToObject(v, &obj)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Printf("encoded data: %v\n", sl)
-		return sl, nil
+		fmt.Printf("encoded data: %v\n", obj)
+		return obj, nil
 	}
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
+}
+
+type NoiseData struct {
+	Noise float32 `y3:"0x11"`
+	Time  int64   `y3:"0x12"`
+	From  string  `y3:"0x13"`
 }

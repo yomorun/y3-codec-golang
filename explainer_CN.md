@@ -84,23 +84,403 @@ func main() {
 
 Y3提供对基础类型和结构体及其切片的解码支持，可以通过如下方法进行解码：
 
-- y3.ToObject
-- y3.ToInt32
-- y3.ToInt32Slice
-- y3.ToUInt32
-- y3.ToUInt32Slice
-- y3.ToInt64
-- y3.ToInt64Slice
-- y3.ToUInt64
-- y3.ToUInt64Slice
-- y3.ToFloat32
-- y3.ToFloat32Slice
-- y3.ToFloat64
-- y3.ToFloat64Slice
-- y3.ToBool
-- y3.ToBoolSlice
-- y3.ToUTF8String
-- y3.ToUTF8StringSlice
+<details>
+  <summary>y3.ToObject</summary>
+  <pre class="go" style="background-color: aliceblue">
+    func main() {
+        // Simulate source to generate and send data
+        data := <b>NoiseData</b>{Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"}
+        sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+        source := y3.FromStream(bytes.NewReader(sendingBuf))
+        // Simulate flow listening and decoding data
+        var decode = func(v []byte) (interface{}, error) {
+            var obj NoiseData
+            err := y3.<b>ToObject</b>(v, <b>&obj</b>)
+            if err != nil {
+                return nil, err
+            }
+            fmt.Printf("encoded data: %v\n", obj)
+            return obj, nil
+        }
+        consumer := source.Subscribe(0x10).OnObserve(decode)
+        for range consumer {
+        }
+    }
+    type <b>NoiseData</b> struct {
+        Noise float32 `y3:"0x11"`
+        Time  int64   `y3:"0x12"`
+        From  string  `y3:"0x13"`
+    }
+  </pre>
+</details>
+<details>
+  <summary>y3.ToObject Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+    func main() {
+        // Simulate source to generate and send data
+        data := <b>[]NoiseData</b>{
+            {Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
+            {Noise: 50, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
+        }
+        sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+        source := y3.FromStream(bytes.NewReader(sendingBuf))
+        // Simulate flow listening and decoding data
+        var decode = func(v []byte) (interface{}, error) {
+            var sl []NoiseData
+            err := y3.<b>ToObject</b>(v, <b>&sl</b>)
+            if err != nil {
+                return nil, err
+            }
+            fmt.Printf("encoded data: %v\n", sl)
+            return sl, nil
+        }
+        consumer := source.Subscribe(0x10).OnObserve(decode)
+        for range consumer {
+        }
+    }
+    type <b>NoiseData</b> struct {
+        Noise float32 `y3:"0x11"`
+        Time  int64   `y3:"0x12"`
+        From  string  `y3:"0x13"`
+    }
+  </pre>
+</details>
+<details>
+  <summary>y3.ToInt32</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	var data <b>int32</b> = 123
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToInt32</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToInt32Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+      // Simulate source to generate and send data
+      data := []<b>int32</b>{123, 456}
+      sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+      source := y3.FromStream(bytes.NewReader(sendingBuf))
+      // Simulate flow listening and decoding data
+      var decode = func(v []byte) (interface{}, error) {
+          sl, err := y3.<b>ToInt32Slice</b>(v)
+          if err != nil {
+              return nil, err
+          }
+          fmt.Printf("encoded data: %v\n", sl)
+          return sl, nil
+      }
+      consumer := source.Subscribe(0x10).OnObserve(decode)
+      for range consumer {
+      }
+  </pre>
+</details>
+<details>
+  <summary>y3.ToUInt32</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	var data <b>uint32</b> = 123
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToUInt32</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToUInt32Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+      // Simulate source to generate and send data
+      data := []<b>uint32</b>{123, 456}
+      sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+      source := y3.FromStream(bytes.NewReader(sendingBuf))
+      // Simulate flow listening and decoding data
+      var decode = func(v []byte) (interface{}, error) {
+          sl, err := y3.<b>ToUInt32Slice</b>(v)
+          if err != nil {
+              return nil, err
+          }
+          fmt.Printf("encoded data: %v\n", sl)
+          return sl, nil
+      }
+      consumer := source.Subscribe(0x10).OnObserve(decode)
+      for range consumer {
+      }
+  </pre>
+</details>
+<details>
+  <summary>y3.ToInt64</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := []<b>int64</b>{123, 456}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToInt64</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToInt64Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+    // Simulate source to generate and send data
+    data := []<b>int64</b>{123, 456}
+    sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+    source := y3.FromStream(bytes.NewReader(sendingBuf))
+    // Simulate flow listening and decoding data
+    var decode = func(v []byte) (interface{}, error) {
+        sl, err := y3.<b>ToInt64Slice</b>(v)
+        if err != nil {
+            return nil, err
+        }
+        fmt.Printf("encoded data: %v\n", sl)
+        return sl, nil
+    }
+    consumer := source.Subscribe(0x10).OnObserve(decode)
+    for range consumer {
+    }
+  </pre>
+</details>
+<details>
+  <summary>y3.ToUInt64</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	var data <b>uint64</b> = 123
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToUInt64</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToUInt64Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := []<b>uint64</b>{123, 456}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToUInt64Slice</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToFloat32</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	var data <b>float32</b> = 1.23
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToFloat32</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToFloat32Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+    // Simulate source to generate and send data
+	data := []<b>float32</b>{1.23, 4.56}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToFloat32Slice</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToFloat64</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	var data <b>float64</b> = 1.23
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToFloat64</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToFloat64Slice</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := []<b>float64</b>{1.23, 4.56}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToFloat64Slice</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToBool</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := true
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToBool</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToBoolSlice</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := []<b>bool</b>{true, false}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToBoolSlice</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToUTF8String</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := "abc"
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToUTF8String</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
+<details>
+  <summary>y3.ToUTF8StringSlice</summary>
+  <pre class="go" style="background-color: aliceblue">
+	// Simulate source to generate and send data
+	data := []<b>string</b>{"a", "b"}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.<b>ToUTF8StringSlice</b>(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  </pre>
+</details>
 
 更多例子请看： `/examples/`
 
