@@ -30,7 +30,7 @@ func main() {
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.ToInt32(v)
+		sl, err := y3.ToInt32Slice(v)
 		if err != nil {
 			return nil, err
 		}
