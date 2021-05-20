@@ -129,6 +129,409 @@ More examples in `/examples/`
 - 与JSON的性能比较: [yomo-y3-stress-testing](https://github.com/10cella/yomo-y3-stress-testing)
 - 与ProtoBuffer的性能比较：[y3-protobuf-testing](https://github.com/yomorun/y3-protobuf-testing)
 
+## Types
+
+Y3提供对原生类型和节点的编解码支持：
+
+<details>
+  <summary>ToInt32</summary>
+```go
+	// encode
+	var data int32 = 123
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetInt32Value(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToInt32()
+	fmt.Printf("val=%d", val)
+```
+</details>
+
+<details>
+  <summary>ToUInt32</summary>
+```go
+	// encode
+	var data uint32 = 123
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetUInt32Value(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToUInt32()
+	fmt.Printf("val=%d", val)
+```
+</details>
+
+<details>
+  <summary>ToInt64</summary>
+```go
+	// encode
+	var data int64 = 123
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetInt64Value(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToInt64()
+	fmt.Printf("val=%d", val)
+```
+</details>
+
+<details>
+  <summary>ToUInt64</summary>
+```go
+	// encode
+	var data uint64 = 123
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetUInt64Value(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToUInt64()
+	fmt.Printf("val=%d", val)
+```
+</details>
+
+<details>
+  <summary>ToFloat32</summary>
+```go
+	// encode
+	var data float32 = 1.23
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetFloat32Value(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToFloat32()
+	fmt.Printf("val=%f", val)
+```
+</details>
+
+<details>
+  <summary>ToFloat64</summary>
+```go
+	// encode
+	var data float64 = 1.23
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetFloat64Value(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToFloat64()
+	fmt.Printf("val=%f", val)
+```
+</details>
+
+<details>
+  <summary>ToBool</summary>
+```go
+	// encode
+	var data bool = true
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetBoolValue(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToBool()
+	fmt.Printf("val=%v", val)
+```
+</details>
+
+<details>
+  <summary>ToUTF8String</summary>
+```go
+	// encode
+	var data string = "abc"
+	var prim = y3.NewPrimitivePacketEncoder(0x01)
+	prim.SetStringValue(data)
+	buf := prim.Encode()
+	// decode
+	res, _, _, _ := y3.DecodePrimitivePacket(buf)
+	val, _ := res.ToUTF8String()
+	fmt.Printf("val=%s", val)
+```
+</details>
+
+<details>
+  <summary>ToInt32 Slice</summary>
+```go
+	// encode
+	data := []int32{123, 456}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToInt64Slice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetInt32Value(int32(v.(int64)))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]int32, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToInt32()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToUInt32 Slice</summary>
+```go
+	// encode
+	data := []uint32{123, 456}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToUInt64Slice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetUInt32Value(uint32(v.(uint64)))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]uint32, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToUInt32()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToInt64 Slice</summary>
+```go
+	// encode
+	data := []int64{123, 456}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToInt64Slice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetInt64Value(v.(int64))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]int64, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToInt64()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToUInt64 Slice</summary>
+```go
+	// encode
+	data := []uint64{123, 456}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToUInt64Slice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetUInt64Value(v.(uint64))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]uint64, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToUInt64()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToFloat32 Slice</summary>
+```go
+	// encode
+	data := []float32{1.23, 4.56}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToUFloat64Slice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetFloat32Value(float32(v.(float64)))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]float32, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToFloat32()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToFloat64 Slice</summary>
+```go
+	// encode
+	data := []float64{1.23, 4.56}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToUFloat64Slice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetFloat64Value(v.(float64))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]float64, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToFloat64()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToBool Slice</summary>
+```go
+	// encode
+	data := []bool{true, false}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToBoolSlice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetBoolValue(v.(bool))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]bool, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToBool()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>ToUTF8String Slice</summary>
+```go
+	// encode
+	data := []string{"abc", "def"}
+	var node = y3.NewNodeSlicePacketEncoder(0x10)
+	if out, ok := utils.ToStringSlice(data); ok {
+		for _, v := range out {
+			var item = y3.NewPrimitivePacketEncoder(0x00)
+			item.SetStringValue(fmt.Sprintf("%v", v))
+			node.AddPrimitivePacket(item)
+		}
+	}
+	buf := node.Encode()
+	// decode
+	packet, _, _ := y3.DecodeNodePacket(buf)
+	result := make([]string, 0)
+	for _, p := range packet.PrimitivePackets {
+		v, _ := p.ToUTF8String()
+		result = append(result, v)
+	}
+	fmt.Printf("result=%v", result)
+```
+</details>
+
+<details>
+  <summary>To Object</summary>
+```go
+	// encode
+	var node = y3.NewNodePacketEncoder(0x01)
+	node.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
+		var prim1 = y3.NewPrimitivePacketEncoder(0x10)
+		prim1.SetFloat32Value(40.5)
+		return prim1
+	}())
+	node.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
+		var prim1 = y3.NewPrimitivePacketEncoder(0x11)
+		prim1.SetInt64Value(time.Now().Unix())
+		return prim1
+	}())
+	buf := node.Encode()
+	// decode
+	res, _, _ := y3.DecodeNodePacket(buf)
+	for _, v := range res.PrimitivePackets {
+		if v.SeqID() == 0x10 {
+			fmt.Printf("0x10=%f\n", func() float32 {
+				val, _ := v.ToFloat32()
+				return val
+			}())
+		}
+		if v.SeqID() == 0x11 {
+			fmt.Printf("0x11=%d\n", func() int64 {
+				val, _ := v.ToInt64()
+				return val
+			}())
+		}
+	}
+```
+</details>
+
+<details>
+  <summary>To Object Slice</summary>
+```go
+	// encode
+	var node = y3.NewNodeSlicePacketEncoder(0x01)
+	for i := 0; i < 2; i++ {
+		item := y3.NewNodePacketEncoder(0x00)
+		item.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
+			var prim1 = y3.NewPrimitivePacketEncoder(0x10)
+			prim1.SetFloat32Value(40.5)
+			return prim1
+		}())
+		item.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
+			var prim1 = y3.NewPrimitivePacketEncoder(0x11)
+			prim1.SetInt64Value(time.Now().Unix())
+			return prim1
+		}())
+		node.AddNodePacket(item)
+	}
+	buf := node.Encode()
+	// decode
+	res, _, _ := y3.DecodeNodePacket(buf)
+	for _, v := range res.NodePackets {
+		if res.SeqID() != 0x01 {
+			continue
+		}
+		for _, vv := range v.PrimitivePackets {
+			if vv.SeqID() == 0x10 {
+				fmt.Printf("0x10=%f\n", func() float32 {
+					val, _ := vv.ToFloat32()
+					return val
+				}())
+			}
+			if vv.SeqID() == 0x11 {
+				fmt.Printf("0x11=%d\n", func() int64 {
+					val, _ := vv.ToInt64()
+					return val
+				}())
+			}
+		}
+	}
+```
+</details>
+
 ## Contributors
 
 [//]: contributor-faces
