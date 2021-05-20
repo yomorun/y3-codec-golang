@@ -8,10 +8,10 @@ import (
 )
 
 /**
-Simulate how to encode and decode the slice of int32 type
+Simulate how to encode and decode the slice of high_level_int32 type
 
 The supported types of slice:
-[]int32,[]uint32,[]int64,[]uint64,[]float32,[]float64,[]bool,[]string
+[]high_level_int32,[]uint32,[]int64,[]uint64,[]float32,[]float64,[]bool,[]string
 
 Use the following method for decoding：
 y3.ToInt32Slice
