@@ -82,7 +82,7 @@ func main() {
 
 ## Types
 
-Y3提供High Level的封装，用于支持像YoMo这样的框架。
+Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun/yomo)这样的框架。
 
 统一的编码方法: `y3.NewCodec(observe byte).Marshal(input interface{})`
 
@@ -504,6 +504,7 @@ Y3提供High Level的封装，用于支持像YoMo这样的框架。
 	}
   </pre>
 </details>
+
 
 更多例子请看： `/examples/`
 

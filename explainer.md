@@ -80,7 +80,7 @@ func main() {
 
 ## Types
 
-Y3 provides support for decoding base types and structs and their slices, which can be done by the following methods：
+Y3 provides `High-Level` wrappers for supporting frameworks like [YoMo](https://github.com/yomorun/yomo).
 
 Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 

@@ -131,7 +131,7 @@ More examples in `/examples/`
 
 ## Types
 
-Y3实现了[YoMo Codec](https://github.com/yomorun/yomo-codec)协议，并支持如下Golang数据类型，同时提供了[Hight Level](https://github.com/yomorun/y3-codec-golang/blob/master/explainer_CN.md#types)的封装。
+Y3实现了[YoMo Codec](https://github.com/yomorun/yomo-codec)协议，并支持如下Golang数据类型，同时提供了[Hight-Level](https://github.com/yomorun/y3-codec-golang/blob/master/explainer_CN.md#types)的封装。
 
 <details>
   <summary>int32</summary>
@@ -514,6 +514,7 @@ Y3实现了[YoMo Codec](https://github.com/yomorun/yomo-codec)协议，并支持
   }
   </pre>
 </details>
+
 
 ## Contributors
 
