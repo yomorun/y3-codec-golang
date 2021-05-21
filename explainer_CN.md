@@ -82,29 +82,84 @@ func main() {
 
 ## Types
 
-Y3提供对基础类型和结构体及其切片的解码支持，可以通过如下方法进行解码：
+Y3提供High Level的封装，用于支持像YoMo这样的框架。
+
+统一的编码方法: `y3.NewCodec(observe byte).Marshal(input interface{})`
+
+| 类型          | 解码方法             |
+| ------------- | -------------------- |
+| struct        | y3.ToObject          |
+| struct slice  | y3.ToObject          |
+| int32         | y3.ToInt32           |
+| int32 slice   | y3.ToInt32Slice      |
+| uint32        | y3.ToUInt32          |
+| uint32 slice  | y3.ToUInt32Slice     |
+| int64         | y3.ToInt64           |
+| int64 slice   | y3.ToInt64Slice      |
+| uint64        | y3.ToUInt64          |
+| uint64 slice  | y3.ToUInt64Slice     |
+| float32       | y3.ToFloat32         |
+| float32 slice | y3.ToFloat32Slice    |
+| float64       | y3.ToFloat64         |
+| float64 slice | y3.ToFloat64Slice    |
+| bool          | y3.ToBool            |
+| bool slice    | y3.ToBoolSlice       |
+| string        | y3.ToUTF8String      |
+| string slice  | y3.ToUTF8StringSlice |
 
 <details>
-  <summary>y3.ToObject</summary>
+  <summary>struct</summary>
+  <pre class="go" style="background-color: aliceblue">
+  func main() {
+    // Simulate source to generate and send data
+    data := <b>NoiseData</b>{Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"}
+    sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+    source := y3.FromStream(bytes.NewReader(sendingBuf))
+    // Simulate flow listening and decoding data
+    var decode = func(v []byte) (interface{}, error) {
+        var obj NoiseData
+        err := y3.<b>ToObject</b>(v, <b>&obj</b>)
+        if err != nil {
+            return nil, err
+        }
+        fmt.Printf("encoded data: %v\n", obj)
+        return obj, nil
+    }
+    consumer := source.Subscribe(0x10).OnObserve(decode)
+    for range consumer {
+    }
+  }
+  type <b>NoiseData</b> struct {
+      Noise float32 `y3:"0x11"`
+      Time  int64   `y3:"0x12"`
+      From  string  `y3:"0x13"`
+  }
+  </pre>
+</details>
+<details>
+  <summary>struct slice</summary>
   <pre class="go" style="background-color: aliceblue">
     func main() {
-        // Simulate source to generate and send data
-        data := <b>NoiseData</b>{Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"}
-        sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
-        source := y3.FromStream(bytes.NewReader(sendingBuf))
-        // Simulate flow listening and decoding data
-        var decode = func(v []byte) (interface{}, error) {
-            var obj NoiseData
-            err := y3.<b>ToObject</b>(v, <b>&obj</b>)
-            if err != nil {
-                return nil, err
-            }
-            fmt.Printf("encoded data: %v\n", obj)
-            return obj, nil
-        }
-        consumer := source.Subscribe(0x10).OnObserve(decode)
-        for range consumer {
-        }
+      // Simulate source to generate and send data
+      data := <b>[]NoiseData</b>{
+          {Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
+          {Noise: 50, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
+      }
+      sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+      source := y3.FromStream(bytes.NewReader(sendingBuf))
+      // Simulate flow listening and decoding data
+      var decode = func(v []byte) (interface{}, error) {
+          var sl []NoiseData
+          err := y3.<b>ToObject</b>(v, <b>&sl</b>)
+          if err != nil {
+              return nil, err
+          }
+          fmt.Printf("encoded data: %v\n", sl)
+          return sl, nil
+      }
+      consumer := source.Subscribe(0x10).OnObserve(decode)
+      for range consumer {
+      }
     }
     type <b>NoiseData</b> struct {
         Noise float32 `y3:"0x11"`
@@ -114,39 +169,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToObject Slice</summary>
-  <pre class="go" style="background-color: aliceblue">
-    func main() {
-        // Simulate source to generate and send data
-        data := <b>[]NoiseData</b>{
-            {Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
-            {Noise: 50, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
-        }
-        sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
-        source := y3.FromStream(bytes.NewReader(sendingBuf))
-        // Simulate flow listening and decoding data
-        var decode = func(v []byte) (interface{}, error) {
-            var sl []NoiseData
-            err := y3.<b>ToObject</b>(v, <b>&sl</b>)
-            if err != nil {
-                return nil, err
-            }
-            fmt.Printf("encoded data: %v\n", sl)
-            return sl, nil
-        }
-        consumer := source.Subscribe(0x10).OnObserve(decode)
-        for range consumer {
-        }
-    }
-    type <b>NoiseData</b> struct {
-        Noise float32 `y3:"0x11"`
-        Time  int64   `y3:"0x12"`
-        From  string  `y3:"0x13"`
-    }
-  </pre>
-</details>
-<details>
-  <summary>y3.ToInt32</summary>
+  <summary>int32</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	var data <b>int32</b> = 123
@@ -167,28 +190,28 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToInt32Slice</summary>
+  <summary>int32 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-      // Simulate source to generate and send data
-      data := []<b>int32</b>{123, 456}
-      sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
-      source := y3.FromStream(bytes.NewReader(sendingBuf))
-      // Simulate flow listening and decoding data
-      var decode = func(v []byte) (interface{}, error) {
-          sl, err := y3.<b>ToInt32Slice</b>(v)
-          if err != nil {
-              return nil, err
-          }
-          fmt.Printf("encoded data: %v\n", sl)
-          return sl, nil
-      }
-      consumer := source.Subscribe(0x10).OnObserve(decode)
-      for range consumer {
-      }
+    // Simulate source to generate and send data
+    data := []<b>int32</b>{123, 456}
+    sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+    source := y3.FromStream(bytes.NewReader(sendingBuf))
+    // Simulate flow listening and decoding data
+    var decode = func(v []byte) (interface{}, error) {
+        sl, err := y3.<b>ToInt32Slice</b>(v)
+        if err != nil {
+            return nil, err
+        }
+        fmt.Printf("encoded data: %v\n", sl)
+        return sl, nil
+    }
+    consumer := source.Subscribe(0x10).OnObserve(decode)
+    for range consumer {
+    }
   </pre>
 </details>
 <details>
-  <summary>y3.ToUInt32</summary>
+  <summary>uint32</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	var data <b>uint32</b> = 123
@@ -209,31 +232,31 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToUInt32Slice</summary>
+  <summary>uint32 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-      // Simulate source to generate and send data
-      data := []<b>uint32</b>{123, 456}
-      sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
-      source := y3.FromStream(bytes.NewReader(sendingBuf))
-      // Simulate flow listening and decoding data
-      var decode = func(v []byte) (interface{}, error) {
-          sl, err := y3.<b>ToUInt32Slice</b>(v)
-          if err != nil {
-              return nil, err
-          }
-          fmt.Printf("encoded data: %v\n", sl)
-          return sl, nil
+  // Simulate source to generate and send data
+  data := []<b>uint32</b>{123, 456}
+  sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+  source := y3.FromStream(bytes.NewReader(sendingBuf))
+  // Simulate flow listening and decoding data
+  var decode = func(v []byte) (interface{}, error) {
+      sl, err := y3.<b>ToUInt32Slice</b>(v)
+      if err != nil {
+          return nil, err
       }
-      consumer := source.Subscribe(0x10).OnObserve(decode)
-      for range consumer {
-      }
+      fmt.Printf("encoded data: %v\n", sl)
+      return sl, nil
+  }
+  consumer := source.Subscribe(0x10).OnObserve(decode)
+  for range consumer {
+  }
   </pre>
 </details>
 <details>
-  <summary>y3.ToInt64</summary>
+  <summary>int64</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
-	data := []<b>int64</b>{123, 456}
+	var data <b>int64</b> = 123
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
@@ -251,28 +274,28 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToInt64Slice</summary>
+  <summary>int64 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-    // Simulate source to generate and send data
-    data := []<b>int64</b>{123, 456}
-    sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
-    source := y3.FromStream(bytes.NewReader(sendingBuf))
-    // Simulate flow listening and decoding data
-    var decode = func(v []byte) (interface{}, error) {
-        sl, err := y3.<b>ToInt64Slice</b>(v)
-        if err != nil {
-            return nil, err
-        }
-        fmt.Printf("encoded data: %v\n", sl)
-        return sl, nil
-    }
-    consumer := source.Subscribe(0x10).OnObserve(decode)
-    for range consumer {
-    }
+  // Simulate source to generate and send data
+  data := []<b>int64</b>{123, 456}
+  sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+  source := y3.FromStream(bytes.NewReader(sendingBuf))
+  // Simulate flow listening and decoding data
+  var decode = func(v []byte) (interface{}, error) {
+      sl, err := y3.<b>ToInt64Slice</b>(v)
+      if err != nil {
+          return nil, err
+      }
+      fmt.Printf("encoded data: %v\n", sl)
+      return sl, nil
+  }
+  consumer := source.Subscribe(0x10).OnObserve(decode)
+  for range consumer {
+  }
   </pre>
 </details>
 <details>
-  <summary>y3.ToUInt64</summary>
+  <summary>uint64</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	var data <b>uint64</b> = 123
@@ -293,7 +316,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToUInt64Slice</summary>
+  <summary>uint64 slice</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	data := []<b>uint64</b>{123, 456}
@@ -314,7 +337,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToFloat32</summary>
+  <summary>float32</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	var data <b>float32</b> = 1.23
@@ -335,9 +358,9 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToFloat32Slice</summary>
+  <summary>float32 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-    // Simulate source to generate and send data
+  // Simulate source to generate and send data
 	data := []<b>float32</b>{1.23, 4.56}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
@@ -356,7 +379,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToFloat64</summary>
+  <summary>float64</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	var data <b>float64</b> = 1.23
@@ -377,7 +400,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToFloat64Slice</summary>
+  <summary>float64 slice</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	data := []<b>float64</b>{1.23, 4.56}
@@ -398,7 +421,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToBool</summary>
+  <summary>bool</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	data := true
@@ -419,7 +442,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToBoolSlice</summary>
+  <summary>bool slice</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	data := []<b>bool</b>{true, false}
@@ -440,7 +463,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToUTF8String</summary>
+  <summary>string</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	data := "abc"
@@ -461,7 +484,7 @@ Y3提供对基础类型和结构体及其切片的解码支持，可以通过如
   </pre>
 </details>
 <details>
-  <summary>y3.ToUTF8StringSlice</summary>
+  <summary>string slice</summary>
   <pre class="go" style="background-color: aliceblue">
 	// Simulate source to generate and send data
 	data := []<b>string</b>{"a", "b"}

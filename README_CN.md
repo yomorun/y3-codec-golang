@@ -131,85 +131,80 @@ More examples in `/examples/`
 
 ## Types
 
-Y3提供对原生类型和节点的编解码支持：
+Y3实现了[YoMo Codec](https://github.com/yomorun/yomo-codec)协议，并支持如下Golang数据类型，同时提供了[Hight Level](https://github.com/yomorun/y3-codec-golang/blob/master/explainer_CN.md#types)的封装。
 
 <details>
-  <summary>ToInt32</summary>
-  <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	var data int32 = 123
-  	var prim = y3.NewPrimitivePacketEncoder(0x01)
-  	prim.SetInt32Value(data)
-  	buf := prim.Encode()
-  	// decode
-  	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-  	val, _ := res.ToInt32()
-  	fmt.Printf("val=%d", val)
+  <summary>int32</summary>
+  <pre class="go" style="background-color: #f0f8ff;">
+  // encode
+  var data int32 = 123
+  var prim = y3.NewPrimitivePacketEncoder(0x01)
+  prim.SetInt32Value(data)
+  buf := prim.Encode()
+  // decode
+  res, _, _, _ := y3.DecodePrimitivePacket(buf)
+  val, _ := res.ToInt32()
+  fmt.Printf("val=%d", val)  
   </pre>
 </details>
-
 <details>
-  <summary>ToUInt32</summary>
+  <summary>uint32</summary>
   <pre class="go" style="background-color: aliceblue">
-	// encode
-	var data uint32 = 123
-	var prim = y3.NewPrimitivePacketEncoder(0x01)
-	prim.SetUInt32Value(data)
-	buf := prim.Encode()
-	// decode
-	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-	val, _ := res.ToUInt32()
-	fmt.Printf("val=%d", val)  
+  // encode
+  var data uint32 = 123
+  var prim = y3.NewPrimitivePacketEncoder(0x01)
+  prim.SetUInt32Value(data)
+  buf := prim.Encode()
+  // decode
+  res, _, _, _ := y3.DecodePrimitivePacket(buf)
+  val, _ := res.ToUInt32()
+  fmt.Printf("val=%d", val)  
   </pre>
 </details>
-
 <details>
-  <summary>ToInt64</summary>
+  <summary>int64</summary>
   <pre class="go" style="background-color: aliceblue">
- 	// encode
- 	var data int64 = 123
- 	var prim = y3.NewPrimitivePacketEncoder(0x01)
- 	prim.SetInt64Value(data)
- 	buf := prim.Encode()
- 	// decode
- 	res, _, _, _ := y3.DecodePrimitivePacket(buf)
- 	val, _ := res.ToInt64()
- 	fmt.Printf("val=%d", val) 
+  // encode
+  var data int64 = 123
+  var prim = y3.NewPrimitivePacketEncoder(0x01)
+  prim.SetInt64Value(data)
+  buf := prim.Encode()
+  // decode
+  res, _, _, _ := y3.DecodePrimitivePacket(buf)
+  val, _ := res.ToInt64()
+  fmt.Printf("val=%d", val) 
   </pre>
 </details>
-
 <details>
-  <summary>ToUInt64</summary>
+  <summary>uint64</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	var data uint64 = 123
-  	var prim = y3.NewPrimitivePacketEncoder(0x01)
-  	prim.SetUInt64Value(data)
-  	buf := prim.Encode()
-  	// decode
-  	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-  	val, _ := res.ToUInt64()
-  	fmt.Printf("val=%d", val)
+  // encode
+  var data uint64 = 123
+  var prim = y3.NewPrimitivePacketEncoder(0x01)
+  prim.SetUInt64Value(data)
+  buf := prim.Encode()
+  // decode
+  res, _, _, _ := y3.DecodePrimitivePacket(buf)
+  val, _ := res.ToUInt64()
+  fmt.Printf("val=%d", val)
   </pre>
 </details>
-
 <details>
-  <summary>ToFloat32</summary>
+  <summary>float32</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	var data float32 = 1.23
-  	var prim = y3.NewPrimitivePacketEncoder(0x01)
-  	prim.SetFloat32Value(data)
-  	buf := prim.Encode()
-  	// decode
-  	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-  	val, _ := res.ToFloat32()
-  	fmt.Printf("val=%f", val)
+  // encode
+  var data float32 = 1.23
+  var prim = y3.NewPrimitivePacketEncoder(0x01)
+  prim.SetFloat32Value(data)
+  buf := prim.Encode()
+  // decode
+  res, _, _, _ := y3.DecodePrimitivePacket(buf)
+  val, _ := res.ToFloat32()
+  fmt.Printf("val=%f", val)
   </pre>
 </details>
-
 <details>
-  <summary>ToFloat64</summary>
+  <summary>float64</summary>
   <pre class="go" style="background-color: aliceblue">
 	// encode
 	var data float64 = 1.23
@@ -222,9 +217,8 @@ Y3提供对原生类型和节点的编解码支持：
 	fmt.Printf("val=%f", val)  
   </pre>
 </details>
-
 <details>
-  <summary>ToBool</summary>
+  <summary>bool</summary>
   <pre class="go" style="background-color: aliceblue">
  	// encode
  	var data bool = true
@@ -237,99 +231,94 @@ Y3提供对原生类型和节点的编解码支持：
  	fmt.Printf("val=%v", val) 
   </pre>
 </details>
-
 <details>
-  <summary>ToUTF8String</summary>
+  <summary>string</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	var data string = "abc"
-  	var prim = y3.NewPrimitivePacketEncoder(0x01)
-  	prim.SetStringValue(data)
-  	buf := prim.Encode()
-  	// decode
-  	res, _, _, _ := y3.DecodePrimitivePacket(buf)
-  	val, _ := res.ToUTF8String()
-  	fmt.Printf("val=%s", val)
+  // encode
+  var data string = "abc"
+  var prim = y3.NewPrimitivePacketEncoder(0x01)
+  prim.SetStringValue(data)
+  buf := prim.Encode()
+  // decode
+  res, _, _, _ := y3.DecodePrimitivePacket(buf)
+  val, _ := res.ToUTF8String()
+  fmt.Printf("val=%s", val)
   </pre>
 </details>
-
 <details>
-  <summary>ToInt32 Slice</summary>
+  <summary>int32 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	data := []int32{123, 456}
-  	var node = y3.NewNodeSlicePacketEncoder(0x10)
-  	if out, ok := utils.ToInt64Slice(data); ok {
-  		for _, v := range out {
-  			var item = y3.NewPrimitivePacketEncoder(0x00)
-  			item.SetInt32Value(int32(v.(int64)))
-  			node.AddPrimitivePacket(item)
-  		}
-  	}
-  	buf := node.Encode()
-  	// decode
-  	packet, _, _ := y3.DecodeNodePacket(buf)
-  	result := make([]int32, 0)
-  	for _, p := range packet.PrimitivePackets {
-  		v, _ := p.ToInt32()
-  		result = append(result, v)
-  	}
-  	fmt.Printf("result=%v", result)
+  // encode
+  data := []int32{123, 456}
+  var node = y3.NewNodeSlicePacketEncoder(0x10)
+  if out, ok := utils.ToInt64Slice(data); ok {
+    for _, v := range out {
+      var item = y3.NewPrimitivePacketEncoder(0x00)
+      item.SetInt32Value(int32(v.(int64)))
+      node.AddPrimitivePacket(item)
+    }
+  }
+  buf := node.Encode()
+  // decode
+  packet, _, _ := y3.DecodeNodePacket(buf)
+  result := make([]int32, 0)
+  for _, p := range packet.PrimitivePackets {
+    v, _ := p.ToInt32()
+    result = append(result, v)
+  }
+  fmt.Printf("result=%v", result)
   </pre>
 </details>
-
 <details>
-  <summary>ToUInt32 Slice</summary>
+  <summary>uint32 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	data := []uint32{123, 456}
-  	var node = y3.NewNodeSlicePacketEncoder(0x10)
-  	if out, ok := utils.ToUInt64Slice(data); ok {
-  		for _, v := range out {
-  			var item = y3.NewPrimitivePacketEncoder(0x00)
-  			item.SetUInt32Value(uint32(v.(uint64)))
-  			node.AddPrimitivePacket(item)
-  		}
-  	}
-  	buf := node.Encode()
-  	// decode
-  	packet, _, _ := y3.DecodeNodePacket(buf)
-  	result := make([]uint32, 0)
-  	for _, p := range packet.PrimitivePackets {
-  		v, _ := p.ToUInt32()
-  		result = append(result, v)
-  	}
-  	fmt.Printf("result=%v", result)
+  // encode
+  data := []uint32{123, 456}
+  var node = y3.NewNodeSlicePacketEncoder(0x10)
+  if out, ok := utils.ToUInt64Slice(data); ok {
+    for _, v := range out {
+      var item = y3.NewPrimitivePacketEncoder(0x00)
+      item.SetUInt32Value(uint32(v.(uint64)))
+      node.AddPrimitivePacket(item)
+    }
+  }
+  buf := node.Encode()
+  // decode
+  packet, _, _ := y3.DecodeNodePacket(buf)
+  result := make([]uint32, 0)
+  for _, p := range packet.PrimitivePackets {
+    v, _ := p.ToUInt32()
+    result = append(result, v)
+  }
+  fmt.Printf("result=%v", result)
   </pre>
 </details>
-
 <details>
-  <summary>ToInt64 Slice</summary>
+  <summary>int64 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	data := []int64{123, 456}
-  	var node = y3.NewNodeSlicePacketEncoder(0x10)
-  	if out, ok := utils.ToInt64Slice(data); ok {
-  		for _, v := range out {
-  			var item = y3.NewPrimitivePacketEncoder(0x00)
-  			item.SetInt64Value(v.(int64))
-  			node.AddPrimitivePacket(item)
-  		}
-  	}
-  	buf := node.Encode()
-  	// decode
-  	packet, _, _ := y3.DecodeNodePacket(buf)
-  	result := make([]int64, 0)
-  	for _, p := range packet.PrimitivePackets {
-  		v, _ := p.ToInt64()
-  		result = append(result, v)
-  	}
-  	fmt.Printf("result=%v", result)
+  // encode
+  data := []int64{123, 456}
+  var node = y3.NewNodeSlicePacketEncoder(0x10)
+  if out, ok := utils.ToInt64Slice(data); ok {
+    for _, v := range out {
+      var item = y3.NewPrimitivePacketEncoder(0x00)
+      item.SetInt64Value(v.(int64))
+      node.AddPrimitivePacket(item)
+    }
+  }
+  buf := node.Encode()
+  // decode
+  packet, _, _ := y3.DecodeNodePacket(buf)
+  result := make([]int64, 0)
+  for _, p := range packet.PrimitivePackets {
+    v, _ := p.ToInt64()
+    result = append(result, v)
+  }
+  fmt.Printf("result=%v", result)
   </pre>
 </details>
-
 <details>
-  <summary>ToUInt64 Slice</summary>
+  <summary>uint64 slice</summary>
   <pre class="go" style="background-color: aliceblue">
  	// encode
  	data := []uint64{123, 456}
@@ -352,34 +341,32 @@ Y3提供对原生类型和节点的编解码支持：
  	fmt.Printf("result=%v", result) 
   </pre>
 </details>
-
 <details>
-  <summary>ToFloat32 Slice</summary>
+  <summary>float32 slice</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	data := []float32{1.23, 4.56}
-  	var node = y3.NewNodeSlicePacketEncoder(0x10)
-  	if out, ok := utils.ToUFloat64Slice(data); ok {
-  		for _, v := range out {
-  			var item = y3.NewPrimitivePacketEncoder(0x00)
-  			item.SetFloat32Value(float32(v.(float64)))
-  			node.AddPrimitivePacket(item)
-  		}
-  	}
-  	buf := node.Encode()
-  	// decode
-  	packet, _, _ := y3.DecodeNodePacket(buf)
-  	result := make([]float32, 0)
-  	for _, p := range packet.PrimitivePackets {
-  		v, _ := p.ToFloat32()
-  		result = append(result, v)
-  	}
-  	fmt.Printf("result=%v", result)
+  // encode
+  data := []float32{1.23, 4.56}
+  var node = y3.NewNodeSlicePacketEncoder(0x10)
+  if out, ok := utils.ToUFloat64Slice(data); ok {
+    for _, v := range out {
+      var item = y3.NewPrimitivePacketEncoder(0x00)
+      item.SetFloat32Value(float32(v.(float64)))
+      node.AddPrimitivePacket(item)
+    }
+  }
+  buf := node.Encode()
+  // decode
+  packet, _, _ := y3.DecodeNodePacket(buf)
+  result := make([]float32, 0)
+  for _, p := range packet.PrimitivePackets {
+    v, _ := p.ToFloat32()
+    result = append(result, v)
+  }
+  fmt.Printf("result=%v", result)
   </pre>
 </details>
-
 <details>
-  <summary>ToFloat64 Slice</summary>
+  <summary>float64 slice</summary>
   <pre class="go" style="background-color: aliceblue">
  	// encode
  	data := []float64{1.23, 4.56}
@@ -402,9 +389,8 @@ Y3提供对原生类型和节点的编解码支持：
  	fmt.Printf("result=%v", result) 
   </pre>
 </details>
-
 <details>
-  <summary>ToBool Slice</summary>
+  <summary>bool slice</summary>
   <pre class="go" style="background-color: aliceblue">
  	// encode
  	data := []bool{true, false}
@@ -427,34 +413,32 @@ Y3提供对原生类型和节点的编解码支持：
  	fmt.Printf("result=%v", result) 
   </pre>
 </details>
-
 <details>
-  <summary>ToUTF8String Slice</summary>
+  <summary>string slice</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	data := []string{"abc", "def"}
-  	var node = y3.NewNodeSlicePacketEncoder(0x10)
-  	if out, ok := utils.ToStringSlice(data); ok {
-  		for _, v := range out {
-  			var item = y3.NewPrimitivePacketEncoder(0x00)
-  			item.SetStringValue(fmt.Sprintf("%v", v))
-  			node.AddPrimitivePacket(item)
-  		}
-  	}
-  	buf := node.Encode()
-  	// decode
-  	packet, _, _ := y3.DecodeNodePacket(buf)
-  	result := make([]string, 0)
-  	for _, p := range packet.PrimitivePackets {
-  		v, _ := p.ToUTF8String()
-  		result = append(result, v)
-  	}
-  	fmt.Printf("result=%v", result)
+  // encode
+  data := []string{"abc", "def"}
+  var node = y3.NewNodeSlicePacketEncoder(0x10)
+  if out, ok := utils.ToStringSlice(data); ok {
+    for _, v := range out {
+      var item = y3.NewPrimitivePacketEncoder(0x00)
+      item.SetStringValue(fmt.Sprintf("%v", v))
+      node.AddPrimitivePacket(item)
+    }
+  }
+  buf := node.Encode()
+  // decode
+  packet, _, _ := y3.DecodeNodePacket(buf)
+  result := make([]string, 0)
+  for _, p := range packet.PrimitivePackets {
+    v, _ := p.ToUTF8String()
+    result = append(result, v)
+  }
+  fmt.Printf("result=%v", result)
   </pre>
 </details>
-
 <details>
-  <summary>To Object</summary>
+  <summary>complex types</summary>
   <pre class="go" style="background-color: aliceblue">
  	// encode
  	var node = y3.NewNodePacketEncoder(0x01)
@@ -487,48 +471,47 @@ Y3提供对原生类型和节点的编解码支持：
  	} 
   </pre>
 </details>
-
 <details>
-  <summary>To Object Slice</summary>
+  <summary>complex slice types</summary>
   <pre class="go" style="background-color: aliceblue">
-  	// encode
-  	var node = y3.NewNodeSlicePacketEncoder(0x01)
-  	for i := 0; i < 2; i++ {
-  		item := y3.NewNodePacketEncoder(0x00)
-  		item.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
-  			var prim1 = y3.NewPrimitivePacketEncoder(0x10)
-  			prim1.SetFloat32Value(40.5)
-  			return prim1
-  		}())
-  		item.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
-  			var prim1 = y3.NewPrimitivePacketEncoder(0x11)
-  			prim1.SetInt64Value(time.Now().Unix())
-  			return prim1
-  		}())
-  		node.AddNodePacket(item)
-  	}
-  	buf := node.Encode()
-  	// decode
-  	res, _, _ := y3.DecodeNodePacket(buf)
-  	for _, v := range res.NodePackets {
-  		if res.SeqID() != 0x01 {
-  			continue
-  		}
-  		for _, vv := range v.PrimitivePackets {
-  			if vv.SeqID() == 0x10 {
-  				fmt.Printf("0x10=%f\n", func() float32 {
-  					val, _ := vv.ToFloat32()
-  					return val
-  				}())
-  			}
-  			if vv.SeqID() == 0x11 {
-  				fmt.Printf("0x11=%d\n", func() int64 {
-  					val, _ := vv.ToInt64()
-  					return val
-  				}())
-  			}
-  		}
-  	}
+  // encode
+  var node = y3.NewNodeSlicePacketEncoder(0x01)
+  for i := 0; i < 2; i++ {
+    item := y3.NewNodePacketEncoder(0x00)
+    item.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
+      var prim1 = y3.NewPrimitivePacketEncoder(0x10)
+      prim1.SetFloat32Value(40.5)
+      return prim1
+    }())
+    item.AddPrimitivePacket(func() *y3.PrimitivePacketEncoder {
+      var prim1 = y3.NewPrimitivePacketEncoder(0x11)
+      prim1.SetInt64Value(time.Now().Unix())
+      return prim1
+    }())
+    node.AddNodePacket(item)
+  }
+  buf := node.Encode()
+  // decode
+  res, _, _ := y3.DecodeNodePacket(buf)
+  for _, v := range res.NodePackets {
+    if res.SeqID() != 0x01 {
+      continue
+    }
+    for _, vv := range v.PrimitivePackets {
+      if vv.SeqID() == 0x10 {
+        fmt.Printf("0x10=%f\n", func() float32 {
+          val, _ := vv.ToFloat32()
+          return val
+        }())
+      }
+      if vv.SeqID() == 0x11 {
+        fmt.Printf("0x11=%d\n", func() int64 {
+          val, _ := vv.ToInt64()
+          return val
+        }())
+      }
+    }
+  }
   </pre>
 </details>
 
