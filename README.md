@@ -122,7 +122,7 @@ More examples in `/examples/`
 
 ## Types
 
-Y3 implements the [YoMo Codec](https://github.com/yomorun/yomo-codec) protocol and supports the following Golang data types and provides [Hight-Level](https://github.com/yomorun/y3-codec-golang/blob/master/README.md#types) wrappers.
+Y3 implements the [YoMo Codec](https://github.com/yomorun/yomo-codec) protocol and supports the following Golang data types and provides [Hight-Level]( https://github.com/yomorun/y3-codec-golang/blob/master/explainer.md#types) wrappers.
 
 <details>
   <summary>int32</summary>
