@@ -107,16 +107,17 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 
 <details>
   <summary>struct</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
   func main() {
     // Simulate source to generate and send data
-    data := <b>NoiseData</b>{Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"}
+    data := NoiseData{Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"}
     sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
     source := y3.FromStream(bytes.NewReader(sendingBuf))
     // Simulate flow listening and decoding data
     var decode = func(v []byte) (interface{}, error) {
         var obj NoiseData
-        err := y3.<b>ToObject</b>(v, <b>&obj</b>)
+        err := y3.ToObject(v, &obj)
         if err != nil {
             return nil, err
         }
@@ -127,19 +128,20 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
     for range consumer {
     }
   }
-  type <b>NoiseData</b> struct {
+  type NoiseData struct {
       Noise float32 `y3:"0x11"`
       Time  int64   `y3:"0x12"`
       From  string  `y3:"0x13"`
   }
-  </pre>
+  ```
 </details>
 <details>
   <summary>struct slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
     func main() {
       // Simulate source to generate and send data
-      data := <b>[]NoiseData</b>{
+      data := []NoiseData{
           {Noise: 40, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
           {Noise: 50, Time: time.Now().UnixNano() / 1e6, From: "127.0.0.1"},
       }
@@ -148,7 +150,7 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
       // Simulate flow listening and decoding data
       var decode = func(v []byte) (interface{}, error) {
           var sl []NoiseData
-          err := y3.<b>ToObject</b>(v, <b>&sl</b>)
+          err := y3.ToObject(v, &sl)
           if err != nil {
               return nil, err
           }
@@ -159,23 +161,24 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
       for range consumer {
       }
     }
-    type <b>NoiseData</b> struct {
+    type NoiseData struct {
         Noise float32 `y3:"0x11"`
         Time  int64   `y3:"0x12"`
         From  string  `y3:"0x13"`
     }
-  </pre>
+  ```
 </details>
 <details>
   <summary>int32</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	var data <b>int32</b> = 123
+	var data int32 = 123
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToInt32</b>(v)
+		sl, err := y3.ToInt32(v)
 		if err != nil {
 			return nil, err
 		}
@@ -185,18 +188,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>int32 slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
     // Simulate source to generate and send data
-    data := []<b>int32</b>{123, 456}
+    data := []int32{123, 456}
     sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
     source := y3.FromStream(bytes.NewReader(sendingBuf))
     // Simulate flow listening and decoding data
     var decode = func(v []byte) (interface{}, error) {
-        sl, err := y3.<b>ToInt32Slice</b>(v)
+        sl, err := y3.ToInt32Slice(v)
         if err != nil {
             return nil, err
         }
@@ -206,18 +210,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
     consumer := source.Subscribe(0x10).OnObserve(decode)
     for range consumer {
     }
-  </pre>
+  ```
 </details>
 <details>
   <summary>uint32</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	var data <b>uint32</b> = 123
+	var data uint32 = 123
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToUInt32</b>(v)
+		sl, err := y3.ToUInt32(v)
 		if err != nil {
 			return nil, err
 		}
@@ -227,18 +232,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>uint32 slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
   // Simulate source to generate and send data
-  data := []<b>uint32</b>{123, 456}
+  data := []uint32{123, 456}
   sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
   source := y3.FromStream(bytes.NewReader(sendingBuf))
   // Simulate flow listening and decoding data
   var decode = func(v []byte) (interface{}, error) {
-      sl, err := y3.<b>ToUInt32Slice</b>(v)
+      sl, err := y3.ToUInt32Slice(v)
       if err != nil {
           return nil, err
       }
@@ -248,18 +254,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
   consumer := source.Subscribe(0x10).OnObserve(decode)
   for range consumer {
   }
-  </pre>
+  ```
 </details>
 <details>
   <summary>int64</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	var data <b>int64</b> = 123
+	var data int64 = 123
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToInt64</b>(v)
+		sl, err := y3.ToInt64(v)
 		if err != nil {
 			return nil, err
 		}
@@ -269,18 +276,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>int64 slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
   // Simulate source to generate and send data
-  data := []<b>int64</b>{123, 456}
+  data := []int64{123, 456}
   sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
   source := y3.FromStream(bytes.NewReader(sendingBuf))
   // Simulate flow listening and decoding data
   var decode = func(v []byte) (interface{}, error) {
-      sl, err := y3.<b>ToInt64Slice</b>(v)
+      sl, err := y3.ToInt64Slice(v)
       if err != nil {
           return nil, err
       }
@@ -290,18 +298,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
   consumer := source.Subscribe(0x10).OnObserve(decode)
   for range consumer {
   }
-  </pre>
+  ```
 </details>
 <details>
   <summary>uint64</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	var data <b>uint64</b> = 123
+	var data uint64 = 123
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToUInt64</b>(v)
+		sl, err := y3.ToUInt64(v)
 		if err != nil {
 			return nil, err
 		}
@@ -311,18 +320,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>uint64 slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	data := []<b>uint64</b>{123, 456}
+	data := []uint64{123, 456}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToUInt64Slice</b>(v)
+		sl, err := y3.ToUInt64Slice(v)
 		if err != nil {
 			return nil, err
 		}
@@ -332,18 +342,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>float32</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	var data <b>float32</b> = 1.23
+	var data float32 = 1.23
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToFloat32</b>(v)
+		sl, err := y3.ToFloat32(v)
 		if err != nil {
 			return nil, err
 		}
@@ -353,18 +364,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>float32 slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
   // Simulate source to generate and send data
-	data := []<b>float32</b>{1.23, 4.56}
+	data := []float32{1.23, 4.56}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToFloat32Slice</b>(v)
+		sl, err := y3.ToFloat32Slice(v)
 		if err != nil {
 			return nil, err
 		}
@@ -374,18 +386,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>float64</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	var data <b>float64</b> = 1.23
+	var data float64 = 1.23
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToFloat64</b>(v)
+		sl, err := y3.ToFloat64(v)
 		if err != nil {
 			return nil, err
 		}
@@ -395,18 +408,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>float64 slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	data := []<b>float64</b>{1.23, 4.56}
+	data := []float64{1.23, 4.56}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToFloat64Slice</b>(v)
+		sl, err := y3.ToFloat64Slice(v)
 		if err != nil {
 			return nil, err
 		}
@@ -416,18 +430,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>bool</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
 	data := true
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToBool</b>(v)
+		sl, err := y3.ToBool(v)
 		if err != nil {
 			return nil, err
 		}
@@ -437,18 +452,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>bool slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	data := []<b>bool</b>{true, false}
+	data := []bool{true, false}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToBoolSlice</b>(v)
+		sl, err := y3.ToBoolSlice(v)
 		if err != nil {
 			return nil, err
 		}
@@ -458,18 +474,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>string</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
 	data := "abc"
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToUTF8String</b>(v)
+		sl, err := y3.ToUTF8String(v)
 		if err != nil {
 			return nil, err
 		}
@@ -479,18 +496,19 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 <details>
   <summary>string slice</summary>
-  <pre class="go" style="background-color: aliceblue">
+  
+  ```golang
 	// Simulate source to generate and send data
-	data := []<b>string</b>{"a", "b"}
+	data := []string{"a", "b"}
 	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
 	source := y3.FromStream(bytes.NewReader(sendingBuf))
 	// Simulate flow listening and decoding data
 	var decode = func(v []byte) (interface{}, error) {
-		sl, err := y3.<b>ToUTF8StringSlice</b>(v)
+		sl, err := y3.ToUTF8StringSlice(v)
 		if err != nil {
 			return nil, err
 		}
@@ -500,7 +518,7 @@ Unified encoding method: `y3.NewCodec(observe byte).Marshal(input interface{})`
 	consumer := source.Subscribe(0x10).OnObserve(decode)
 	for range consumer {
 	}
-  </pre>
+  ```
 </details>
 
 More examples in `/examples/`
