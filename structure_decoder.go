@@ -393,6 +393,12 @@ func (d *structDecoderImpl) takePrimitiveValue(fieldType reflect.Type, primitive
 			panic(err)
 		}
 		return reflect.Indirect(reflect.ValueOf(val)), true
+	case reflect.Slice:
+		if fieldType == utils.TypeOfByteSlice {
+			val := primitivePacket.ToBytes()
+			return reflect.Indirect(reflect.ValueOf(val)), true
+		}
+		panic(errors.New("::takeValueByKey error: no matching type"))
 	default:
 		panic(errors.New("::takeValueByKey error: no matching type"))
 	}

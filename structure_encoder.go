@@ -200,6 +200,14 @@ func (e *structEncoderImpl) encodeStructFromField(fieldType reflect.Type, fieldN
 	}
 
 	var ppe = NewPrimitivePacketEncoder(int(utils.KeyOf(fieldName)))
+	if fieldType == utils.TypeOfByteSlice {
+		ppe.SetBytesValue(e.fieldValueToBytes(fieldType, fieldValue))
+		if !ppe.IsEmpty() {
+			en.AddPrimitivePacket(ppe)
+		}
+		return
+	}
+
 	switch fieldType.Kind() {
 	case reflect.String:
 		ppe.SetStringValue(e.fieldValueToString(fieldType, fieldValue))
@@ -316,4 +324,12 @@ func (e *structEncoderImpl) fieldValueToBool(fieldType reflect.Type, fieldValue 
 		return reflect.Zero(fieldType).Bool()
 	}
 	return fieldValue.Bool()
+}
+
+// fieldValueToBytes get []bytes value from fieldValue
+func (e *structEncoderImpl) fieldValueToBytes(fieldType reflect.Type, fieldValue reflect.Value) []byte {
+	if fieldValue.IsZero() && e.config.ZeroFields {
+		return reflect.Zero(fieldType).Bytes()
+	}
+	return fieldValue.Bytes()
 }

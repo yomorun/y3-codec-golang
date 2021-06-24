@@ -135,6 +135,11 @@ func (enc *PrimitivePacketEncoder) SetStringValue(v string) {
 	enc.valbuf = []byte(v)
 }
 
+// SetBytesValue encode []byte
+func (enc *PrimitivePacketEncoder) SetBytesValue(v []byte) {
+	enc.valbuf = v
+}
+
 // SetBytes set bytes to internal buf variable
 func (enc *PrimitivePacketEncoder) SetBytes(buf []byte) {
 	enc.valbuf = buf
