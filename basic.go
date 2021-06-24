@@ -79,28 +79,32 @@ func (e *basicEncoderImpl) encodeBasic(input interface{}, signals []*PrimitivePa
 	var primitiveEncoder *PrimitivePacketEncoder
 
 	value := reflect.ValueOf(input)
-	switch value.Kind() {
-	case reflect.String:
-		primitiveEncoder = e.encodeBasicString(input)
-	case reflect.Int32:
-		primitiveEncoder = e.encodeBasicInt32(input)
-	case reflect.Uint32:
-		primitiveEncoder = e.encodeBasicUint32(input)
-	case reflect.Int64:
-		primitiveEncoder = e.encodeBasicInt64(input)
-	case reflect.Uint64:
-		primitiveEncoder = e.encodeBasicUint64(input)
-	case reflect.Float32:
-		primitiveEncoder = e.encodeBasicFloat32(input)
-	case reflect.Float64:
-		primitiveEncoder = e.encodeBasicFloat64(input)
-	case reflect.Bool:
-		primitiveEncoder = e.encodeBasicBool(input)
-	case reflect.Array, reflect.Slice:
-		//e.marshalBasicSlice(value, e.root)
-		return e.encodeBasicSlice(value, signals)
-	default:
-		panic(fmt.Errorf("marshal error, no matching type: %v", value.Kind()))
+	if value.Type() == utils.TypeOfByteSlice {
+		primitiveEncoder = e.encodeBytes(input)
+	} else {
+		switch value.Kind() {
+		case reflect.String:
+			primitiveEncoder = e.encodeBasicString(input)
+		case reflect.Int32:
+			primitiveEncoder = e.encodeBasicInt32(input)
+		case reflect.Uint32:
+			primitiveEncoder = e.encodeBasicUint32(input)
+		case reflect.Int64:
+			primitiveEncoder = e.encodeBasicInt64(input)
+		case reflect.Uint64:
+			primitiveEncoder = e.encodeBasicUint64(input)
+		case reflect.Float32:
+			primitiveEncoder = e.encodeBasicFloat32(input)
+		case reflect.Float64:
+			primitiveEncoder = e.encodeBasicFloat64(input)
+		case reflect.Bool:
+			primitiveEncoder = e.encodeBasicBool(input)
+		case reflect.Array, reflect.Slice:
+			//e.marshalBasicSlice(value, e.root)
+			return e.encodeBasicSlice(value, signals)
+		default:
+			panic(fmt.Errorf("marshal error, no matching type: %v", value.Kind()))
+		}
 	}
 
 	if primitiveEncoder == nil {
@@ -227,6 +231,13 @@ func (e *basicEncoderImpl) encodeBasicFloat64(input interface{}) *PrimitivePacke
 func (e *basicEncoderImpl) encodeBasicBool(input interface{}) *PrimitivePacketEncoder {
 	var encoder = NewPrimitivePacketEncoder(int(e.observe))
 	encoder.SetBoolValue(input.(bool))
+	return encoder
+}
+
+// encodeBytes encode []byte to PrimitivePacketEncoder
+func (e *basicEncoderImpl) encodeBytes(input interface{}) *PrimitivePacketEncoder {
+	var encoder = NewPrimitivePacketEncoder(int(e.observe))
+	encoder.SetBytesValue(input.([]byte))
 	return encoder
 }
 

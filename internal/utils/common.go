@@ -1,5 +1,7 @@
 package utils
 
+import "reflect"
+
 // MSB 描述了`1000 0000`, 用于表示后续字节仍然是该变长类型值的一部分
 const MSB byte = 0x80
 
@@ -20,3 +22,6 @@ const KeyStringOfSliceItem = "0x00"
 
 // RootToken 描述根节点的sid值
 const RootToken byte = 0x01
+
+// TypeOfByteSlice Type of []byte
+var TypeOfByteSlice = reflect.TypeOf([]byte{})

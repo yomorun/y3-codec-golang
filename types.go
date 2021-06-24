@@ -251,3 +251,11 @@ func ToUTF8StringSlice(v []byte) ([]string, error) {
 	}
 	return result, nil
 }
+
+func ToBytes(v []byte) ([]byte, error) {
+	primitivePacket, _, _, err := DecodePrimitivePacket(v)
+	if err != nil {
+		return nil, err
+	}
+	return primitivePacket.valBuf, nil
+}

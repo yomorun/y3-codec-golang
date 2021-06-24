@@ -106,10 +106,11 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 | bool slice    | y3.ToBoolSlice       |
 | string        | y3.ToUTF8String      |
 | string slice  | y3.ToUTF8StringSlice |
+| []byte        | y3.ToBytes           |
 
 <details>
   <summary>struct</summary>
-  
+
   ```golang
   func main() {
     // Simulate source to generate and send data
@@ -139,7 +140,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>struct slice</summary>
-  
+
   ```golang
     func main() {
       // Simulate source to generate and send data
@@ -172,7 +173,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>int32</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	var data int32 = 123
@@ -194,7 +195,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>int32 slice</summary>
-  
+
   ```golang
     // Simulate source to generate and send data
     data := []int32{123, 456}
@@ -216,7 +217,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>uint32</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	var data uint32 = 123
@@ -238,7 +239,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>uint32 slice</summary>
-  
+
   ```golang
   // Simulate source to generate and send data
   data := []uint32{123, 456}
@@ -260,7 +261,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>int64</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	var data int64 = 123
@@ -282,7 +283,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>int64 slice</summary>
-  
+
   ```golang
   // Simulate source to generate and send data
   data := []int64{123, 456}
@@ -304,7 +305,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>uint64</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	var data uint64 = 123
@@ -326,7 +327,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>uint64 slice</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	data := []uint64{123, 456}
@@ -348,7 +349,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>float32</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	var data float32 = 1.23
@@ -370,7 +371,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>float32 slice</summary>
-  
+
   ```golang
   // Simulate source to generate and send data
 	data := []float32{1.23, 4.56}
@@ -392,7 +393,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>float64</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	var data float64 = 1.23
@@ -414,7 +415,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>float64 slice</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	data := []float64{1.23, 4.56}
@@ -436,7 +437,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>bool</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	data := true
@@ -458,7 +459,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>bool slice</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	data := []bool{true, false}
@@ -480,7 +481,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>string</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	data := "abc"
@@ -502,7 +503,7 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 </details>
 <details>
   <summary>string slice</summary>
-  
+
   ```golang
 	// Simulate source to generate and send data
 	data := []string{"a", "b"}
@@ -515,6 +516,28 @@ Y3提供`High-Level`的封装，用于支持像[YoMo](https://github.com/yomorun
 			return nil, err
 		}
 		fmt.Printf("encoded data: %v\n", sl)
+		return sl, nil
+	}
+	consumer := source.Subscribe(0x10).OnObserve(decode)
+	for range consumer {
+	}
+  ```
+</details>
+<details>
+  <summary>[]byte</summary>
+
+  ```golang
+	// Simulate source to generate and send data
+	data := []byte{0x20, 0x21, 0x22}
+	sendingBuf, _ := y3.NewCodec(0x10).Marshal(data)
+	source := y3.FromStream(bytes.NewReader(sendingBuf))
+	// Simulate flow listening and decoding data
+	var decode = func(v []byte) (interface{}, error) {
+		sl, err := y3.ToBytes(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("encoded data: %#v\n", sl)
 		return sl, nil
 	}
 	consumer := source.Subscribe(0x10).OnObserve(decode)
