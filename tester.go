@@ -42,6 +42,8 @@ func (t *observableTester) Init(callback func(v []byte) (interface{}, error)) *o
 	go func() {
 		for c := range consumer {
 			if c != 0 {
+				//TODO: Why empty branch?
+				testPrintf("TODO: Empty branch reached\n")
 			}
 		}
 	}()

@@ -213,7 +213,7 @@ func (enc *encoder) writeTag() {
 func (enc *encoder) writeLengthBuf() {
 	// vallen := enc.valBuf.Len()
 	vallen := len(enc.valbuf)
-	if vallen < 1 {
+	if vallen < 0 {
 		panic("length must greater than 0")
 	}
 

@@ -139,14 +139,14 @@ func TestArray(t *testing.T) {
 	t.Parallel()
 
 	input := tester.ArrayTestData{
-		"foo",
-		[2]string{"foo", "bar"},
-		[2]int32{1, 2},
-		[2]int64{1, 2},
-		[2]uint32{1, 2},
-		[2]uint64{1, 2},
-		[2]float32{1, 2},
-		[2]float64{1, 2},
+		Vfoo:          "foo",
+		Vbar:          [2]string{"foo", "bar"},
+		Vint32Array:   [2]int32{1, 2},
+		Vint64Array:   [2]int64{1, 2},
+		Vuint32Array:  [2]uint32{1, 2},
+		Vuint64Array:  [2]uint64{1, 2},
+		Vfloat32Array: [2]float32{1, 2},
+		Vfloat64Array: [2]float64{1, 2},
 	}
 	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 
@@ -170,14 +170,46 @@ func TestSlice(t *testing.T) {
 	t.Parallel()
 
 	input := tester.SliceTestData{
-		"foo",
-		[]string{"foo", "bar"},
-		[]int32{1, 2},
-		[]int64{1, 2},
-		[]uint32{1, 2},
-		[]uint64{1, 2},
-		[]float32{1, 2},
-		[]float64{1, 2},
+		Vfoo:          "foo",
+		Vbar:          []string{"foo", "bar"},
+		Vint32Slice:   []int32{1, 2},
+		Vint64Slice:   []int64{1, 2},
+		Vuint32Slice:  []uint32{1, 2},
+		Vuint64Slice:  []uint64{1, 2},
+		Vfloat32Slice: []float32{1, 2},
+		Vfloat64Slice: []float64{1, 2},
+	}
+
+	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
+
+	var result tester.SliceTestData
+	_, err := newStructDecoder(&result).Decode(inputBuf)
+	if err != nil {
+		t.Errorf("got an err: %s", err.Error())
+		t.FailNow()
+	}
+
+	testSliceString(t, result.Vbar, input.Vbar)
+	testSliceInt32(t, result.Vint32Slice, input.Vint32Slice)
+	testSliceInt64(t, result.Vint64Slice, input.Vint64Slice)
+	testSliceUint32(t, result.Vuint32Slice, input.Vuint32Slice)
+	testSliceUint64(t, result.Vuint64Slice, input.Vuint64Slice)
+	testSliceFloat32(t, result.Vfloat32Slice, input.Vfloat32Slice)
+	testSliceFloat64(t, result.Vfloat64Slice, input.Vfloat64Slice)
+}
+
+func TestEmptySlice(t *testing.T) {
+	t.Parallel()
+
+	input := tester.SliceTestData{
+		Vfoo:          "foo",
+		Vbar:          []string{},
+		Vint32Slice:   []int32{},
+		Vint64Slice:   []int64{},
+		Vuint32Slice:  []uint32{},
+		Vuint64Slice:  []uint64{},
+		Vfloat32Slice: []float32{},
+		Vfloat64Slice: []float64{},
 	}
 
 	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
@@ -373,9 +405,12 @@ func TestRootSliceWithSliceStruct(t *testing.T) {
 func TestNested(t *testing.T) {
 	t.Parallel()
 
-	input := tester.NestedTestData{tester.Sub1NestedTestData{tester.Sub2NestedTestData{tester.Sub3NestedTestData{
-		BasicList: []tester.BasicTestData{newBasic(), newBasic()},
-	}}}}
+	input := tester.NestedTestData{
+		SubNested: tester.Sub1NestedTestData{
+			SubNested: tester.Sub2NestedTestData{
+				SubNested: tester.Sub3NestedTestData{
+					BasicList: []tester.BasicTestData{newBasic(), newBasic()},
+				}}}}
 
 	inputBuf, _ := newStructEncoder(0x3f, structEncoderOptionRoot(utils.RootToken)).Encode(input)
 

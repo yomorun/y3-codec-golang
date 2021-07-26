@@ -6,8 +6,8 @@ import (
 	"github.com/yomorun/y3-codec-golang/pkg/encoding"
 )
 
-// 描述最小的Packet大小为3个字节
-const primitivePacketBufferMinimalLength = 3
+// the minimal length of a packet is 2 bytes
+const primitivePacketBufferMinimalLength = 2
 
 // PrimitivePacket 定义了值类型的节点，是Codec中的最小单位，以`TLV结构`进行数据描述
 type PrimitivePacket basePacket
