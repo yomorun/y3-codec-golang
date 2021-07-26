@@ -139,3 +139,22 @@ func TestEncoderPrimitiveBinary(t *testing.T) {
 		}
 	}
 }
+
+// 0x01 (is a node, sequence id=1)
+//   0x04 (pvarint, node value length is 4 bytes)
+//     0x59, 0x6F, 0x4D, 0x6F (utf-8 string: "YoMo")
+func TestEncoderPrimitiveBinaryWithEmptyValue(t *testing.T) {
+	expected := []byte{0x01, 0x00}
+	// 0x01 - SeqID=1
+	var prim = NewPrimitivePacketEncoder(0x01)
+	// Value = 0x0123FF
+	prim.SetBytes([]byte{})
+
+	res := prim.Encode()
+
+	for i, p := range res {
+		if p != expected[i] {
+			t.Errorf("i=%v, expected=%v, actual=%v", i, expected[i], res[i])
+		}
+	}
+}

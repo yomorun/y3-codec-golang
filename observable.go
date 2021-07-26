@@ -173,6 +173,12 @@ func (o *observableImpl) Subscribe(key byte) Observable {
 							resultBuffer = append(resultBuffer, b)
 							l, e := common.DecodeLength(resultBuffer[1 : length+1]) //l 是value占字节，s是l占字节
 
+							if l == 0 {
+								next <- resultBuffer
+								reject = true
+								break
+							}
+
 							if e != nil {
 								length++
 							} else {

@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-// 每个Packet最小长度是3个bytes
+// 每个Packet最小长度是2个bytes
 func TestLackLengthPacket(t *testing.T) {
-	buf := []byte{0x01, 0x01}
+	buf := []byte{0x01}
 	expected := "invalid y3 packet minimal size"
 	_, _, _, err := DecodePrimitivePacket(buf)
 	if err.Error() != expected {

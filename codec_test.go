@@ -58,6 +58,12 @@ func TestMarshalUTF8String(t *testing.T) {
 	})
 }
 
+func TestMarshalEmptyUTF8String(t *testing.T) {
+	testMarshalBasic(t, "", func(v []byte) (interface{}, error) {
+		return ToUTF8String(v)
+	})
+}
+
 func TestMarshalInt32Slice(t *testing.T) {
 	testMarshalBasicSlice(t, []int32{123, 456}, func(v []byte) (interface{}, error) {
 		return ToInt32Slice(v)
@@ -145,13 +151,16 @@ func testMarshalBasic(t *testing.T, expected interface{}, converter func(v []byt
 	input := expected
 	codec := NewCodec(0x10)
 	inputBuf, _ := codec.Marshal(input)
-	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
+	testPrintf("inputBuf=%# x\n", inputBuf)
 
 	testDecoder(0x10, inputBuf, func(v []byte) (interface{}, error) {
 		flag = true
 		value, err := converter(v)
 		testPrintf("value=%v\n", value)
-		assert.NoError(t, err, fmt.Sprintf("decode error:%v", err))
+		if err != nil {
+			assert.Nil(t, err, ">>>>err is not nil>>>>")
+		}
+		// assert.NoError(t, err, fmt.Sprintf("decode error:%v", err))
 		assert.Equal(t, expected, value, fmt.Sprintf("value does not match(%v): %v", expected, value))
 		return value, err
 	})
