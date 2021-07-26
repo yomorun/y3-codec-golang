@@ -187,7 +187,7 @@ func (d *structDecoderImpl) decodeStructFromNodePacket(fieldType reflect.Type, f
 
 	obtainedValue, flag := d.takeValueByKey(fieldName, fieldType, dataVal)
 	if !flag {
-		if d.config.ZeroFields == false {
+		if !d.config.ZeroFields {
 			return fmt.Errorf("not fond fieldName:%#x", fieldName)
 		}
 		// 用空值填充找不到的字段
@@ -217,7 +217,7 @@ func (d *structDecoderImpl) getKind(val reflect.Value) reflect.Kind {
 func (d *structDecoderImpl) takeValueByKey(fieldName string, fieldType reflect.Type, node *NodePacket) (reflect.Value, bool) {
 	key := utils.KeyOf(fieldName)
 	flag, isNode, packet := d.matchingKey(key, node)
-	if flag == false {
+	if !flag {
 		return reflect.Indirect(reflect.ValueOf(packet)), false
 	}
 	if isNode {

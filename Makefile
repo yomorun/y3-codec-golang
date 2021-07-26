@@ -2,7 +2,7 @@ GO ?= go
 GOFMT ?= gofmt -s
 GOLINT ?= ~/go/bin/golint
 GOFILES := $(shell find . -name "*.go")
-VETPACKAGES ?= $(shell $(GO) list ./... | grep -v /examples/)
+VETPACKAGES ?= $(shell $(GO) list ./... | grep -v /examples)
 
 .PHONY: fmt
 fmt:
@@ -15,7 +15,7 @@ lint:
 	$(GOLINT) $(GOFILES)
 
 test:
-	$(GO) test -v ./...
+	$(GO) test $(VETPACKAGES)
 
 cover:
-	$(GO) test -coverprofile=prof.out && $(GO) tool cover -html=prof.out && rm prof.out
+	$(GO) test $(VETPACKAGES) -coverprofile=prof.out && $(GO) tool cover -html=prof.out && rm prof.out
