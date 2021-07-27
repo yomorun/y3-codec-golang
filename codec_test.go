@@ -199,6 +199,38 @@ func TestMarshalObject(t *testing.T) {
 	}
 }
 
+func TestMarshalObjectPointer(t *testing.T) {
+	flag := false
+	input := &exampleData{
+		Name:  "yomo",
+		Noise: float32(456),
+		Therm: thermometer{Temperature: float32(30), Humidity: float32(40)},
+	}
+
+	codec := NewCodec(0x30)
+	inputBuf, err := codec.Marshal(input)
+	assert.NoError(t, err)
+	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
+
+	testDecoder(0x30, inputBuf, func(v []byte) (interface{}, error) {
+		flag = true
+		testPrintf("v=%#x\n", v)
+		var mold exampleData
+		err := ToObject(v, &mold)
+		assert.NoError(t, err, fmt.Sprintf("decode error:%v", err))
+		testPrintf("mold=%v\n", mold)
+		assert.Equal(t, input.Name, mold.Name)
+		assert.Equal(t, input.Noise, mold.Noise)
+		assert.Equal(t, input.Therm.Temperature, mold.Therm.Temperature)
+		assert.Equal(t, input.Therm.Humidity, mold.Therm.Humidity)
+		return mold, err
+	})
+
+	if !flag {
+		t.Error("The key 0x30 is not observed")
+	}
+}
+
 func TestMarshalObjectSlice(t *testing.T) {
 	flag := false
 	input := exampleSlice{

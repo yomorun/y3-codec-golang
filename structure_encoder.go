@@ -96,7 +96,7 @@ func (e *structEncoderImpl) encode(input interface{}, signals []*PrimitivePacket
 	var inputVal reflect.Value
 
 	if input != nil {
-		inputVal = reflect.ValueOf(input)
+		inputVal = reflect.Indirect(reflect.ValueOf(input))
 		if inputVal.Kind() == reflect.Ptr && inputVal.IsNil() {
 			input = nil
 		}
@@ -115,9 +115,9 @@ func (e *structEncoderImpl) encode(input interface{}, signals []*PrimitivePacket
 	inputKind := inputVal.Kind()
 	switch inputKind {
 	case reflect.Struct:
-		nodeEncoder = e.encodeStruct(reflect.ValueOf(input), NewNodePacketEncoder(int(e.observe)))
+		nodeEncoder = e.encodeStruct(inputVal, NewNodePacketEncoder(int(e.observe)))
 	case reflect.Slice:
-		nodeEncoder = e.encodeSlice(reflect.ValueOf(input), NewNodePacketEncoder(int(e.observe)))
+		nodeEncoder = e.encodeSlice(inputVal, NewNodePacketEncoder(int(e.observe)))
 	default:
 		return nil, fmt.Errorf("unsupported type: %s", inputKind)
 	}
