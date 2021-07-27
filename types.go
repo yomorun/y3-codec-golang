@@ -31,9 +31,10 @@ func ToInt32Slice(v []byte) ([]int32, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
+
 	result := make([]int32, 0)
 	for _, p := range packet.PrimitivePackets {
 		v, _ := p.ToInt32()
@@ -61,7 +62,7 @@ func ToUInt32Slice(v []byte) ([]uint32, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]uint32, 0)
@@ -91,7 +92,7 @@ func ToInt64Slice(v []byte) ([]int64, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]int64, 0)
@@ -121,7 +122,7 @@ func ToUInt64Slice(v []byte) ([]uint64, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]uint64, 0)
@@ -151,7 +152,7 @@ func ToFloat32Slice(v []byte) ([]float32, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]float32, 0)
@@ -181,7 +182,7 @@ func ToFloat64Slice(v []byte) ([]float64, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]float64, 0)
@@ -211,7 +212,7 @@ func ToBoolSlice(v []byte) ([]bool, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]bool, 0)
@@ -241,7 +242,7 @@ func ToUTF8StringSlice(v []byte) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !packet.IsSlice() || len(packet.PrimitivePackets) <= 0 {
+	if !packet.IsSlice() {
 		return nil, fmt.Errorf("v not a slice: %v", utils.FormatBytes(v))
 	}
 	result := make([]string, 0)

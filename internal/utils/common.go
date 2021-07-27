@@ -25,3 +25,27 @@ const RootToken byte = 0x01
 
 // TypeOfByteSlice Type of []byte
 var TypeOfByteSlice = reflect.TypeOf([]byte{})
+
+// TyeOfStringSlice Type of []string{}
+var TyeOfStringSlice = reflect.TypeOf([]string{})
+
+// TyeOfInt32Slice Type of []int32{}
+var TyeOfInt32Slice = reflect.TypeOf([]int32{})
+
+// TyeOfUint32Slice Type of []uint32{}
+var TyeOfUint32Slice = reflect.TypeOf([]uint32{})
+
+// TyeOfInt64Slice Type of []int64{}
+var TyeOfInt64Slice = reflect.TypeOf([]int64{})
+
+// TyeOfUint64Slice Type of []uint64{}
+var TyeOfUint64Slice = reflect.TypeOf([]uint64{})
+
+// TyeOfFloat32Slice Type of []float32{}
+var TyeOfFloat32Slice = reflect.TypeOf([]float32{})
+
+// TyeOfFloat64Slice Type of []float64{}
+var TyeOfFloat64Slice = reflect.TypeOf([]float64{})
+
+// TyeOfBoolSlice Type of []bool{}
+var TyeOfBoolSlice = reflect.TypeOf([]bool{})

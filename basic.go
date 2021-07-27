@@ -130,28 +130,24 @@ func (e *basicEncoderImpl) encodeBasic(input interface{}, signals []*PrimitivePa
 
 // encodeBasicSlice encode reflect.Value of slice, and inserting signals
 func (e *basicEncoderImpl) encodeBasicSlice(value reflect.Value, signals []*PrimitivePacketEncoder) ([]byte, error) {
-	if value.Len() == 0 {
-		return nil, fmt.Errorf("no item is slice")
-	}
-
 	var nodeEncoder *NodePacketEncoder
 
-	switch value.Index(0).Kind() {
-	case reflect.String:
+	switch value.Type() {
+	case utils.TyeOfStringSlice:
 		nodeEncoder = e.encodeBasicStringSlice(value)
-	case reflect.Int32:
+	case utils.TyeOfInt32Slice:
 		nodeEncoder = e.encodeBasicInt32Slice(value)
-	case reflect.Uint32:
+	case utils.TyeOfUint32Slice:
 		nodeEncoder = e.encodeBasicUint32Slice(value)
-	case reflect.Int64:
+	case utils.TyeOfInt64Slice:
 		nodeEncoder = e.encodeBasicInt64Slice(value)
-	case reflect.Uint64:
+	case utils.TyeOfUint64Slice:
 		nodeEncoder = e.encodeBasicUint64Slice(value)
-	case reflect.Float32:
+	case utils.TyeOfFloat32Slice:
 		nodeEncoder = e.encodeBasicFloat32Slice(value)
-	case reflect.Float64:
+	case utils.TyeOfFloat64Slice:
 		nodeEncoder = e.encodeBasicFloat64Slice(value)
-	case reflect.Bool:
+	case utils.TyeOfBoolSlice:
 		nodeEncoder = e.encodeBasicBoolSlice(value)
 	default:
 		panic(fmt.Errorf("marshal error, no matching type in SliceTestData: %v", value.Index(0).Kind()))
