@@ -70,8 +70,20 @@ func TestMarshalInt32Slice(t *testing.T) {
 	})
 }
 
+func TestMarshalInt32SliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []int32{}, func(v []byte) (interface{}, error) {
+		return ToInt32Slice(v)
+	})
+}
+
 func TestMarshalUInt32Slice(t *testing.T) {
 	testMarshalBasicSlice(t, []uint32{11, 22}, func(v []byte) (interface{}, error) {
+		return ToUInt32Slice(v)
+	})
+}
+
+func TestMarshalUInt32SliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []uint32{}, func(v []byte) (interface{}, error) {
 		return ToUInt32Slice(v)
 	})
 }
@@ -82,8 +94,20 @@ func TestMarshalInt64Slice(t *testing.T) {
 	})
 }
 
+func TestMarshalInt64SliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []int64{}, func(v []byte) (interface{}, error) {
+		return ToInt64Slice(v)
+	})
+}
+
 func TestMarshalUInt64Slice(t *testing.T) {
 	testMarshalBasicSlice(t, []uint64{0, 1}, func(v []byte) (interface{}, error) {
+		return ToUInt64Slice(v)
+	})
+}
+
+func TestMarshalUInt64SliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []uint64{}, func(v []byte) (interface{}, error) {
 		return ToUInt64Slice(v)
 	})
 }
@@ -94,8 +118,20 @@ func TestMarshalFloat32Slice(t *testing.T) {
 	})
 }
 
+func TestMarshalFloat32SliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []float32{}, func(v []byte) (interface{}, error) {
+		return ToFloat32Slice(v)
+	})
+}
+
 func TestMarshalFloat64Slice(t *testing.T) {
 	testMarshalBasicSlice(t, []float64{0.12, 0.45}, func(v []byte) (interface{}, error) {
+		return ToFloat64Slice(v)
+	})
+}
+
+func TestMarshalFloat64SliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []float64{}, func(v []byte) (interface{}, error) {
 		return ToFloat64Slice(v)
 	})
 }
@@ -106,8 +142,20 @@ func TestMarshalBoolSlice(t *testing.T) {
 	})
 }
 
+func TestMarshalBoolSliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []bool{}, func(v []byte) (interface{}, error) {
+		return ToBoolSlice(v)
+	})
+}
+
 func TestMarshalUTF8StringSlice(t *testing.T) {
 	testMarshalBasicSlice(t, []string{"a", "b"}, func(v []byte) (interface{}, error) {
+		return ToUTF8StringSlice(v)
+	})
+}
+
+func TestMarshalUTF8StringSliceNil(t *testing.T) {
+	testMarshalBasicSlice(t, []string{}, func(v []byte) (interface{}, error) {
 		return ToUTF8StringSlice(v)
 	})
 }
@@ -263,6 +311,32 @@ func TestMarshalObjectSlice(t *testing.T) {
 	}
 }
 
+func TestMarshalObjectSliceNil(t *testing.T) {
+	flag := false
+	input := exampleSliceNil{
+		Names: []string{},
+	}
+
+	codec := NewCodec(0x30)
+	inputBuf, _ := codec.Marshal(input)
+	testPrintf("inputBuf=%v\n", utils.FormatBytes(inputBuf))
+
+	testDecoder(0x10, inputBuf, func(v []byte) (interface{}, error) {
+		flag = true
+		testPrintf("v=%#x\n", v)
+		var mold []string
+		err := ToObject(v, &mold)
+		assert.NoError(t, err, fmt.Sprintf("decode error:%v", err))
+		testPrintf("mold=%v\n", mold)
+		assert.Equal(t, 0, len(mold), fmt.Sprintf("value len does not match(%v): %v", 0, len(mold)))
+		return mold, err
+	})
+
+	if !flag {
+		t.Errorf("Observable does not listen to values")
+	}
+}
+
 type exampleData struct {
 	Name  string      `y3:"0x10"`
 	Noise float32     `y3:"0x11"`
@@ -276,4 +350,8 @@ type thermometer struct {
 
 type exampleSlice struct {
 	Therms []thermometer `y3:"0x12"`
+}
+
+type exampleSliceNil struct {
+	Names []string `y3:"0x10"`
 }
