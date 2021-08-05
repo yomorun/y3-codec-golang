@@ -2,6 +2,7 @@ package y3
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/yomorun/y3-codec-golang/internal/mark"
 	"github.com/yomorun/y3-codec-golang/pkg/encoding"
@@ -52,11 +53,19 @@ func DecodeNodePacket(buf []byte) (pct *NodePacket, endPos int, err error) {
 		return nil, 0, err
 	}
 
+	// `Value`
 	pct.basePacket.length = uint32(vallen)
 	pos += codec.Size
 
+	if vallen == 0 {
+		return pct, pos, nil
+	}
+
 	// `raw` is pct.Length() length
 	vl := int(vallen)
+	if vl < 0 {
+		panic(fmt.Sprintf("!!!!!!!! vl < 0, vallen=%d, uint32(vallen)=%d, int(vallen)=%d \n bytes=% x", vallen, pct.basePacket.length, vl, buf))
+	}
 	endPos = pos + vl
 	pct.basePacket.valBuf = make([]byte, vl)
 	copy(pct.basePacket.valBuf, buf[pos:endPos])

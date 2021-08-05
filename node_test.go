@@ -2,10 +2,11 @@ package y3
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// 测试一个简单的node
-// 若要表示一个JSON的结构：{
+// Assume a JSON object like this：
 // '0x04': {
 //   '0x01': -1,
 // },
@@ -16,34 +17,19 @@ import (
 func TestSimple1Node(t *testing.T) {
 	buf := []byte{0x84, 0x03, 0x01, 0x01, 0x7F}
 	res, packetLength, err := DecodeNodePacket(buf)
-	if err != nil {
-		t.Errorf("err should be nil, actual = %v", err)
-	}
-
-	if len(res.PrimitivePackets) != 1 {
-		t.Errorf("len(res.nodes) actual = %v, and expected = %v", len(res.NodePackets), 1)
-	}
-
-	if res.SeqID() != 0x04 {
-		t.Errorf("res.SeqID actual = %v, and expected = %v", res.SeqID(), 0x04)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, len(buf), packetLength)
+	assert.Equal(t, 0, len(res.NodePackets))
+	assert.Equal(t, 1, len(res.PrimitivePackets))
+	assert.EqualValues(t, 0x04, res.SeqID())
 
 	v1, err := res.PrimitivePackets[0].ToInt32()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if v1 != int32(-1) {
-		t.Errorf("n1 value actual = %v, and expected = %v", v1, -1)
-	}
-
-	if packetLength != 5 {
-		t.Errorf("packetLength actual = %v, and Expected = %v", packetLength, 5)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, int32(-1), v1)
+	assert.Equal(t, 5, packetLength)
 }
 
-// 测试一个简单的node
-// 若要表示一个JSON的结构：
+// Assume a JSON object like this：
 // '0x03': {
 //   '0x01': -1,
 //   '0x02':  1,
@@ -56,39 +42,21 @@ func TestSimple1Node(t *testing.T) {
 func TestSimple2Nodes(t *testing.T) {
 	buf := []byte{0x83, 0x06, 0x01, 0x01, 0x7F, 0x02, 0x01, 0x01}
 	res, packetLength, err := DecodeNodePacket(buf)
-	if err != nil {
-		t.Errorf("err should be nil, actual = %v", err)
-	}
-
-	if len(res.PrimitivePackets) != 2 {
-		t.Errorf("len(res.nodes) actual = %v, and expected = %v", len(res.NodePackets), 2)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, len(buf), packetLength)
+	assert.Equal(t, 0, len(res.NodePackets))
+	assert.Equal(t, 2, len(res.PrimitivePackets))
 
 	v1, err := res.PrimitivePackets[0].ToInt32()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if v1 != int32(-1) {
-		t.Errorf("n1 value actual = %v, and expected = %v", v1, -1)
-	}
+	assert.NoError(t, err)
+	assert.EqualValues(t, -1, v1)
 
 	v2, err := res.PrimitivePackets[1].ToInt32()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if v2 != int32(1) {
-		t.Errorf("n1 value actual = %v, and expected = %v", v2, 1)
-	}
-
-	if packetLength != 8 {
-		t.Errorf("packetLength actual = %v, and Expected = %v", packetLength, 8)
-	}
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, v2)
 }
 
-// 测试一个简单的node
-// 若要表示一个JSON的结构：
+// Assume a JSON object like this：
 // '0x05': {
 //	'0x04': {
 //     '0x01': -1,
@@ -111,38 +79,42 @@ func TestSimple2Nodes(t *testing.T) {
 func TestComplexNodes(t *testing.T) {
 	buf := []byte{0x85, 0x0D, 0x84, 0x06, 0x01, 0x01, 0x7F, 0x02, 0x01, 0x43, 0x83, 0x03, 0x01, 0x01, 0x7E}
 	res, packetLength, err := DecodeNodePacket(buf)
-	if err != nil {
-		t.Errorf("err should be nil, actual = %v", err)
-	}
-
-	if packetLength != len(buf) {
-		t.Errorf("packetLength actual = %v, and expected = %v", packetLength, len(buf))
-	}
-
-	if len(res.NodePackets) != 2 {
-		t.Errorf("res.NodePackets actual = %v, and expected = %v", len(res.NodePackets), 2)
-	}
-
-	if len(res.PrimitivePackets) != 0 {
-		t.Errorf("res.PrimitivePackets actual = %v, and expected = %v", len(res.PrimitivePackets), 0)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, packetLength, len(buf))
+	assert.Equal(t, 2, len(res.NodePackets))
+	assert.Equal(t, 0, len(res.PrimitivePackets))
 
 	n1 := res.NodePackets[0]
-	if len(n1.PrimitivePackets) != 2 {
-		t.Errorf("n1.PrimitivePackets actual = %v, and expected = %v", len(n1.PrimitivePackets), 2)
-	}
+	assert.Equal(t, 2, len(n1.PrimitivePackets))
 
 	n1p1, _ := n1.PrimitivePackets[0].ToInt32()
 	n1p2, _ := n1.PrimitivePackets[1].ToUTF8String()
 
 	n2 := res.NodePackets[1]
-	if len(n2.PrimitivePackets) != 1 {
-		t.Errorf("n2.PrimitivePackets actual = %v, and expected = %v", len(n2.PrimitivePackets), 1)
-	}
+	assert.Equal(t, 1, len(n2.PrimitivePackets))
 
 	n2p1, _ := n2.PrimitivePackets[0].ToInt32()
-
 	if n1p1 != -1 || n1p2 != "C" || n2p1 != -2 {
 		t.Errorf("n1p1=%v, n1p2=%v, n2p1=%v", n1p1, n1p2, n2p1)
 	}
+}
+
+func TestEmptyNode(t *testing.T) {
+	buf := []byte{0x86, 0x00}
+	res, packetLength, err := DecodeNodePacket(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, len(buf), packetLength)
+	assert.Equal(t, 0, len(res.NodePackets))
+	assert.Equal(t, 0, len(res.PrimitivePackets))
+}
+
+func TestSubEmptyNode(t *testing.T) {
+	buf := []byte{0x86, 0x02, 0x83, 0x00}
+	res, packetLength, err := DecodeNodePacket(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, len(buf), packetLength)
+	assert.Equal(t, 1, len(res.NodePackets))
+	assert.Equal(t, 0, len(res.PrimitivePackets))
+	assert.Equal(t, 0, len(res.NodePackets[0].NodePackets))
+	assert.Equal(t, 0, len(res.NodePackets[0].PrimitivePackets))
 }
